@@ -31,6 +31,26 @@ mvn clean compile    # 确认编译通过（含 preview features）
 mvn test             # 确认所有测试通过
 ```
 
+## 分层验证清单
+
+按变更范围选择验证层级：
+
+| 层级 | 触发条件 | 命令 | 说明 |
+|------|---------|------|------|
+| Tier 1 | 任何代码变更 | `mvn clean compile` | 捕获语法/类型错误 |
+| Tier 2 | domain 层代码变更 | `mvn test -Dtest="*UnitTest"` | 捕获边界条件错误 |
+| Tier 3 | 有对应属性测试的上下文 | `mvn test -Dtest="*PropertyTest"` | 捕获不变量违反 |
+| Tier 4 | 持久层/API 适配器变更 | `mvn test -Dtest="*IntegrationTest"` | 捕获 DB/映射错误 |
+
+**最低要求**: 每个任务完成时至少通过 Tier 1。
+
+## 范例模式（Exemplar Pattern）
+
+Video 上下文（Phase 2 第一个实现的上下文）是**范例上下文**。后续 Metadata/Distribution/Promotion/User 上下文的实现：
+1. 先读目标上下文文档（A-I 节）
+2. 再参考 Video 上下文已实现的代码结构
+3. 镜像相同的文件组织、命名和测试模式
+
 ## 关键约束
 
 - **DDD 分层**：domain 层只有纯 Java，不依赖 Spring/MyBatis/任何框架

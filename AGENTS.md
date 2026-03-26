@@ -72,6 +72,41 @@ npm run lint                          # ESLint 检查
 npx tsc --noEmit                      # TypeScript 类型检查
 ```
 
+## Agent 工作流协议
+
+每次编码会话遵循以下循环：
+
+1. **加载上下文** — 读取当前 Phase 任务文件（`.ai/tasks/phase-N-*.md`），找到下一个未完成任务（状态为 `[ ]`）
+2. **阅读文档** — 只读取该任务"参考文档"字段指定的文档章节，不加载无关文档
+3. **实现** — 编写该任务"产出文件"列出的代码文件
+4. **验证** — 执行该任务"验证命令"；若失败则修复并重试（最多 3 次）
+5. **提交** — 验证通过后 `git add` + `git commit`（Conventional Commits 格式）
+6. **记录** — 在 `.ai/progress.md` 追加一行完成记录
+7. **学习** — 如遇非显而易见的问题，在 `.ai/learnings.md` 追加一条经验
+8. **更新状态** — 将任务状态改为 `[x]`
+9. **下一个** — 重复步骤 1
+
+### 会话恢复
+
+新会话开始时：
+1. 读取 `.ai/progress.md` 最后 20 行，了解上次进度
+2. 读取 `.ai/learnings.md`，加载积累的经验
+3. 读取当前 Phase 任务文件，从第一个 `[ ]` 任务继续
+
+### 阻塞处理
+
+如果一个任务连续 3 次验证失败：
+1. 将状态标记为 `[!]`（阻塞）
+2. 在 `.ai/progress.md` 记录失败原因
+3. 跳过该任务，继续下一个无依赖冲突的任务
+4. 在 `.ai/learnings.md` 记录导致阻塞的问题
+
+### 任务文件
+
+- 原子任务分解文件位于 `.ai/tasks/` 目录
+- 进度日志：`.ai/progress.md`
+- 学习笔记（Running Notebook）：`.ai/learnings.md` — agent 在开发中积累的经验，append-only
+
 ## Testing Quick Reference
 
 | 变更内容 | 测试类型 | 命令 | 文件命名 |
@@ -133,6 +168,27 @@ chore(deps): upgrade Spring Boot to 3.4.2
 | 需求与验收标准 | `requirements.md` |
 | 技术架构 | `design.md` |
 | UI 原型 | `ui/stitch_grace_video_management/` 下各页面 HTML + 截图 |
+
+## 上下文加载策略
+
+为避免上下文窗口溢出，agent 按以下规则加载文档：
+
+### 每次会话必加载
+- `AGENTS.md`（主指令）
+- `.ai/learnings.md`（积累的经验）
+- `.ai/tasks/{当前phase}.md`（当前任务列表）
+- `.ai/progress.md` 最后 20 行（最近进度）
+
+### 按任务加载
+- 该任务"参考文档"字段指定的文档章节
+- `api.md` 中对应端点章节（如 Video 任务只读 §B）
+- `02-shared-kernel.md`（仅当任务涉及共享基础设施时）
+
+### 不要预加载
+- 其他限界上下文的文档
+- 做后端时不加载前端文档（反之亦然）
+- `design.md`、`requirements.md`（仅在需要理解意图时按需查阅）
+- UI 原型 HTML（仅在实现对应页面时加载）
 
 ## Coding Standards
 
@@ -224,6 +280,29 @@ const handleSubmit = useCallback(() => { ... }, []);
 4. **忘记 ApiResponse 包装** — 所有 REST 端点必须返回 `ApiResponse<T>`
 5. **直接写 DDL 而非 Flyway** — 数据库变更必须通过 `V{N}__{description}.sql` 迁移脚本
 6. **跨上下文直接 import** — 限界上下文间通过领域事件通信，不可 `import com.grace.platform.video.*` 从 metadata 包内
+
+## Troubleshooting
+
+### Java 21 Preview Features
+`--enable-preview` 必须同时配置在 `maven-compiler-plugin` 和 `maven-surefire-plugin` 中。缺少 surefire 配置会导致测试编译失败。需要 `<argLine>--enable-preview</argLine>`。
+
+### MyBatis TypeHandler 注册
+若类型化 ID 无法解析，检查 `application.yml` 中 `mybatis.type-handlers-package` 是否匹配实际包路径。每个 TypeHandler 的 `@MappedTypes` 需引用正确的 ID 类。
+
+### jqwik 与 Spring Boot Test
+jqwik 属性测试默认不启动 Spring 上下文。需要 Repository 的属性测试必须继承 `AbstractIntegrationTest`。纯领域属性测试不应使用 Spring 上下文。
+
+### Testcontainers 依赖 Docker
+集成测试需要 Docker 运行。若 Docker 不可用，跳过集成测试：`mvn test -Dtest="*PropertyTest,*UnitTest"`
+
+### Flyway 与 Testcontainers 冲突
+`AbstractIntegrationTest` 使用 `withInitScript` 可能与 Flyway 自动迁移冲突。在 `application-test.yml` 中设置 `spring.flyway.enabled=false`。
+
+### 前端 CORS
+Vite 开发服务器端口 3000 需要后端 CORS 放行。检查 `WebConfig` 的 allowedOrigins 是否包含 `http://localhost:3000`，或使用 Vite 的 proxy 配置代理 `/api` 请求。
+
+### Duration 序列化
+`java.time.Duration` JSON 序列化为 ISO 8601（`PT12M34S`），但数据库存储为 `BIGINT` 秒数。在 Mapper XML 中用 `duration_seconds` 列映射到 `long`，在领域实体构造器中转换。
 
 ## Boundaries
 

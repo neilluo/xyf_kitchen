@@ -51,6 +51,16 @@ npm run lint         # ESLint 检查
 npx tsc --noEmit     # TypeScript 类型检查
 ```
 
+## 分层验证清单
+
+| 层级 | 触发条件 | 命令 |
+|------|---------|------|
+| Tier 1 | 任何 TS 代码变更 | `npx tsc --noEmit` |
+| Tier 2 | 任何代码变更 | `npm run lint` |
+| Tier 3 | 页面组件完成 | `npm run build`（确认生产构建通过） |
+
+**最低要求**: 每个任务完成时至少通过 Tier 1 + Tier 2。
+
 ## 关键约束
 
 - **自建组件**：不使用 Ant Design / MUI / shadcn 等第三方 UI 库
