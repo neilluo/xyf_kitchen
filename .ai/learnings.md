@@ -1,0 +1,24 @@
+# 学习笔记（Running Notebook）
+
+> Agent 在开发过程中发现的经验，每条 1-2 行。新会话开始时加载此文件。
+
+## 有效模式
+
+- （开发过程中积累）
+
+## 踩坑记录
+
+- domain 层不能引入 Spring 注解 — `@Service`/`@Autowired` 放 infrastructure 或 application 层
+- 组件不能直接调用 axios — 必须走 `src/api/` → `src/hooks/` → 组件链路
+- 禁止第三方 UI 库 — 所有 UI 组件自建于 `src/components/ui/`
+- REST 端点必须用 `ApiResponse<T>` 包装 — 不能直接返回实体
+- 数据库变更只能通过 Flyway `V{N}__{description}.sql` — 禁止手写 DDL
+- 跨上下文不能直接 import — 通过领域事件通信
+
+## 文档澄清
+
+- （当文档描述模糊时记录正确解读）
+
+## 性能笔记
+
+- 不要一次性加载所有 36 个文档到上下文 — 按任务的"参考文档"字段精准加载
