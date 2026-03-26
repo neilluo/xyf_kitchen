@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+
+<html class="light" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-secondary": "#ffffff",
+                        "outline-variant": "#c1c6d7",
+                        "surface-container-highest": "#e2e2e2",
+                        "tertiary-container": "#8e4fee",
+                        "background": "#f9f9f9",
+                        "on-primary": "#ffffff",
+                        "secondary": "#4d6077",
+                        "primary-fixed": "#d9e2ff",
+                        "on-primary-fixed": "#001a43",
+                        "primary-container": "#006ef2",
+                        "surface-variant": "#e2e2e2",
+                        "error": "#ba1a1a",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#35485e",
+                        "on-error": "#ffffff",
+                        "surface-container-high": "#e8e8e8",
+                        "error-container": "#ffdad6",
+                        "on-surface": "#1a1c1c",
+                        "on-tertiary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed-variant": "#5e08bd",
+                        "inverse-primary": "#afc6ff",
+                        "secondary-container": "#cde1fd",
+                        "surface": "#f9f9f9",
+                        "primary": "#0057c2",
+                        "tertiary-fixed-dim": "#d5baff",
+                        "outline": "#727786",
+                        "primary-fixed-dim": "#afc6ff",
+                        "surface-bright": "#f9f9f9",
+                        "on-secondary-fixed": "#071d31",
+                        "on-tertiary-container": "#fffbff",
+                        "secondary-fixed-dim": "#b4c8e3",
+                        "on-primary-container": "#fefcff",
+                        "tertiary-fixed": "#ecdcff",
+                        "inverse-on-surface": "#f1f1f1",
+                        "secondary-fixed": "#d1e4ff",
+                        "on-background": "#1a1c1c",
+                        "surface-container-low": "#f3f3f3",
+                        "tertiary": "#7431d3",
+                        "on-secondary-container": "#51647c",
+                        "on-tertiary-fixed": "#270057",
+                        "surface-dim": "#dadada",
+                        "inverse-surface": "#2f3131",
+                        "on-primary-fixed-variant": "#004398",
+                        "surface-tint": "#0059c7",
+                        "on-surface-variant": "#414755",
+                        "surface-container": "#eeeeee"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .upload-dashed-border {
+            background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='12' ry='12' stroke='%23006EF2FF' stroke-width='2' stroke-dasharray='8%2c 12' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased">
+<!-- SideNavBar Shell -->
+<aside class="h-screen w-[240px] fixed left-0 top-0 bg-[#001529] flex flex-col justify-between pb-8 z-20 shadow-[0_8px_32px_rgba(0,26,67,0.06)]">
+<div>
+<div class="py-8 px-6 mb-4">
+<div class="text-white text-2xl font-bold flex items-center gap-2 font-headline">
+<span class="material-symbols-outlined text-blue-400" style="font-variation-settings: 'FILL' 1;">restaurant_menu</span>
+                    Grace
+                </div>
+<div class="text-slate-400 text-xs mt-1 font-inter">Video Distribution</div>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="text-slate-400 hover:text-white py-4 px-6 transition-colors hover:bg-white/5 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                    仪表盘
+                </a>
+<a class="text-slate-400 hover:text-white py-4 px-6 transition-colors hover:bg-white/5 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined">video_library</span>
+                    视频管理
+                </a>
+<a class="text-slate-400 hover:text-white py-4 px-6 transition-colors hover:bg-white/5 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+                    元数据审核
+                </a>
+<!-- Active State: 视频发布 (Uploading state) -->
+<a class="bg-blue-600/10 text-blue-400 border-r-4 border-blue-500 py-4 px-6 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">publish</span>
+                    视频发布
+                </a>
+<a class="text-slate-400 hover:text-white py-4 px-6 transition-colors hover:bg-white/5 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined">alt_route</span>
+                    推广渠道
+                </a>
+<a class="text-slate-400 hover:text-white py-4 px-6 transition-colors hover:bg-white/5 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined">task</span>
+                    推广任务
+                </a>
+</nav>
+</div>
+<div class="px-6">
+<a class="text-slate-400 hover:text-white py-4 flex items-center gap-3 transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+                设置
+            </a>
+</div>
+</aside>
+<!-- TopNavBar Shell -->
+<header class="h-16 fixed top-0 right-0 left-[240px] w-[calc(100%-240px)] z-10 bg-white/80 backdrop-blur-md flex items-center justify-between px-8">
+<div class="flex items-center gap-2">
+<span class="text-slate-500 font-inter text-sm">发布中心</span>
+<span class="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
+<span class="text-blue-600 font-semibold font-inter text-sm">上传视频</span>
+</div>
+<div class="flex items-center gap-6">
+<button class="relative text-slate-500 hover:bg-slate-50 p-2 rounded-lg transition-all duration-200">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border-2 border-white"></span>
+</button>
+<div class="flex items-center gap-3 cursor-pointer hover:bg-slate-50 p-1 rounded-lg transition-all">
+<img alt="User Avatar" class="w-8 h-8 rounded-full bg-secondary-container object-cover" data-alt="close-up portrait of a professional chef wearing a white toque with a friendly and welcoming expression" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmkuJAwEae2_-k7KyFvecOoJYrnkyTVT41H_jc-q3c3jxMnLI64MEzJoivNjKefjme9kaP2RlO0_dZeNYXM6n63Z7kfxnr-XOsBi4gFqdCCSk8PwEvidhEiWAsVXFeH9h8DyPTUR_LSW8qrUjRI_m_-GcqTX9AeN4FzLUIQZeiJyK6U6OuUevx-Uzzse2hkOXHrsfrg0AIv3WzWGpa1hseOcg09cfpNZz23v2-V24c3k_C8KggBBttQwwJ9DX1U2FV9g_AakngQv-J"/>
+<span class="text-sm font-medium text-on-surface">Grace Chef</span>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pl-[240px] pt-16 min-h-screen">
+<div class="max-w-5xl mx-auto px-12 py-10">
+<!-- Hero Heading -->
+<div class="mb-12">
+<h1 class="font-headline text-[2.75rem] font-bold text-on-surface tracking-tight">发布您的佳作</h1>
+<p class="text-slate-500 mt-2 font-body">将您的烹饪灵感分享给世界，支持多平台一键分发。</p>
+</div>
+<!-- Upload Area Section -->
+<section class="bg-surface-container-lowest rounded-xl p-4 mb-8">
+<div class="upload-dashed-border bg-[#F0F5FF]/50 p-16 flex flex-col items-center justify-center text-center">
+<div class="w-20 h-20 bg-primary-fixed rounded-full flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 1;">cloud_upload</span>
+</div>
+<h2 class="text-xl font-headline font-bold mb-2">拖拽视频文件到此处，或点击选择文件</h2>
+<p class="text-slate-500 mb-8 max-w-sm">支持 MP4、MOV、AVI、MKV，不超过 5GB。建议使用 1080p 或更高分辨率以获得最佳展示效果。</p>
+<button class="px-8 py-3 rounded-lg border-2 border-primary text-primary font-semibold hover:bg-primary/5 transition-all flex items-center gap-2">
+<span class="material-symbols-outlined">add_circle</span>
+                        选择文件
+                    </button>
+</div>
+</section>
+<!-- Active Progress Card -->
+<section class="mb-12">
+<h3 class="font-headline text-lg font-bold mb-4 flex items-center gap-2">
+<span class="w-2 h-2 bg-primary rounded-full"></span>
+                    正在上传 (1)
+                </h3>
+<div class="bg-surface-container-lowest p-6 rounded-xl transition-all duration-300">
+<div class="flex items-start gap-4">
+<div class="w-12 h-12 bg-secondary-container rounded-lg flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined">movie</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h4 class="font-semibold text-on-surface">红烧肉制作教程.mp4</h4>
+<p class="text-xs text-slate-500 mt-1">1.2 GB</p>
+</div>
+<button class="p-1 hover:bg-error-container hover:text-error rounded-md transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Progress Bar -->
+<div class="relative h-2 w-full bg-surface-container-highest rounded-full overflow-hidden mt-4">
+<div class="absolute top-0 left-0 h-full bg-primary rounded-full" style="width: 45%;"></div>
+</div>
+<div class="flex justify-between items-center mt-3">
+<span class="text-xs text-slate-500 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">speed</span>
+                                    上传速度: 12.5 MB/s | 约 2 分钟
+                                </span>
+<span class="text-sm font-bold text-primary">45%</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Completed & Task List (Bento-ish Grid) -->
+<section>
+<h3 class="font-headline text-lg font-bold mb-4 flex items-center gap-2">
+<span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                    已处理
+                </h3>
+<div class="grid grid-cols-1 gap-4">
+<!-- Completed Item -->
+<div class="bg-surface-container-lowest p-5 rounded-xl flex items-center gap-4 group hover:bg-surface-bright transition-all">
+<div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+<div class="flex-1 flex items-center justify-between">
+<div>
+<h4 class="font-medium text-sm text-on-surface">夏季清凉饮品特辑.mp4</h4>
+<p class="text-xs text-green-600 mt-0.5 font-medium flex items-center gap-1">
+                                    上传完成，正在生成元数据...
+                                </p>
+</div>
+<div class="flex items-center gap-6">
+<div class="w-32 h-1.5 bg-green-500 rounded-full"></div>
+<button class="text-primary text-sm font-semibold hover:underline px-3 py-1 bg-primary/5 rounded">编辑元数据</button>
+</div>
+</div>
+</div>
+<!-- Another Recent Item -->
+<div class="bg-surface-container-lowest p-5 rounded-xl flex items-center gap-4 group hover:bg-surface-bright transition-all opacity-80">
+<div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div class="flex-1 flex items-center justify-between">
+<div>
+<h4 class="font-medium text-sm text-on-surface">家庭周末烘焙日.mov</h4>
+<p class="text-xs text-slate-500 mt-0.5">已于 昨天 14:20 上传</p>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center text-[10px] text-white ring-2 ring-white">YT</div>
+<div class="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-[10px] text-white ring-2 ring-white">FB</div>
+<div class="w-6 h-6 rounded-full bg-pink-500 flex items-center justify-center text-[10px] text-white ring-2 ring-white">IG</div>
+</div>
+<span class="text-xs text-slate-400">3 平台已发布</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Featured Tips (Editorial Component) -->
+<section class="mt-16 grid grid-cols-3 gap-6">
+<div class="col-span-2 bg-gradient-to-br from-primary to-primary-container p-8 rounded-2xl text-white relative overflow-hidden">
+<div class="relative z-10">
+<h4 class="font-headline text-xl mb-2">如何提升视频曝光率？</h4>
+<p class="text-white/80 text-sm max-w-md mb-6 font-body">使用 Grace 的 AI 元数据增强工具，我们可以为您自动生成高流量标签和优化的视频描述。</p>
+<button class="bg-white text-primary px-6 py-2 rounded-lg font-bold text-sm hover:bg-blue-50 transition-colors">立即开启 AI 增强</button>
+</div>
+<span class="material-symbols-outlined absolute -bottom-4 -right-4 text-[120px] opacity-10 rotate-12">auto_awesome</span>
+</div>
+<div class="bg-tertiary-fixed p-8 rounded-2xl flex flex-col justify-between">
+<div>
+<h4 class="font-headline text-lg text-on-tertiary-fixed mb-2">分发渠道统计</h4>
+<p class="text-on-tertiary-fixed-variant text-xs">您已连接 8 个全球分发渠道</p>
+</div>
+<div class="flex justify-between items-end">
+<span class="text-4xl font-headline font-extrabold text-on-tertiary-fixed tracking-tight">85%</span>
+<span class="text-[10px] font-bold px-2 py-1 bg-on-tertiary-fixed text-white rounded-full">同步率极高</span>
+</div>
+</div>
+</section>
+</div>
+</main>
+</body></html>
