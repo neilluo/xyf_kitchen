@@ -90,7 +90,7 @@
   - `grace-platform/src/main/java/com/grace/platform/distribution/application/scheduler/QuotaRetryScheduler.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P4-04, P4-03
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: @Scheduled(fixedDelayString)；查询 QUOTA_EXCEEDED → 尝试 resumeUpload → 成功则 COMPLETED，仍超限则 retryCount++，>=5 则 FAILED
 
 ---
@@ -107,7 +107,7 @@
   - `grace-platform/src/main/java/com/grace/platform/distribution/interfaces/dto/response/AuthUrlResponse.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P4-05, P1-07, P1-09
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 

@@ -2,6 +2,7 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 14:25 | P4-06 | 完成 | 创建 QuotaRetryScheduler - 配额超限自动重试调度器，30分钟间隔，最大5次重试，支持断点续传恢复，处理配额仍超限/成功/达到最大重试次数三种状态流转 - 验证通过 (mvn clean compile)
 | 2026-03-27 14:17 | P4-05 | 完成 | 创建 Distribution 应用层 - DistributionApplicationService(6方法: publish/getUploadStatus/initiateAuth/handleAuthCallback/listPlatforms/getPublishRecords) + PublishCommand + 4个DTO(PublishResultDTO/UploadStatusDTO/PlatformInfoDTO/PublishRecordDTO) + MetadataConfirmedEventListener - 验证通过 (mvn clean compile)
 | 2026-03-27 13:57 | P4-03 | 完成 | 创建 Strategy 接口与 Registry - VideoDistributor策略接口 + ResumableVideoDistributor扩展 + VideoDistributorRegistry(Map路由/3001错误) + VideoFile/VideoMetadata/PlatformInfo值对象 - 验证通过 (mvn clean compile) |
 | 2026-03-27 13:50 | P4-02 | 完成 | 创建 PublishRecord 与 OAuthToken 实体 - PublishRecord聚合根(状态管理/重试机制) + OAuthToken(加密存储/isExpired) - 验证通过 (mvn clean compile) |
@@ -49,3 +50,4 @@
 | 2026-03-27 14:06 | P4-04 | 完成 | 创建 Distribution 领域接口与事件 - OAuthService(3方法) + AuthorizationUrl值对象 + PublishRecordRepository(6方法) + OAuthTokenRepository(4方法) + VideoPublishedEvent领域事件 - 验证通过 (mvn clean compile)
 | 2026-03-27 11:50 | P3-04 | 完成 | 创建 MetadataGenerationServiceImpl - 实现AI元数据生成服务，包含美食专家角色设定、历史风格参考、JSON解析、字段验证 - 验证通过 (mvn clean compile)
 | 2026-03-27 12:10 | P3-09 | 完成 | 创建 Metadata 属性测试 - Property 4(字段约束不变量100次) + Property 5(编辑往返100次) + Property 5b(确认后不可编辑100次) - 验证通过 (mvn test -Dtest=MetadataPropertyTest) |
+| 2026-03-27 14:42 | P4-07 | 完成 | 创建 DistributionController - 6个端点(D1-D6) + 5个DTO(PublishRequest, PublishResultResponse, UploadStatusResponse, PlatformInfoResponse, AuthUrlResponse) - 验证通过 (mvn clean compile) |
