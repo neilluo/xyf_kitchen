@@ -45,5 +45,6 @@
 | 2026-03-27 10:12 | P2-08 | 完成 | 创建 Video MyBatis Mapper 接口与 XML - VideoMapper/UploadSessionMapper 接口 + ResultMap + 动态 SQL - 验证通过 (mvn clean compile) |
 | 2026-03-27 09:37 | P2-03 | 完成 | 创建 UploadSession 实体 - 包含分片计算、过期判断、状态管理、进度计算 - 验证通过 (mvn clean compile) |
 | 2026-03-27 10:30 | P2-11 | 完成 | 创建 Video 属性测试 - Property 1(文件信息提取100次) + Property 2(格式验证边界100次) + Property 2b(枚举一致性) - 验证通过 (mvn test -Dtest=VideoPropertyTest) |
+| 2026-03-27 14:06 | P4-04 | 完成 | 创建 Distribution 领域接口与事件 - OAuthService(3方法) + AuthorizationUrl值对象 + PublishRecordRepository(6方法) + OAuthTokenRepository(4方法) + VideoPublishedEvent领域事件 - 验证通过 (mvn clean compile)
 | 2026-03-27 11:50 | P3-04 | 完成 | 创建 MetadataGenerationServiceImpl - 实现AI元数据生成服务，包含美食专家角色设定、历史风格参考、JSON解析、字段验证 - 验证通过 (mvn clean compile)
 | 2026-03-27 12:10 | P3-09 | 完成 | 创建 Metadata 属性测试 - Property 4(字段约束不变量100次) + Property 5(编辑往返100次) + Property 5b(确认后不可编辑100次) - 验证通过 (mvn test -Dtest=MetadataPropertyTest) |

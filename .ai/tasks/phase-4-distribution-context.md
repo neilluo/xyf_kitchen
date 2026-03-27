@@ -62,7 +62,7 @@
   - `grace-platform/src/main/java/com/grace/platform/distribution/domain/event/VideoPublishedEvent.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P4-02, P1-06
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
