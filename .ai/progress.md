@@ -2,6 +2,7 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 18:10 | P7-02 | 完成 | 创建 DashboardController - 实现GET /api/dashboard/overview端点，支持dateRange参数(默认30d)，注入DashboardQueryService，返回ApiResponse<DashboardOverviewResponse> - 验证通过 (mvn clean compile) |
 | 2026-03-27 18:05 | P7-01 | 完成 | 创建 DashboardQueryService + DTO - DashboardQueryService(5查询方法:queryStats/queryRecentUploads/queryPublishDistribution/queryPromotionOverview/queryAnalytics) + 6个DTO(Stats/RecentUpload/PublishDistribution/PromotionOverview/Analytics/DashboardOverviewResponse) - @Transactional(readOnly=true)跨上下文聚合 - 验证通过 (mvn clean compile) |
 | 2026-03-27 17:56 | P6-10 | 完成 | 创建 User/Settings 单元测试 - UserSettingsUnitTest(19个测试用例)覆盖头像文件类型验证(JPG/PNG)/大小边界(2MB)/ApiKey明文仅返回一次/BCrypt哈希不可逆 - 验证通过 (mvn test -Dtest=UserSettingsUnitTest)
 |------|---------|------|------|
