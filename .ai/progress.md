@@ -2,6 +2,8 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 08:44 | P1-11 | 完成 | 创建 AES-256-GCM 加密服务 - EncryptionService 接口 + AesGcmEncryptionService 实现（IV 12字节 + Base64编码）- 验证通过 (mvn clean compile) |
+| 2026-03-27 08:43 | P1-10 | 完成 | 创建 WebConfig (CORS) + JacksonConfig - 允许 localhost:5173, JavaTimeModule 禁用 timestamps - 验证通过 (mvn clean compile) |
 | 2026-03-27 08:41 | P1-09 | 完成 | 创建 GlobalExceptionHandler - 6个@ExceptionHandler方法 + resolveHttpStatus switch - 验证通过 (mvn clean compile) |
 | 2026-03-27 08:39 | P1-08 | 完成 | 创建异常体系 + ErrorCode 常量 - 7个文件验证通过 (mvn clean compile) |
 | 2026-03-27 08:37 | P1-07 | 完成 | 创建 ApiResponse + PageResponse - 验证通过 (mvn clean compile) |
