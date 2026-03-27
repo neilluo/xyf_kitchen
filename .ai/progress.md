@@ -2,6 +2,7 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 12:10 | P3-07 | 完成 | 创建 VideoMetadataMapper + JsonStringListTypeHandler - 5个方法(findById/findByVideoId/findByVideoIdOrdered/insert/update) + tags_json JSON转换TypeHandler - 验证通过 (mvn clean compile) |
 | 2026-03-27 12:10 | P3-06 | 完成 | 创建 MetadataController - 5个REST端点(C1-C5): generate/update/regenerate/confirm/getByVideoId + 3个DTO(GenerateMetadataRequest/UpdateMetadataRequest/VideoMetadataResponse) + Validation注解 - 验证通过 (mvn clean compile) |
 | 2026-03-27 12:05 | P3-05 | 完成 | 创建 Metadata 应用层 - MetadataApplicationService(5个方法: generate/update/regenerate/confirm/getByVideoId) + UpdateMetadataCommand + VideoMetadataDTO + VideoUploadedEventListener - 验证通过 (mvn clean compile) |
 | 2026-03-27 11:47 | P3-03 | 完成 | 创建 LLM 基础设施 - LlmService 接口 + LlmRequest/LlmResponse records + QwenLlmServiceAdapter(指数退避重试1s/2s/4s，最多3次，失败抛9001) + WebConfig添加RestTemplate bean - 验证通过 (mvn clean compile) |

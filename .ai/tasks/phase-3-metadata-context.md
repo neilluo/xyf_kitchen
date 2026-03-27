@@ -102,7 +102,7 @@
   - `grace-platform/src/main/resources/mapper/metadata/VideoMetadataMapper.xml`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P3-01, P1-05
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: tags 字段在 DB 为 `tags_json` TEXT 存储 JSON 数组，通过 JsonStringListTypeHandler 在 ResultMap 中进行 List<String> ↔ JSON 转换
 
 ---
