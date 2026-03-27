@@ -47,7 +47,7 @@
   - `grace-platform/src/main/java/com/grace/platform/dashboard/application/dto/ChannelPromotionStats.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P2-08, P4-09, P5-10
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 需要在已有的 VideoMapper/PublishRecordMapper/PromotionRecordMapper 接口中添加 count/countByStatus/countByStatusIn/findTop5 等方法，并在对应 XML 中添加 SQL。ChannelPromotionStats 为新投影接口
 
 ---
