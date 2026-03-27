@@ -63,7 +63,7 @@
   - `grace-platform/src/main/java/com/grace/platform/promotion/domain/PromotionRecordRepository.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P5-02
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
