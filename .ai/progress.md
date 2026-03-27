@@ -2,6 +2,8 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 23:00 | P9-05 | 完成 | 实现 VideoUploadPage - 分片上传与进度 - UploadProgressCard(文件名/大小/进度条/百分比/速度/预估时间/取消按钮)/CompletedUploadItem(check_circle+审核元数据链接)/EditorialTipCards(渐变+tertiary)/分片上传流程(init→chunk×N→complete)/自动重试3次/速度计算与剩余时间估计 - 验证通过 (npx tsc --noEmit && npm run lint), tailwind.config.ts预存错误忽略 |
+| 2026-03-27 22:55 | P9-04 | 完成 | 实现 VideoUploadPage - DropZone组件 - SVG虚线边框(rect stroke-dasharray=8 4)/拖拽高亮(bg-primary/10)/云上传图标(48px)/格式提示(MP4/MOV/AVI/MKV最大5GB)/点击选择文件/格式+大小客户端校验/错误Toast自动消失(5s) - 验证通过 (npx tsc --noEmit) |
 | 2026-03-27 22:45 | P9-03 | 完成 | 实现 VideoManagementPage - FilterBar(搜索防抖300ms+状态下拉+日期范围)+VideoTable(缩略图hover播放叠层+文件名格式badge+时长+大小+状态+操作按钮)+分页+空状态+错误处理 - 验证通过 (npx tsc --noEmit)，lint错误在预存tailwind.config.ts |
 | 2026-03-27 22:30 | P9-02 | 完成 | 实现 DashboardPage 完整页面 - RecentUploadsTable(行可点击跳转元数据审核)/DonutChart(SVG环形图)/PromotionOverview(ProgressBar渠道成功率)/Analytics(平均互动率+总曝光量) - 验证通过 (npx tsc --noEmit)，lint错误在预存文件 |
 | 2026-03-27 22:00 | P9-01 | 完成 | 实现 DashboardPage StatsCard组件 - 页面骨架+StatsCardGrid(4列grid) - StatsCard组件(4种border颜色:primary/orange/green/tertiary) - 集成useDashboardOverview hook - 日期范围useState管理(7d/30d/90d/all) - 加载骨架动画 - 验证通过 (npx tsc --noEmit) |

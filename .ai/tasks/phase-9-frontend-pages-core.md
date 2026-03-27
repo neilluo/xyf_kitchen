@@ -54,7 +54,7 @@
   - `grace-frontend/src/pages/VideoUploadPage.tsx`（页面骨架 + DropZone）
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit`
 - **依赖**: P8-14
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: DropZone 使用 SVG 虚线边框（不使用 CSS border-dashed）；支持 drag & drop + 点击选择；拖拽激活时 bg-primary/10；格式校验（MP4/MOV/AVI/MKV）+ 大小校验（5GB）在选择文件后立即执行
 
 ---
@@ -66,7 +66,7 @@
   - `grace-frontend/src/pages/VideoUploadPage.tsx`（完善上传逻辑 + ProgressCard + CompletedList + TipCards）
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit && npm run lint`
 - **依赖**: P9-04, P8-11
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 使用 useUpload hook 执行 init → chunk × N → complete 流程；UploadProgressCard 显示文件名/大小/进度条/百分比/速度/预估时间/取消按钮；CompletedUploadItem 显示 check_circle + "审核元数据"链接；分片失败自动重试 3 次；底部 EditorialTipCards（渐变 + tertiary）
 
 ---
