@@ -61,7 +61,7 @@
   - `grace-platform/src/main/java/com/grace/platform/shared/domain/id/ApiKeyId.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P1-02
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 每个 ID 遵循相同模式 — `record XxxId(String value)` + 非空校验 + `generate()` 静态工厂 + 前缀拼接（前缀见 §2.2 表格）
 
 ---
