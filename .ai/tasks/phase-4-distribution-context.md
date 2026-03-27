@@ -79,7 +79,7 @@
   - `grace-platform/src/main/java/com/grace/platform/distribution/application/listener/MetadataConfirmedEventListener.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P4-03, P4-04, P2-04, P3-02, P1-07
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 

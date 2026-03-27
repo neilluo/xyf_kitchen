@@ -2,6 +2,7 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 14:17 | P4-05 | 完成 | 创建 Distribution 应用层 - DistributionApplicationService(6方法: publish/getUploadStatus/initiateAuth/handleAuthCallback/listPlatforms/getPublishRecords) + PublishCommand + 4个DTO(PublishResultDTO/UploadStatusDTO/PlatformInfoDTO/PublishRecordDTO) + MetadataConfirmedEventListener - 验证通过 (mvn clean compile)
 | 2026-03-27 13:57 | P4-03 | 完成 | 创建 Strategy 接口与 Registry - VideoDistributor策略接口 + ResumableVideoDistributor扩展 + VideoDistributorRegistry(Map路由/3001错误) + VideoFile/VideoMetadata/PlatformInfo值对象 - 验证通过 (mvn clean compile) |
 | 2026-03-27 13:50 | P4-02 | 完成 | 创建 PublishRecord 与 OAuthToken 实体 - PublishRecord聚合根(状态管理/重试机制) + OAuthToken(加密存储/isExpired) - 验证通过 (mvn clean compile) |
 | 2026-03-27 12:30 | P4-01 | 完成 | 创建 Distribution 枚举与值对象 - PublishStatus枚举(5状态) + PublishResult记录 + UploadStatus记录 - 验证通过 (mvn clean compile) |
