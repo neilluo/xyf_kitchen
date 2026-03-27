@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { getVideos, getVideoDetail } from '@/api/video'
 import type { VideoListParams } from '@/types/video'
 

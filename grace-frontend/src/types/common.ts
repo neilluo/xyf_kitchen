@@ -4,6 +4,7 @@ export interface ApiResponse<T> {
   message: string
   data: T
   timestamp: string
+  errors?: FieldError[]
 }
 
 // 分页响应

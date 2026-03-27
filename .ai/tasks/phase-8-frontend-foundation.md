@@ -199,7 +199,7 @@
   - `grace-frontend/src/utils/constants.ts`（路由路径常量）
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit`
 - **依赖**: P8-08
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: formatDuration 处理 ISO 8601 Duration（PT12M34S → 12:34）；状态映射需包含 label/bgClass/textClass
 
 ---
@@ -212,5 +212,5 @@
   - `grace-frontend/src/main.tsx`
 - **验证命令**: `cd grace-frontend && npm run build`
 - **依赖**: P8-07, P8-12
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: QueryClient staleTime 1 分钟，retry 1，refetchOnWindowFocus false；7 个路由全部在 AppLayout 下；暂用空页面占位（后续 Phase 9-10 实现）

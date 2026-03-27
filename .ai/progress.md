@@ -100,3 +100,18 @@
 [2026-03-27] P8-07: 实现 AppLayout + Sidebar + Header 布局组件 - COMPLETED
 | 2026-03-27 21:10 | P8-10 | 完成 | 创建领域 API 请求函数 - dashboard.ts(A1)/video.ts(B1-B6)/metadata.ts(C1-C5)/distribution.ts(D1-D6)/channel.ts(E1-E5)/promotion.ts(F1-F5)/settings.ts(G1-G10) - 支持 multipart/form-data 上传 - 验证通过 (npx tsc --noEmit) |
 | 2026-03-27 19:34 | P8-08 | 完成 | 创建通用类型定义 - common.ts(ApiResponse/PaginatedData/PaginationParams) + video.ts(7种VideoStatus) + metadata.ts + distribution.ts(5种PublishStatus) + channel.ts + promotion.ts(4种PromotionStatus) + settings.ts + dashboard.ts - 严格按api.md定义 - 验证通过 (npx tsc --noEmit) |
+| 2026-03-27 21:30 | P8-13 | 完成 | 实现工具函数 - format.ts(4个格式化函数)/status.ts(3个状态映射表)/constants.ts(路由+API端点常量) - formatDuration支持ISO 8601 Duration解析(PT12M34S→12:34) - 状态映射包含label/bgClass/textClass - 验证通过 (npx tsc --noEmit)
+
+## 2026-03-27
+
+### Completed: P8-14 - 配置路由与主入口
+- Branch: feat/8/frontend/foundation/p8-14
+- Commit: 537e74b
+- Changes:
+  - Created App.tsx with QueryClient and 7 route configurations
+  - Configured QueryClient options: staleTime 1min, retry 1, refetchOnWindowFocus false
+  - Fixed path alias (@/) configuration in tsconfig.app.json and vite.config.ts
+  - Fixed TypeScript type-only import issues for verbatimModuleSyntax
+  - Added errors field to ApiResponse interface
+- Verification: npm run build passed
+

@@ -1,4 +1,4 @@
-import { ReactNode, ButtonHTMLAttributes } from 'react';
+import type { ReactNode, ButtonHTMLAttributes } from 'react';
 import { Icon } from './Icon';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'icon';

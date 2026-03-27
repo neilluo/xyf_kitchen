@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { initUpload, uploadChunk, completeUpload, getUploadProgress } from '@/api/video'
-import type { InitUploadRequest, UploadSession, VideoFormat } from '@/types/video'
+import type { InitUploadRequest, VideoFormat } from '@/types/video'
 
 // Query key constants
 export const uploadKeys = {

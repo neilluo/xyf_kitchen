@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { getDashboardOverview } from '@/api/dashboard'
-import type { DashboardParams, DateRange } from '@/types/dashboard'
+import type { DateRange } from '@/types/dashboard'
 
 // Query key constants
 export const dashboardKeys = {

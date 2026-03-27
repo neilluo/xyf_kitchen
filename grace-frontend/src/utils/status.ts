@@ -1,4 +1,6 @@
-import type { VideoStatus, PromotionStatus, PublishStatus } from '@/types'
+import type { VideoStatus } from '@/types/video'
+import type { PromotionStatus } from '@/types/promotion'
+import type { PublishStatus } from '@/types/distribution'
 
 interface StatusConfig {
   label: string
