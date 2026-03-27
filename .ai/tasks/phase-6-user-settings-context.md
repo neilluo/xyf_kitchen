@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [x] 共 10 个任务，已完成 9/10
+- [x] 共 10 个任务，已完成 10/10
 
 ---
 
@@ -142,5 +142,5 @@
   - `grace-platform/src/test/java/com/grace/platform/usersettings/UserSettingsUnitTest.java`
 - **验证命令**: `mvn test -Dtest="UserSettingsUnitTest"`
 - **依赖**: P6-01, P6-02, P1-16
-- **状态**: [ ]
+- **状态**: [x]
 - **测试要点**: 非 JPG/PNG 文件拒绝上传；超 2MB 文件拒绝；ApiKey rawKey 仅在 GeneratedApiKey 中出现，ApiKey 实体不含明文；BCrypt 哈希后无法还原
