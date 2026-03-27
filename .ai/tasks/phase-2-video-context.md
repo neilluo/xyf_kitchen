@@ -119,7 +119,7 @@
   - `grace-platform/src/main/resources/mapper/video/UploadSessionMapper.xml`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P2-02, P2-03, P1-05
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: duration 字段在 DB 为 `duration_seconds` BIGINT，领域对象为 `Duration`，需在 RepositoryImpl 中转换
 
 ---
