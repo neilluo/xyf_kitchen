@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [x] 共 10 个任务，已完成 3/10
+- [x] 共 10 个任务，已完成 4/10
 
 ---
 
@@ -67,8 +67,7 @@
   - `grace-platform/src/main/java/com/grace/platform/usersettings/application/dto/ConnectedAccountResponse.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P6-02, P6-03, P1-07, P1-08
-- **状态**: [ ]
-- **注意**: uploadAvatar 需校验文件类型（JPG/PNG）和大小（≤2MB）
+- **状态**: [x]
 
 ---
 

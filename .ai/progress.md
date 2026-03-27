@@ -2,6 +2,7 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 17:30 | P6-04 | 完成 | 创建 UserSettingsApplicationService - UserSettingsApplicationService(10方法:G1-G10) + 8个DTO(Profile/Notification/APIKey相关) + ConnectedAccountQueryService ACL接口 - uploadAvatar校验JPG/PNG和2MB限制 - 验证通过 (mvn clean compile) |
 | 2026-03-27 16:53 | P5-12 | 完成 | 创建 Promotion 属性测试与单元测试 - PromotionPropertyTest(5个属性测试覆盖Property #9-#12) + PromotionUnitTest(24个单元测试覆盖Channel软硬删除/批量推广失败隔离/状态机转换/优先级边界) - 验证通过 (mvn test -Dtest=PromotionPropertyTest,PromotionUnitTest) |
 | 2026-03-27 16:40 | P5-11 | 完成 | 创建 Promotion 配置类 - PromotionConfig(PromotionExecutorRegistry Bean注册) + OpenCrawlProperties(已存在) - 验证通过 (mvn clean compile) |
 | 2026-03-27 18:00 | P5-10 | 完成 | 创建 Promotion MyBatis Mapper + Repository 实现 - PromotionChannelMapper(7方法) + PromotionRecordMapper(9方法含ChannelSuccessRateProjection) + PromotionChannelRepositoryImpl(6方法) + PromotionRecordRepositoryImpl(6方法) + XML映射文件(含ResultMap/TypeHandler/动态SQL) - 支持软删除检查/分页查询/渠道成功率统计 - 验证通过 (mvn clean compile) |
