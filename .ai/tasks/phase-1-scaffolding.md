@@ -103,7 +103,7 @@
   - `grace-platform/src/main/java/com/grace/platform/shared/infrastructure/persistence/SlowSqlInterceptor.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P1-10（WebMvcConfig 可能引用 WebConfig 的配置）
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
