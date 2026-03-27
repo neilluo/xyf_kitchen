@@ -42,7 +42,7 @@
   - `grace-platform/src/test/resources/application-test.yml`（`spring.flyway.enabled=false`）
 - **验证命令**: `mvn clean compile`
 - **依赖**: P1-01
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
