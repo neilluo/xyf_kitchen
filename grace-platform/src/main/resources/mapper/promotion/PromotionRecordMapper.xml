@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.grace.platform.promotion.infrastructure.persistence.PromotionRecordMapper">
+
+    <!-- ResultMap：利用 mybatis.configuration.map-underscore-to-camel-case=true 自动映射 -->
+    <!-- 仅需对 TypeHandler 类型的字段显式声明 -->
+    <resultMap id="recordResultMap" type="com.grace.platform.promotion.domain.PromotionRecord">
+        <id property="id" column="id" typeHandler="com.grace.platform.shared.infrastructure.persistence.typehandler.PromotionRecordIdTypeHandler"/>
+        <result property="videoId" column="video_id" typeHandler="com.grace.platform.shared.infrastructure.persistence.typehandler.VideoIdTypeHandler"/>
+        <result property="channelId" column="channel_id" typeHandler="com.grace.platform.shared.infrastructure.persistence.typehandler.ChannelIdTypeHandler"/>
+        <result property="method" column="method" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="status" column="status" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+    </resultMap>
+
+    <!-- ChannelSuccessRateProjection 结果映射 -->
+    <resultMap id="channelSuccessRateResultMap" type="com.grace.platform.promotion.infrastructure.persistence.PromotionRecordMapper$ChannelSuccessRateProjection">
+        <result property="channelId" column="channel_id"/>
+        <result property="channelName" column="channel_name"/>
+        <result property="totalCount" column="total_count"/>
+        <result property="successCount" column="success_count"/>
+    </resultMap>
+
+    <!-- 根据 ID 查询推广记录 -->
+    <select id="findById" resultMap="recordResultMap">
+        SELECT id, video_id, channel_id, promotion_copy, method, status, result_url, error_message, executed_at, created_at
+        FROM promotion_record
+        WHERE id = #{id}
+    </select>
+
+    <!-- 按视频 ID 分页查询推广记录 -->
+    <select id="findByVideoId" resultMap="recordResultMap">
+        SELECT id, video_id, channel_id, promotion_copy, method, status, result_url, error_message, executed_at, created_at
+        FROM promotion_record
+        WHERE video_id = #{videoId}
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 按视频 ID 统计推广记录数量 -->
+    <select id="countByVideoId" resultType="long">
+        SELECT COUNT(*)
+        FROM promotion_record
+        WHERE video_id = #{videoId}
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+    </select>
+
+    <!-- 按视频 ID 查询所有推广记录（用于报告汇总） -->
+    <select id="findByVideoIdForReport" resultMap="recordResultMap">
+        SELECT id, video_id, channel_id, promotion_copy, method, status, result_url, error_message, executed_at, created_at
+        FROM promotion_record
+        WHERE video_id = #{videoId}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 获取渠道成功率统计（用于 Dashboard） -->
+    <select id="getChannelSuccessRates" resultMap="channelSuccessRateResultMap">
+        SELECT
+            pr.channel_id,
+            pc.name AS channel_name,
+            COUNT(*) AS total_count,
+            SUM(CASE WHEN pr.status = 'COMPLETED' THEN 1 ELSE 0 END) AS success_count
+        FROM promotion_record pr
+        JOIN promotion_channel pc ON pr.channel_id = pc.id
+        WHERE pr.created_at BETWEEN #{startDate} AND #{endDate}
+        GROUP BY pr.channel_id, pc.name
+        ORDER BY total_count DESC
+    </select>
+
+    <!-- 统计指定状态的推广所涉及的不同视频数量（用于 Dashboard） -->
+    <select id="countDistinctVideosByStatus" resultType="long">
+        SELECT COUNT(DISTINCT video_id)
+        FROM promotion_record
+        WHERE status = #{status}
+    </select>
+
+    <!-- 插入新推广记录 -->
+    <insert id="insert" useGeneratedKeys="false">
+        INSERT INTO promotion_record (id, video_id, channel_id, promotion_copy, method, status, result_url, error_message, executed_at, created_at)
+        VALUES (
+            #{id, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.PromotionRecordIdTypeHandler},
+            #{videoId, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.VideoIdTypeHandler},
+            #{channelId, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.ChannelIdTypeHandler},
+            #{promotionCopy},
+            #{method, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+            #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+            #{resultUrl},
+            #{errorMessage},
+            #{executedAt},
+            #{createdAt}
+        )
+    </insert>
+
+    <!-- 更新推广记录 -->
+    <update id="update">
+        UPDATE promotion_record
+        SET video_id = #{videoId, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.VideoIdTypeHandler},
+            channel_id = #{channelId, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.ChannelIdTypeHandler},
+            promotion_copy = #{promotionCopy},
+            method = #{method, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+            status = #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+            result_url = #{resultUrl},
+            error_message = #{errorMessage},
+            executed_at = #{executedAt}
+        WHERE id = #{id, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.PromotionRecordIdTypeHandler}
+    </update>
+
+</mapper>

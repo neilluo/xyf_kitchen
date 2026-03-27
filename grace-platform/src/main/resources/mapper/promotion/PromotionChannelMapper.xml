@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.grace.platform.promotion.infrastructure.persistence.PromotionChannelMapper">
+
+    <!-- ResultMap：利用 mybatis.configuration.map-underscore-to-camel-case=true 自动映射 -->
+    <!-- 仅需对 TypeHandler 类型的字段显式声明 -->
+    <resultMap id="channelResultMap" type="com.grace.platform.promotion.domain.PromotionChannel">
+        <id property="id" column="id" typeHandler="com.grace.platform.shared.infrastructure.persistence.typehandler.ChannelIdTypeHandler"/>
+        <result property="type" column="type" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="status" column="status" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+    </resultMap>
+
+    <!-- 根据 ID 查询渠道 -->
+    <select id="findById" resultMap="channelResultMap">
+        SELECT id, name, type, channel_url, encrypted_api_key, priority, status, created_at, updated_at
+        FROM promotion_channel
+        WHERE id = #{id}
+    </select>
+
+    <!-- 查询所有渠道 -->
+    <select id="findAll" resultMap="channelResultMap">
+        SELECT id, name, type, channel_url, encrypted_api_key, priority, status, created_at, updated_at
+        FROM promotion_channel
+        ORDER BY priority ASC, created_at DESC
+    </select>
+
+    <!-- 按状态筛选渠道 -->
+    <select id="findByStatus" resultMap="channelResultMap">
+        SELECT id, name, type, channel_url, encrypted_api_key, priority, status, created_at, updated_at
+        FROM promotion_channel
+        WHERE status = #{status}
+        ORDER BY priority ASC, created_at DESC
+    </select>
+
+    <!-- 检查是否有关联的推广记录 -->
+    <select id="countPromotionRecordsByChannelId" resultType="long">
+        SELECT COUNT(*)
+        FROM promotion_record
+        WHERE channel_id = #{channelId}
+    </select>
+
+    <!-- 插入新渠道 -->
+    <insert id="insert" useGeneratedKeys="false">
+        INSERT INTO promotion_channel (id, name, type, channel_url, encrypted_api_key, priority, status, created_at, updated_at)
+        VALUES (
+            #{id, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.ChannelIdTypeHandler},
+            #{name},
+            #{type, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+            #{channelUrl},
+            #{encryptedApiKey},
+            #{priority},
+            #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+            #{createdAt},
+            #{updatedAt}
+        )
+    </insert>
+
+    <!-- 更新渠道信息 -->
+    <update id="update">
+        UPDATE promotion_channel
+        SET name = #{name},
+            type = #{type, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+            channel_url = #{channelUrl},
+            encrypted_api_key = #{encryptedApiKey},
+            priority = #{priority},
+            status = #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+            updated_at = #{updatedAt}
+        WHERE id = #{id, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.ChannelIdTypeHandler}
+    </update>
+
+    <!-- 删除指定渠道 -->
+    <delete id="deleteById">
+        DELETE FROM promotion_channel
+        WHERE id = #{id}
+    </delete>
+
+</mapper>
