@@ -33,8 +33,8 @@ public class QwenLlmServiceAdapter implements LlmService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    @Value("${grace.llm.api-key:}")
-    private String apiKey;
+    // 优先从系统环境变量读取，其次从 Spring 配置读取
+    private final String apiKey;
 
     @Value("${grace.llm.base-url:https://dashscope.aliyuncs.com/compatible-mode/v1}")
     private String baseUrl;
@@ -48,9 +48,16 @@ public class QwenLlmServiceAdapter implements LlmService {
     @Value("${grace.llm.retry.initial-interval-ms:1000}")
     private long initialIntervalMs;
 
-    public QwenLlmServiceAdapter(RestTemplate restTemplate, ObjectMapper objectMapper) {
+    public QwenLlmServiceAdapter(RestTemplate restTemplate, ObjectMapper objectMapper,
+                                  @Value("${grace.llm.api-key:}") String configApiKey) {
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
+        // 优先从系统环境变量 QWEN_API_KEY 读取，其次从配置文件读取
+        String envApiKey = System.getenv("QWEN_API_KEY");
+        this.apiKey = (envApiKey != null && !envApiKey.isBlank()) ? envApiKey : configApiKey;
+        if (this.apiKey == null || this.apiKey.isBlank()) {
+            log.warn("Qwen API Key is not configured. Set QWEN_API_KEY environment variable or grace.llm.api-key in application.yml");
+        }
     }
 
     @Override
