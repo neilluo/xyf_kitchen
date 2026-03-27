@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.grace.platform.metadata.infrastructure.persistence.VideoMetadataMapper">
+
+    <resultMap id="videoMetadataResultMap" type="com.grace.platform.metadata.domain.VideoMetadata">
+        <id property="id" column="id" typeHandler="com.grace.platform.shared.infrastructure.persistence.typehandler.MetadataIdTypeHandler"/>
+        <result property="videoId" column="video_id" typeHandler="com.grace.platform.shared.infrastructure.persistence.typehandler.VideoIdTypeHandler"/>
+        <result property="title" column="title"/>
+        <result property="description" column="description"/>
+        <result property="tags" column="tags_json" typeHandler="com.grace.platform.shared.infrastructure.persistence.typehandler.JsonStringListTypeHandler"/>
+        <result property="source" column="source" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="confirmed" column="confirmed"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="findById" resultMap="videoMetadataResultMap">
+        SELECT id, video_id, title, description, tags_json, source, confirmed, created_at, updated_at
+        FROM video_metadata
+        WHERE id = #{id}
+    </select>
+
+    <select id="findByVideoId" resultMap="videoMetadataResultMap">
+        SELECT id, video_id, title, description, tags_json, source, confirmed, created_at, updated_at
+        FROM video_metadata
+        WHERE video_id = #{videoId}
+        ORDER BY created_at DESC
+        LIMIT 1
+    </select>
+
+    <select id="findByVideoIdOrdered" resultMap="videoMetadataResultMap">
+        SELECT id, video_id, title, description, tags_json, source, confirmed, created_at, updated_at
+        FROM video_metadata
+        WHERE video_id = #{videoId}
+        ORDER BY created_at DESC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="false">
+        INSERT INTO video_metadata (id, video_id, title, description, tags_json, source, confirmed, created_at, updated_at)
+        VALUES (
+            #{id, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.MetadataIdTypeHandler},
+            #{videoId, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.VideoIdTypeHandler},
+            #{title},
+            #{description},
+            #{tags, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.JsonStringListTypeHandler},
+            #{source, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+            #{confirmed},
+            #{createdAt},
+            #{updatedAt}
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE video_metadata
+        SET title = #{title},
+            description = #{description},
+            tags_json = #{tags, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.JsonStringListTypeHandler},
+            source = #{source, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+            confirmed = #{confirmed},
+            updated_at = #{updatedAt}
+        WHERE id = #{id, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.MetadataIdTypeHandler}
+    </update>
+
+</mapper>
