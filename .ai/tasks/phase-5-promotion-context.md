@@ -77,7 +77,7 @@
   - `grace-platform/src/main/java/com/grace/platform/promotion/application/dto/ChannelDTO.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P5-04, P1-07, P1-11
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: deleteChannel 逻辑：有关联推广记录则 disable（软删除），无则硬删除
 
 ---

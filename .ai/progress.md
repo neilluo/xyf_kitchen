@@ -61,3 +61,4 @@
 | 2026-03-27 12:10 | P3-09 | 完成 | 创建 Metadata 属性测试 - Property 4(字段约束不变量100次) + Property 5(编辑往返100次) + Property 5b(确认后不可编辑100次) - 验证通过 (mvn test -Dtest=MetadataPropertyTest) |
 | 2026-03-27 14:42 | P4-07 | 完成 | 创建 DistributionController - 6个端点(D1-D6) + 5个DTO(PublishRequest, PublishResultResponse, UploadStatusResponse, PlatformInfoResponse, AuthUrlResponse) - 验证通过 (mvn clean compile) |
 | 2026-03-27 15:10 | P4-09 | 完成 | 创建 Distribution MyBatis Mapper + Repository - PublishRecordMapper/OAuthTokenMapper接口 + PublishRecordRepositoryImpl/OAuthTokenRepositoryImpl实现(含反射加密解密) + XML映射文件 - 验证通过 (mvn clean compile) |
+| 2026-03-27 15:53 | P5-05 | 完成 | 创建 Channel 应用层 - ChannelApplicationService(5方法:create/update/delete/list/get + 软/硬删除逻辑) + CreateChannelCommand + UpdateChannelCommand + ChannelDTO - 验证通过 (mvn clean compile) |
