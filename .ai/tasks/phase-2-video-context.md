@@ -168,5 +168,5 @@
   - `grace-platform/src/test/java/com/grace/platform/video/VideoUnitTest.java`
 - **验证命令**: `mvn test -Dtest="VideoUnitTest"`
 - **依赖**: P2-02, P2-03, P1-16
-- **状态**: [ ]
+- **状态**: [x]
 - **测试要点**: 无效格式抛出 1001、文件超 5GB 抛出 1002、分片索引越界抛出 1005、重复分片抛出 1006、未完成调 complete 抛出 1007
