@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [x] 共 12 个任务，已完成 4/12
+- [x] 共 12 个任务，已完成 10/12
 
 ---
 
@@ -144,7 +144,7 @@
   - `grace-platform/src/main/java/com/grace/platform/video/infrastructure/file/ChunkMergeServiceImpl.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P2-04
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: VideoFileInspectorImpl 使用 ProcessBuilder 调用 ffprobe；ChunkMergeServiceImpl 使用 FileChannel 合并
 
 ---
@@ -156,7 +156,7 @@
   - `grace-platform/src/test/java/com/grace/platform/video/VideoPropertyTest.java`
 - **验证命令**: `mvn test -Dtest="VideoPropertyTest"`
 - **依赖**: P2-02, P1-16
-- **状态**: [ ]
+- **状态**: [x]
 - **测试要点**: Property #1 视频文件信息提取准确性、Property #2 格式白名单边界、Property #3 Video 持久化往返一致性；每个 Property ≥100 次迭代
 
 ---

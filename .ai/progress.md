@@ -2,6 +2,7 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 10:23 | P2-10 | 完成 | 创建 Video 基础设施文件服务实现 - VideoFileInspectorImpl(ffprobe调用) + ChunkMergeServiceImpl(FileChannel合并) - 验证通过 (mvn clean compile) |
 | 2026-03-27 10:17 | P2-09 | 完成 | 创建 Video Repository 实现 - DurationTypeHandler + VideoRepositoryImpl + UploadSessionRepositoryImpl - 验证通过 (mvn clean compile) |
 | 2026-03-27 10:00 | P2-07 | 完成 | 创建 VideoUploadController - 6个REST端点(B1-B6)、5个DTO文件、集成VideoApplicationService、ApiResponse包装 - 验证通过 (mvn clean compile) |
 | 2026-03-27 09:52 | P2-06 | 完成 | 创建 Video 应用层 - VideoApplicationService 含6个方法、Command/DTO 共9个文件、UploadSession.createWithId、PageRequest支持sort/order - 验证通过 (mvn clean compile) |
@@ -30,3 +31,4 @@
 | 2026-03-27 09:05 | P1-17 | 完成 | 创建 EncryptionService 单元测试 - 11个测试用例覆盖加密/解密往返、随机IV、空值处理 - 验证通过 (mvn test -Dtest="EncryptionServiceTest") |
 | 2026-03-27 10:12 | P2-08 | 完成 | 创建 Video MyBatis Mapper 接口与 XML - VideoMapper/UploadSessionMapper 接口 + ResultMap + 动态 SQL - 验证通过 (mvn clean compile) |
 | 2026-03-27 09:37 | P2-03 | 完成 | 创建 UploadSession 实体 - 包含分片计算、过期判断、状态管理、进度计算 - 验证通过 (mvn clean compile) |
+| 2026-03-27 10:30 | P2-11 | 完成 | 创建 Video 属性测试 - Property 1(文件信息提取100次) + Property 2(格式验证边界100次) + Property 2b(枚举一致性) - 验证通过 (mvn test -Dtest=VideoPropertyTest) |
