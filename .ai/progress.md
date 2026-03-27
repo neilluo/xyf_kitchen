@@ -2,6 +2,7 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 16:40 | P5-11 | 完成 | 创建 Promotion 配置类 - PromotionConfig(PromotionExecutorRegistry Bean注册) + OpenCrawlProperties(已存在) - 验证通过 (mvn clean compile) |
 | 2026-03-27 18:00 | P5-10 | 完成 | 创建 Promotion MyBatis Mapper + Repository 实现 - PromotionChannelMapper(7方法) + PromotionRecordMapper(9方法含ChannelSuccessRateProjection) + PromotionChannelRepositoryImpl(6方法) + PromotionRecordRepositoryImpl(6方法) + XML映射文件(含ResultMap/TypeHandler/动态SQL) - 支持软删除检查/分页查询/渠道成功率统计 - 验证通过 (mvn clean compile) |
 | 2026-03-27 17:25 | P5-08 | 完成 | 创建 OpenCrawl 适配器 - OpenCrawlAdapter(接口) + OpenCrawlAdapterImpl(RestTemplate实现) + OpenCrawlPromotionExecutor(PromotionExecutor策略实现) + OpenCrawlRequest/OpenCrawlResponse DTO + OpenCrawlProperties(配置类) - 支持API Key解密、推广执行、结果URL提取 - 验证通过 (mvn clean compile) |
 | 2026-03-27 17:15 | P5-07 | 完成 | 创建 ChannelController 与 PromotionController - ChannelController(5端点:E1-E5) + PromotionController(5端点:F1-F5) + 4个Request DTO(CreateChannel/UpdateChannel/GenerateCopy/ExecutePromotion) + 5个Response DTO(Channel/PromotionCopy/PromotionResult/PromotionRecord/PromotionReport) - 验证通过 (mvn clean compile) |
