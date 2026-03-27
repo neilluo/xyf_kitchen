@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [ ] 共 12 个任务，已完成 1/12
+- [ ] 共 12 个任务，已完成 6/12
 
 ---
 
@@ -94,7 +94,7 @@
   - `grace-platform/src/main/java/com/grace/platform/promotion/application/dto/PromotionReportDTO.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P5-03, P5-04, P5-05, P1-07
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
