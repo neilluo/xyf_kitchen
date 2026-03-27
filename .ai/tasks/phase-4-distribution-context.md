@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [ ] 共 12 个任务，已完成 1/12
+- [ ] 共 12 个任务，已完成 8/12
 
 ---
 
@@ -121,7 +121,7 @@
   - `grace-platform/src/main/java/com/grace/platform/distribution/infrastructure/youtube/YouTubeOAuthServiceImpl.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P4-03, P4-04, P1-11
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: YouTubeOAuthServiceImpl 实现 OAuthService 接口；Token 使用 EncryptionService 加密存储；YouTube API 配额每日 10000 units
 
 ---
