@@ -36,6 +36,7 @@ public final class ErrorCode {
     public static final int INVALID_CHANNEL_CONFIG         = 4002;
     public static final int CHANNEL_DISABLED               = 4003;
     public static final int PROMOTION_RECORD_NOT_FOUND     = 4004;
+    public static final int INVALID_PROMOTION_STATUS       = 4005;
 
     // ===== 5001-5099: User/Settings Context =====
     public static final int PROFILE_NOT_FOUND              = 5001;

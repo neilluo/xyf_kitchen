@@ -2,6 +2,7 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 15:33 | P5-01 | 完成 | 创建 Promotion 枚举与值对象 - ChannelType/ChannelStatus/PromotionMethod/PromotionStatus枚举 + PromotionResult记录 + PromotionCopy/PromotionReport/ChannelExecutionSummary值对象 - 验证通过 (mvn clean compile) |
 | 2026-03-27 15:28 | P4-12 | 完成 | 创建 Distribution 单元测试 - 22个测试用例覆盖错误码3001(不支持平台)、OAuth Token自动刷新、配额超限标记QUOTA_EXCEEDED、状态机转换 - 验证通过 (mvn test -Dtest=DistributionUnitTest) |
 |------|---------|------|------|
 | 2026-03-27 15:20 | P4-11 | 完成 | 创建 Distribution 属性测试 - DistributionPropertyTest(5个属性测试: 平台路由正确性/URL格式验证/记录往返/状态机转换) 覆盖 Property #6-#8 - 验证通过 (mvn test -Dtest=DistributionPropertyTest) |

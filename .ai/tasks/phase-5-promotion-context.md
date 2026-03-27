@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [ ] 共 12 个任务，已完成 0/12
+- [ ] 共 12 个任务，已完成 1/12
 
 ---
 
@@ -25,7 +25,7 @@
   - `grace-platform/src/main/java/com/grace/platform/promotion/domain/vo/ChannelExecutionSummary.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P1-04
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
