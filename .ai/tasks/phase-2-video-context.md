@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [x] 共 12 个任务，已完成 2/12
+- [x] 共 12 个任务，已完成 3/12
 
 ---
 
@@ -45,7 +45,7 @@
   - `grace-platform/src/main/java/com/grace/platform/video/domain/UploadSession.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P2-01
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: uploadId 使用 "upl_" 前缀 + UUID；totalChunks = ceil(fileSize / chunkSize)；含过期判断逻辑
 
 ---
