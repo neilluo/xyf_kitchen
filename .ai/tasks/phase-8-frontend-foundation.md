@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [ ] 共 14 个任务，已完成 2/14
+- [x] 共 14 个任务，已完成 3/14
 
 ---
 
@@ -90,7 +90,7 @@
   - `grace-frontend/src/components/ui/Table.tsx`
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit`
 - **依赖**: P8-03
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: TagChip 可选 onRemove 回调（显示 close 图标）；Pagination 含 page/totalPages/onPageChange；Toggle 基于 checkbox peer 模式；Table 为 thead/tbody 基础封装
 
 ---
@@ -104,8 +104,7 @@
   - `grace-frontend/src/components/layout/Header.tsx`
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit`
 - **依赖**: P8-03, P8-04
-- **状态**: [ ]
-- **注意**: Sidebar 宽 240px，bg-[#001529]，7 个导航项（useLocation 高亮），底部设置按钮；Header 毛玻璃效果 bg-white/80 backdrop-blur-md；AppLayout 使用 React Router `<Outlet />`
+- **状态**: [x]
 
 ---
 

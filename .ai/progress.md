@@ -2,6 +2,7 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 20:15 | P8-06 | 完成 | 实现 TagChip/ProgressBar/Pagination/Toggle/Table 组件 - TagChip(可删除+close图标)/ProgressBar(进度条+aria支持)/Pagination(页码导航+ellipsis)/Toggle(checkbox peer模式)/Table(thead/tbody封装) - 全部使用设计系统token - 验证通过 (npx tsc --noEmit) |
 | 2026-03-27 20:00 | P8-05 | 完成 | 实现 StatusBadge/Card/Input/Select 组件 - StatusBadge(10种状态映射+脉冲动画)/Card(No-Line设计+hoverable)/Input(无border+focus ring)/Select(同Input+expand_more图标) - 新增 lib/utils.ts (cn函数) + 安装 clsx/tailwind-merge - 验证通过 (npx tsc --noEmit) |
 | 2026-03-27 19:35 | P8-04 | 完成 | 实现 Button 组件 - 5种变体(Primary渐变CTA/Secondary/Ghost/Danger/Icon Button)，Props支持variant/children/icon/disabled/onClick/className，Primary使用bg-gradient-to-r from-primary to-primary-container - 验证通过 (npx tsc --noEmit)
 | 2026-03-27 19:30 | P8-03 | 完成 | 实现 Icon 组件 - 封装 Google Material Symbols Outlined，支持 name/size/className Props，size 默认 20px - 验证通过 (npx tsc --noEmit) |
@@ -92,3 +93,5 @@
 | 2026-03-27 17:16 | P6-03 | 完成 | 创建 User/Settings Repository 接口 - UserProfileRepository(2方法) + NotificationPreferenceRepository(2方法) + ApiKeyRepository(4方法) - 验证通过 (mvn clean compile) |
 | 2026-03-27 18:15 | P7-04 | 完成 | 创建 .env.example - 包含18个环境变量(MYSQL_HOST/PORT/DATABASE/USERNAME/PASSWORD、GRACE_ENCRYPTION_KEY、QWEN_API_KEY/MODEL/BASE_URL、YOUTUBE_CLIENT_ID/SECRET/REDIRECT_URI、OPENCRAWL_API_KEY/BASE_URL、GRACE_VIDEO_DIR/TEMP_DIR/AVATAR_DIR、LOG_LEVEL/LOG_FILE) - 验证通过 (mvn clean compile) |
 | 2026-03-27 18:05 | P6-07 | 完成 | 创建 SettingsController - SettingsController(10端点:G1-G10) + AvatarResponse内部类 - 完整实现用户资料/头像上传/已连接账户/通知偏好/API Key管理端点 - 验证通过 (mvn clean compile) |
+[2026-03-27] P8-07: 实现 AppLayout + Sidebar + Header 布局组件 - COMPLETED
+| 2026-03-27 19:34 | P8-08 | 完成 | 创建通用类型定义 - common.ts(ApiResponse/PaginatedData/PaginationParams) + video.ts(7种VideoStatus) + metadata.ts + distribution.ts(5种PublishStatus) + channel.ts + promotion.ts(4种PromotionStatus) + settings.ts + dashboard.ts - 严格按api.md定义 - 验证通过 (npx tsc --noEmit) |
