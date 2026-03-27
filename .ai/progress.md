@@ -2,6 +2,7 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 08:35 | P1-06 | 完成 | 创建领域事件基础设施（DomainEvent + DomainEventPublisher + SpringDomainEventPublisher）- 验证通过 (mvn clean compile) |
 | 2026-03-27 08:31 | P1-05 | 完成 | 创建 9 个 MyBatis TypeHandler - 验证通过 (mvn clean compile) |
 | 2026-03-27 08:27 | P1-04 | 完成 | 9 个类型化 ID record - 验证通过 (exit code 0) |
 | 2026-03-27 08:26 | P1-03 | 完成 | 创建 application.yml + application-test.yml - 验证通过 (exit code 0) |

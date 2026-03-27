@@ -81,7 +81,7 @@
   - `grace-platform/src/main/java/com/grace/platform/shared/infrastructure/persistence/typehandler/ApiKeyIdTypeHandler.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P1-04
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 每个 TypeHandler 继承 `BaseTypeHandler<XxxId>` + `@MappedTypes(XxxId.class)` 注解
 
 ---
@@ -95,7 +95,7 @@
   - `grace-platform/src/main/java/com/grace/platform/shared/infrastructure/event/SpringDomainEventPublisher.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P1-02
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
