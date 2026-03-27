@@ -2,6 +2,7 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 18:32 | P7-06 | 完成 | 创建 6 个集成测试 - VideoIntegrationTest(3测试)/MetadataIntegrationTest(3测试)/DistributionIntegrationTest(4测试)/PromotionIntegrationTest(3测试)/UserSettingsIntegrationTest(6测试)/DashboardIntegrationTest(3测试) - 全部继承AbstractIntegrationTest，外部服务使用@MockBean模拟 - 编译通过，Docker运行时需要容器环境 |
 | 2026-03-27 18:15 | P7-05 | 完成 | 补全 TestFixtures + GraceArbitraries - TestFixtures(7工厂方法: createVideo/createUploadSession/createMetadata/createPublishRecord/createChannel/createPromotionRecord/createApiKey) + GraceArbitraries(12枚举生成器 + 附加值对象生成器) - 验证通过 (mvn test-compile) |
 | 2026-03-27 18:15 | P7-03 | 完成 | 扩展各 Mapper 添加 Dashboard 查询方法 - ChannelPromotionStats投影接口 + VideoMapper扩展(count/countByStatus) + PromotionRecordMapper扩展(countDistinctVideoIdByStatus/countByCreatedAtAfter/countByStatusAndCreatedAtAfter/countGroupByChannelId) + 对应XML SQL - 验证通过 (mvn clean compile) |
 | 2026-03-27 18:10 | P7-02 | 完成 | 创建 DashboardController - 实现GET /api/dashboard/overview端点，支持dateRange参数(默认30d)，注入DashboardQueryService，返回ApiResponse<DashboardOverviewResponse> - 验证通过 (mvn clean compile) |
@@ -25,9 +26,9 @@
 |------|---------|------|------|
 | 2026-03-27 15:20 | P4-11 | 完成 | 创建 Distribution 属性测试 - DistributionPropertyTest(5个属性测试: 平台路由正确性/URL格式验证/记录往返/状态机转换) 覆盖 Property #6-#8 - 验证通过 (mvn test -Dtest=DistributionPropertyTest) |
 | 2026-03-27 15:14 | P4-10 | 完成 | 创建 Distribution 配置类 - DistributionConfig(VideoDistributorRegistry Bean) + YouTubeProperties(apiBaseUrl/uploadUrl/QuotaRetryProperties) - 验证通过 (mvn clean compile)
-| 2026-03-27 14:57 | P4-08 | 完成 | 创建 YouTube 适配器 - YouTubeDistributor(ResumableVideoDistributor实现) + YouTubeApiAdapter(接口) + YouTubeApiAdapterImpl(骨架) + YouTubeOAuthServiceImpl(OAuthService实现) + YouTubeProperties(配置) + 3个值对象(YouTubeUploadResult/Progress/Status) - 支持断点续传、每日10000配额、Token AES加密 - 验证通过 (mvn clean compile)
-| 2026-03-27 14:25 | P4-06 | 完成 | 创建 QuotaRetryScheduler - 配额超限自动重试调度器，30分钟间隔，最大5次重试，支持断点续传恢复，处理配额仍超限/成功/达到最大重试次数三种状态流转 - 验证通过 (mvn clean compile)
-| 2026-03-27 14:17 | P4-05 | 完成 | 创建 Distribution 应用层 - DistributionApplicationService(6方法: publish/getUploadStatus/initiateAuth/handleAuthCallback/listPlatforms/getPublishRecords) + PublishCommand + 4个DTO(PublishResultDTO/UploadStatusDTO/PlatformInfoDTO/PublishRecordDTO) + MetadataConfirmedEventListener - 验证通过 (mvn clean compile)
+| 2026-03-27 14:57 | P4-08 | 完成 | 创建 YouTube 适配器 - YouTubeDistributor(ResumableVideoDistributor实现) + YouTubeApiAdapter(接口) + YouTubeApiAdapterImpl(骨架) + YouTubeOAuthServiceImpl(OAuthService实现) + YouTubeProperties(配置) + 3个值对象(YouTubeUploadResult/Progress/Status) - 支持断点续传、每日10000配额、Token AES加密 - 验证通过 (mvn clean compile) |
+| 2026-03-27 14:25 | P4-06 | 完成 | 创建 QuotaRetryScheduler - 配额超限自动重试调度器，30分钟间隔，最大5次重试，支持断点续传恢复，处理配额仍超限/成功/达到最大重试次数三种状态流转 - 验证通过 (mvn clean compile) |
+| 2026-03-27 14:17 | P4-05 | 完成 | 创建 Distribution 应用层 - DistributionApplicationService(6方法: publish/getUploadStatus/initiateAuth/handleAuthCallback/listPlatforms/getPublishRecords) + PublishCommand + 4个DTO(PublishResultDTO/UploadStatusDTO/PlatformInfoDTO/PublishRecordDTO) + MetadataConfirmedEventListener - 验证通过 (mvn clean compile) |
 | 2026-03-27 13:57 | P4-03 | 完成 | 创建 Strategy 接口与 Registry - VideoDistributor策略接口 + ResumableVideoDistributor扩展 + VideoDistributorRegistry(Map路由/3001错误) + VideoFile/VideoMetadata/PlatformInfo值对象 - 验证通过 (mvn clean compile) |
 | 2026-03-27 13:50 | P4-02 | 完成 | 创建 PublishRecord 与 OAuthToken 实体 - PublishRecord聚合根(状态管理/重试机制) + OAuthToken(加密存储/isExpired) - 验证通过 (mvn clean compile) |
 | 2026-03-27 12:30 | P4-01 | 完成 | 创建 Distribution 枚举与值对象 - PublishStatus枚举(5状态) + PublishResult记录 + UploadStatus记录 - 验证通过 (mvn clean compile) |
@@ -36,7 +37,7 @@
 | 2026-03-27 12:15 | P3-08 | 完成 | 创建 VideoMetadataRepositoryImpl - 实现4个方法(save/findById/findLatestByVideoId/findByVideoId) - 验证通过 (mvn clean compile) |
 | 2026-03-27 12:10 | P3-06 | 完成 | 创建 MetadataController - 5个REST端点(C1-C5): generate/update/regenerate/confirm/getByVideoId + 3个DTO(GenerateMetadataRequest/UpdateMetadataRequest/VideoMetadataResponse) + Validation注解 - 验证通过 (mvn clean compile) |
 | 2026-03-27 12:05 | P3-05 | 完成 | 创建 Metadata 应用层 - MetadataApplicationService(5个方法: generate/update/regenerate/confirm/getByVideoId) + UpdateMetadataCommand + VideoMetadataDTO + VideoUploadedEventListener - 验证通过 (mvn clean compile) |
-| 2026-03-27 11:47 | P3-03 | 完成 | 创建 LLM 基础设施 - LlmService 接口 + LlmRequest/LlmResponse records + QwenLlmServiceAdapter(指数退避重试1s/2s/4s，最多3次，失败抛9001) + WebConfig添加RestTemplate bean - 验证通过 (mvn clean compile) |
+| 2026-03-27 11:47 | P3-03 | 创建 LLM 基础设施 - LlmService 接口 + LlmRequest/LlmResponse records + QwenLlmServiceAdapter(指数退避重试1s/2s/4s，最多3次，失败抛9001) + WebConfig添加RestTemplate bean - 验证通过 (mvn clean compile) |
 | 2026-03-27 11:41 | P3-02 | 完成 | 创建 Metadata 领域接口与事件 - MetadataGenerationService 接口 + VideoMetadataRepository 接口(4个方法) + MetadataConfirmedEvent 领域事件 - 验证通过 (mvn clean compile) |
 | 2026-03-27 11:37 | P3-01 | 完成 | 创建 Metadata 枚举与域实体 - MetadataSource 枚举(AI_GENERATED/MANUAL/AI_EDITED) + VideoMetadata 聚合根(validate/update/confirm方法 + 领域不变量验证) - 验证通过 (mvn clean compile) |
 |------|---------|------|------|
@@ -71,8 +72,8 @@
 | 2026-03-27 10:12 | P2-08 | 完成 | 创建 Video MyBatis Mapper 接口与 XML - VideoMapper/UploadSessionMapper 接口 + ResultMap + 动态 SQL - 验证通过 (mvn clean compile) |
 | 2026-03-27 09:37 | P2-03 | 完成 | 创建 UploadSession 实体 - 包含分片计算、过期判断、状态管理、进度计算 - 验证通过 (mvn clean compile) |
 | 2026-03-27 10:30 | P2-11 | 完成 | 创建 Video 属性测试 - Property 1(文件信息提取100次) + Property 2(格式验证边界100次) + Property 2b(枚举一致性) - 验证通过 (mvn test -Dtest=VideoPropertyTest) |
-| 2026-03-27 14:06 | P4-04 | 完成 | 创建 Distribution 领域接口与事件 - OAuthService(3方法) + AuthorizationUrl值对象 + PublishRecordRepository(6方法) + OAuthTokenRepository(4方法) + VideoPublishedEvent领域事件 - 验证通过 (mvn clean compile)
-| 2026-03-27 11:50 | P3-04 | 完成 | 创建 MetadataGenerationServiceImpl - 实现AI元数据生成服务，包含美食专家角色设定、历史风格参考、JSON解析、字段验证 - 验证通过 (mvn clean compile)
+| 2026-03-27 14:06 | P4-04 | 完成 | 创建 Distribution 领域接口与事件 - OAuthService(3方法) + AuthorizationUrl值对象 + PublishRecordRepository(6方法) + OAuthTokenRepository(4方法) + VideoPublishedEvent领域事件 - 验证通过 (mvn clean compile) |
+| 2026-03-27 11:50 | P3-04 | 完成 | 创建 MetadataGenerationServiceImpl - 实现AI元数据生成服务，包含美食专家角色设定、历史风格参考、JSON解析、字段验证 - 验证通过 (mvn clean compile) |
 | 2026-03-27 12:10 | P3-09 | 完成 | 创建 Metadata 属性测试 - Property 4(字段约束不变量100次) + Property 5(编辑往返100次) + Property 5b(确认后不可编辑100次) - 验证通过 (mvn test -Dtest=MetadataPropertyTest) |
 | 2026-03-27 14:42 | P4-07 | 完成 | 创建 DistributionController - 6个端点(D1-D6) + 5个DTO(PublishRequest, PublishResultResponse, UploadStatusResponse, PlatformInfoResponse, AuthUrlResponse) - 验证通过 (mvn clean compile) |
 | 2026-03-27 15:10 | P4-09 | 完成 | 创建 Distribution MyBatis Mapper + Repository - PublishRecordMapper/OAuthTokenMapper接口 + PublishRecordRepositoryImpl/OAuthTokenRepositoryImpl实现(含反射加密解密) + XML映射文件 - 验证通过 (mvn clean compile) |

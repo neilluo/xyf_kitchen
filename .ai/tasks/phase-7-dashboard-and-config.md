@@ -89,7 +89,7 @@
   - `grace-platform/src/test/java/com/grace/platform/dashboard/DashboardIntegrationTest.java`
 - **验证命令**: `mvn test -Dtest="*IntegrationTest"`
 - **依赖**: P7-05, P1-16
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 继承 AbstractIntegrationTest（Testcontainers MySQL 8.0）；外部服务使用 @MockBean（LlmService/YouTubeApiAdapter/OpenCrawlAdapter）；需要 Docker 运行
 
 ---
