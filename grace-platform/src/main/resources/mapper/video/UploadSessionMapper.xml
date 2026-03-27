@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.grace.platform.video.infrastructure.persistence.UploadSessionMapper">
+
+    <!-- ResultMap：利用 mybatis.configuration.map-underscore-to-camel-case=true 自动映射 -->
+    <!-- 仅需对 TypeHandler 类型的字段显式声明 -->
+    <resultMap id="uploadSessionResultMap" type="com.grace.platform.video.domain.UploadSession">
+        <id property="uploadId" column="upload_id"/>
+        <result property="format" column="format" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="status" column="status" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+    </resultMap>
+
+    <!-- 根据 uploadId 查询上传会话 -->
+    <select id="findById" resultMap="uploadSessionResultMap">
+        SELECT upload_id, file_name, file_size, format, total_chunks, uploaded_chunks,
+               temp_directory, status, created_at, expires_at
+        FROM upload_session
+        WHERE upload_id = #{uploadId}
+    </select>
+
+    <!-- 插入新上传会话 -->
+    <insert id="insert">
+        INSERT INTO upload_session (upload_id, file_name, file_size, format, total_chunks, uploaded_chunks,
+                                    temp_directory, status, created_at, expires_at)
+        VALUES (
+            #{uploadId},
+            #{fileName},
+            #{fileSize},
+            #{format, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+            #{totalChunks},
+            #{uploadedChunks},
+            #{tempDirectory},
+            #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+            #{createdAt},
+            #{expiresAt}
+        )
+    </insert>
+
+    <!-- 更新上传会话信息 -->
+    <update id="update">
+        UPDATE upload_session
+        SET file_name = #{fileName},
+            file_size = #{fileSize},
+            format = #{format, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+            total_chunks = #{totalChunks},
+            uploaded_chunks = #{uploadedChunks},
+            temp_directory = #{tempDirectory},
+            status = #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+            created_at = #{createdAt},
+            expires_at = #{expiresAt}
+        WHERE upload_id = #{uploadId}
+    </update>
+
+    <!-- 删除所有已过期的上传会话 -->
+    <delete id="deleteExpiredSessions">
+        DELETE FROM upload_session
+        WHERE expires_at &lt; #{now}
+    </delete>
+
+</mapper>
