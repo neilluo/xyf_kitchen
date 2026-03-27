@@ -114,7 +114,7 @@
   - `grace-platform/src/main/java/com/grace/platform/metadata/infrastructure/persistence/VideoMetadataRepositoryImpl.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P3-07
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
@@ -125,7 +125,7 @@
   - `grace-platform/src/test/java/com/grace/platform/metadata/MetadataPropertyTest.java`
 - **验证命令**: `mvn test -Dtest="MetadataPropertyTest"`
 - **依赖**: P3-01, P1-16
-- **状态**: [ ]
+- **状态**: [x]
 - **测试要点**: Property #4 标题≤100/描述≤5000/标签5-15 不变量；Property #5 编辑后持久化再读取一致性；每个 Property ≥100 次迭代
 
 ---
