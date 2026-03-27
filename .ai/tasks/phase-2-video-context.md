@@ -90,7 +90,7 @@
   - `grace-platform/src/main/java/com/grace/platform/video/application/dto/VideoDetailDTO.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P2-04, P2-05, P1-07
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
