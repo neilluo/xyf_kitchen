@@ -74,3 +74,4 @@
 | 2026-03-27 17:01 | P6-01 | 完成 | 创建 User/Settings 域实体 (UserProfile, NotificationPreference, ApiKey) - 验证通过 (mvn clean compile) |
 | 2026-03-27 17:12 | P6-02 | 完成 | 创建 ApiKeyGenerationService - ApiKeyGenerationService接口 + GeneratedApiKey记录 + ApiKeyGenerationServiceImpl实现(SecureRandom/Base62/BCrypt) + Base62工具类 - 验证通过 (mvn clean compile) |
 | 2026-03-27 17:16 | P6-03 | 完成 | 创建 User/Settings Repository 接口 - UserProfileRepository(2方法) + NotificationPreferenceRepository(2方法) + ApiKeyRepository(4方法) - 验证通过 (mvn clean compile) |
+| 2026-03-27 18:05 | P6-07 | 完成 | 创建 SettingsController - SettingsController(10端点:G1-G10) + AvatarResponse内部类 - 完整实现用户资料/头像上传/已连接账户/通知偏好/API Key管理端点 - 验证通过 (mvn clean compile) |

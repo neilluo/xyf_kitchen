@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.grace.platform.usersettings.infrastructure.persistence.NotificationPreferenceMapper">
+
+    <!-- ResultMap：利用 mybatis.configuration.map-underscore-to-camel-case=true 自动映射 -->
+    <!-- 仅需对 TypeHandler 类型的字段显式声明 -->
+    <resultMap id="notificationPreferenceResultMap" type="com.grace.platform.usersettings.domain.model.NotificationPreference">
+        <id property="id" column="id" typeHandler="com.grace.platform.shared.infrastructure.persistence.typehandler.NotificationPreferenceIdTypeHandler"/>
+    </resultMap>
+
+    <!-- 根据 ID 查询通知偏好 -->
+    <select id="findById" resultMap="notificationPreferenceResultMap">
+        SELECT id, upload_complete, promotion_success, system_updates, updated_at
+        FROM notification_preference
+        WHERE id = #{id}
+    </select>
+
+    <!-- 插入新通知偏好 -->
+    <insert id="insert" useGeneratedKeys="false">
+        INSERT INTO notification_preference (id, upload_complete, promotion_success, system_updates, updated_at)
+        VALUES (
+            #{id, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.NotificationPreferenceIdTypeHandler},
+            #{uploadComplete},
+            #{promotionSuccess},
+            #{systemUpdates},
+            #{updatedAt}
+        )
+    </insert>
+
+    <!-- 更新通知偏好 -->
+    <update id="update">
+        UPDATE notification_preference
+        SET upload_complete = #{uploadComplete},
+            promotion_success = #{promotionSuccess},
+            system_updates = #{systemUpdates},
+            updated_at = #{updatedAt}
+        WHERE id = #{id, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.NotificationPreferenceIdTypeHandler}
+    </update>
+
+</mapper>

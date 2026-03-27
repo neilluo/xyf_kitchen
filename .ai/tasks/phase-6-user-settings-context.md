@@ -101,7 +101,7 @@
   - `grace-platform/src/main/java/com/grace/platform/usersettings/interfaces/rest/SettingsController.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P6-04, P1-07, P1-09
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 

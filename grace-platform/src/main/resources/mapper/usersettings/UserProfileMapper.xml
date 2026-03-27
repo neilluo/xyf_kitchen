@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.grace.platform.usersettings.infrastructure.persistence.UserProfileMapper">
+
+    <!-- ResultMap：利用 mybatis.configuration.map-underscore-to-camel-case=true 自动映射 -->
+    <!-- 仅需对 TypeHandler 类型的字段显式声明 -->
+    <resultMap id="userProfileResultMap" type="com.grace.platform.usersettings.domain.model.UserProfile">
+        <id property="id" column="id" typeHandler="com.grace.platform.shared.infrastructure.persistence.typehandler.UserProfileIdTypeHandler"/>
+    </resultMap>
+
+    <!-- 根据 ID 查询用户资料 -->
+    <select id="findById" resultMap="userProfileResultMap">
+        SELECT id, display_name, email, avatar_url, created_at, updated_at
+        FROM user_profile
+        WHERE id = #{id}
+    </select>
+
+    <!-- 插入新用户资料 -->
+    <insert id="insert" useGeneratedKeys="false">
+        INSERT INTO user_profile (id, display_name, email, avatar_url, created_at, updated_at)
+        VALUES (
+            #{id, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.UserProfileIdTypeHandler},
+            #{displayName},
+            #{email},
+            #{avatarUrl},
+            #{createdAt},
+            #{updatedAt}
+        )
+    </insert>
+
+    <!-- 更新用户资料 -->
+    <update id="update">
+        UPDATE user_profile
+        SET display_name = #{displayName},
+            email = #{email},
+            avatar_url = #{avatarUrl},
+            updated_at = #{updatedAt}
+        WHERE id = #{id, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.UserProfileIdTypeHandler}
+    </update>
+
+</mapper>
