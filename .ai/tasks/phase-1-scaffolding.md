@@ -114,7 +114,7 @@
   - `grace-platform/src/main/resources/logback-spring.xml`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P1-03
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
@@ -130,7 +130,7 @@
   - `grace-platform/src/main/resources/db/migration/V6__add_indexes.sql`
 - **验证命令**: `mvn clean compile`（SQL 仅运行时校验，此处只检查文件存在且编译不报错）
 - **依赖**: P1-03
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
@@ -154,5 +154,5 @@
   - `grace-platform/src/test/java/com/grace/platform/shared/EncryptionServiceTest.java`
 - **验证命令**: `mvn test -Dtest="EncryptionServiceTest"` 通过
 - **依赖**: P1-11, P1-16
-- **状态**: [ ]
+- **状态**: [x]
 - **测试要点**: 加密后解密恢复原文、不同明文产生不同密文（随机 IV）、空值/空字符串处理

@@ -32,6 +32,20 @@ class SessionResult:
 def build_prompt(task: Task, phase: Phase, config: OrchestratorConfig) -> str:
     """Build the prompt that will be sent to the agent CLI."""
 
+    # Extract context from phase name for branch naming
+    context = phase.name.replace("phase-", "").replace("-", "/")
+    branch_type = "feat"
+    if "fix" in task.title.lower():
+        branch_type = "fix"
+    elif "test" in task.title.lower():
+        branch_type = "test"
+    elif "docs" in task.title.lower():
+        branch_type = "docs"
+    elif "refactor" in task.title.lower():
+        branch_type = "refactor"
+
+    branch_name = f"{branch_type}/{context}/{task.task_id.lower()}"
+
     prompt_parts = [
         f"You are working on the Grace Platform project.",
         f"",
@@ -48,12 +62,14 @@ def build_prompt(task: Task, phase: Phase, config: OrchestratorConfig) -> str:
         f"",
         f"1. Read the AGENTS.md file first to understand the project structure and coding conventions.",
         f"2. Read the reference documentation specified in the task.",
-        f"3. Implement the code files listed in the output files.",
-        f"4. Run the verification command to ensure correctness.",
-        f"5. If verification passes, commit the changes using Conventional Commits format.",
-        f"6. Update .ai/progress.md with the completion record.",
-        f"7. If you encounter non-obvious issues, add a note to .ai/learnings.md.",
-        f"8. Mark the task status as [x] in the phase file: .ai/tasks/{phase.name}.md",
+        f"3. **Create a new branch** for this task: `git checkout -b {branch_name}`",
+        f"   - Branch naming follows: `{{type}}/{{context}}/{{description}}` per AGENTS.md",
+        f"4. Implement the code files listed in the output files.",
+        f"5. Run the verification command to ensure correctness.",
+        f"6. If verification passes, commit the changes using Conventional Commits format.",
+        f"7. Update .ai/progress.md with the completion record.",
+        f"8. If you encounter non-obvious issues, add a note to .ai/learnings.md.",
+        f"9. Mark the task status as [x] in the phase file: .ai/tasks/{phase.name}.md",
         f"",
         f"IMPORTANT: Only work on this single task ({task.task_id}). Do not proceed to other tasks.",
         f"IMPORTANT: If verification fails after 3 attempts, mark the task as [!] (blocked) and record the failure reason.",

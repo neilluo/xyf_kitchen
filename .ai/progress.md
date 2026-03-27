@@ -2,6 +2,9 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 08:53 | P1-15 | 完成 | 创建 Flyway 迁移脚本 V1-V6 - Video/Metadata/Distribution/Promotion/UserSettings 上下文建表 + 索引 - 验证通过 (mvn clean compile) |
+|------|---------|------|------|
+| 2026-03-27 08:55 | P1-14 | 完成 | 创建 logback-spring.xml - Console/File 按天滚动、traceId Pattern - 验证通过 (mvn clean compile) |
 | 2026-03-27 08:55 | P1-13 | 完成 | 创建日志基础设施 - TraceIdFilter/CachedBodyFilter/RequestResponseLoggingInterceptor/WebMvcConfig/AsyncConfig/MdcTaskDecorator/SlowSqlInterceptor - 验证通过 (mvn clean compile) |
 | 2026-03-27 08:46 | P1-12 | 完成 | 创建 API Key 哈希服务 - ApiKeyHashService 接口 + BcryptApiKeyHashService 实现 - 验证通过 (mvn clean compile) |
 | 2026-03-27 08:44 | P1-11 | 完成 | 创建 AES-256-GCM 加密服务 - EncryptionService 接口 + AesGcmEncryptionService 实现（IV 12字节 + Base64编码）- 验证通过 (mvn clean compile) |
@@ -18,3 +21,4 @@
 | 2026-03-27 08:13 | P1-01 | 创建 Maven pom.xml | BLOCKED | Failed 3 times. Last exit code: -2 |
 | 2026-03-27 08:13 | P1-13 | 创建日志基础设施 | BLOCKED | Failed 3 times. Last exit code: -2 |
 | 2026-03-27 08:26 | P1-16 | 完成 | 创建测试基础设施 - 验证通过 (exit code 0)，临时降级到 Java 17 |
+| 2026-03-27 09:05 | P1-17 | 完成 | 创建 EncryptionService 单元测试 - 11个测试用例覆盖加密/解密往返、随机IV、空值处理 - 验证通过 (mvn test -Dtest="EncryptionServiceTest") |

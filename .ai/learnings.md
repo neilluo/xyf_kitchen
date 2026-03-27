@@ -22,3 +22,4 @@
 ## 环境适配
 
 - 当前环境使用 Java 17，项目需 Java 21 — 临时降级 POM 到 Java 17 验证编译，后续需升级回 Java 21
+- 2026-03-27: 尝试升级 POM 到 Java 21 失败，环境仅支持 Java 17 — 保持 Java 17 配置，Record Patterns 等 preview features 暂不可用
