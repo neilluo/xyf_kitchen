@@ -137,5 +137,5 @@
   - `grace-platform/src/test/java/com/grace/platform/metadata/MetadataUnitTest.java`
 - **验证命令**: `mvn test -Dtest="MetadataUnitTest"`
 - **依赖**: P3-01, P3-04, P1-16
-- **状态**: [ ]
+- **状态**: [x]
 - **测试要点**: LLM 3次失败后抛 9001；confirmed=true 时调 update() 抛 2003；标签数<5或>15时 validate() 抛 2001

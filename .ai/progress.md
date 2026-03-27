@@ -2,6 +2,7 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 12:18 | P3-10 | 完成 | 创建 MetadataUnitTest - 21个测试用例覆盖错误码2001(标签数量边界)/2003(已确认不可编辑)，包含标题/描述长度边界测试 - 验证通过 (mvn test -Dtest=MetadataUnitTest) |
 | 2026-03-27 12:10 | P3-07 | 完成 | 创建 VideoMetadataMapper + JsonStringListTypeHandler - 5个方法(findById/findByVideoId/findByVideoIdOrdered/insert/update) + tags_json JSON转换TypeHandler - 验证通过 (mvn clean compile) |
 | 2026-03-27 12:15 | P3-08 | 完成 | 创建 VideoMetadataRepositoryImpl - 实现4个方法(save/findById/findLatestByVideoId/findByVideoId) - 验证通过 (mvn clean compile) |
 | 2026-03-27 12:10 | P3-06 | 完成 | 创建 MetadataController - 5个REST端点(C1-C5): generate/update/regenerate/confirm/getByVideoId + 3个DTO(GenerateMetadataRequest/UpdateMetadataRequest/VideoMetadataResponse) + Validation注解 - 验证通过 (mvn clean compile) |
