@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [x] 共 14 个任务，已完成 10/14
+- [x] 共 14 个任务，已完成 11/14
 
 ---
 
@@ -173,7 +173,7 @@
   - `grace-frontend/src/hooks/useSettings.ts`
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit`
 - **依赖**: P8-10
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 每个文件导出 queryKeys 常量 + 查询/变更 hooks；useUpload 含分片上传核心逻辑 + 速度计算；usePublishStatus 和 useUploadProgress 使用 refetchInterval 轮询
 
 ---
@@ -185,7 +185,7 @@
   - `grace-frontend/src/store/useAppStore.ts`
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit`
 - **依赖**: P8-01
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 管理 Toast 通知队列 + 上传队列；Toast 含 id/type/message；上传队列项含 file/uploadId/progress/status
 
 ---
