@@ -90,7 +90,7 @@
   - `grace-platform/src/main/java/com/grace/platform/usersettings/infrastructure/DefaultUserInitializer.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P6-03
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
