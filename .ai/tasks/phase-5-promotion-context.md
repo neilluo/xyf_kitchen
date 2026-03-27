@@ -182,5 +182,5 @@
   - `grace-platform/src/test/java/com/grace/platform/promotion/PromotionUnitTest.java`
 - **验证命令**: `mvn test -Dtest="PromotionPropertyTest,PromotionUnitTest"`
 - **依赖**: P5-02, P5-03, P1-16
-- **状态**: [ ]
+- **状态**: [x]
 - **测试要点**: Property #9 Channel 创建→读取→更新→删除往返；Property #11 推广文案含 title+body+method；单元测试：有记录的 Channel 执行 disable 而非硬删；单个渠道失败不中断批量执行
