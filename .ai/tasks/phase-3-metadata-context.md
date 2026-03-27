@@ -47,7 +47,7 @@
   - `grace-platform/src/main/java/com/grace/platform/metadata/infrastructure/llm/QwenLlmServiceAdapter.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P1-08
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: QwenLlmServiceAdapter 需实现指数退避重试（1s/2s/4s，最多3次），失败抛 ExternalServiceException(9001)
 
 ---
