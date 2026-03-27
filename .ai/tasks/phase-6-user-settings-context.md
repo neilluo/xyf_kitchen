@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [x] 共 10 个任务，已完成 1/10
+- [x] 共 10 个任务，已完成 3/10
 
 ---
 
@@ -34,7 +34,7 @@
   - `grace-platform/src/main/java/com/grace/platform/usersettings/domain/service/ApiKeyGenerationServiceImpl.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P6-01, P1-12
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: rawKey = "grc_" + Base62(32字节)；prefix = rawKey前8位 + "..." + 后4位；hashedKey = BCrypt(rawKey)
 
 ---
@@ -48,7 +48,7 @@
   - `grace-platform/src/main/java/com/grace/platform/usersettings/domain/repository/ApiKeyRepository.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P6-01
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
