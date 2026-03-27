@@ -10,8 +10,8 @@
         <id property="id" column="id" typeHandler="com.grace.platform.shared.infrastructure.persistence.typehandler.VideoIdTypeHandler"/>
         <result property="format" column="format" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
         <result property="status" column="status" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
-        <!-- duration_seconds 映射为 long，在 RepositoryImpl 中转换为 Duration -->
-        <result property="duration" column="duration_seconds" javaType="long" jdbcType="BIGINT"/>
+        <!-- duration_seconds 映射为 Duration，使用 DurationTypeHandler 转换 -->
+        <result property="duration" column="duration_seconds" typeHandler="com.grace.platform.shared.infrastructure.persistence.typehandler.DurationTypeHandler"/>
     </resultMap>
 
     <!-- 根据 ID 查询视频 -->
@@ -89,7 +89,7 @@
             #{fileName},
             #{fileSize},
             #{format, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
-            #{duration, javaType=long, jdbcType=BIGINT},
+            #{duration, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.DurationTypeHandler},
             #{filePath},
             #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
             #{createdAt},
@@ -103,7 +103,7 @@
         SET file_name = #{fileName},
             file_size = #{fileSize},
             format = #{format, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
-            duration_seconds = #{duration, javaType=long, jdbcType=BIGINT},
+            duration_seconds = #{duration, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.DurationTypeHandler},
             file_path = #{filePath},
             status = #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
             updated_at = #{updatedAt}
