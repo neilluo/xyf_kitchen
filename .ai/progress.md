@@ -2,6 +2,8 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 11:37 | P3-01 | 完成 | 创建 Metadata 枚举与域实体 - MetadataSource 枚举(AI_GENERATED/MANUAL/AI_EDITED) + VideoMetadata 聚合根(validate/update/confirm方法 + 领域不变量验证) - 验证通过 (mvn clean compile) |
+|------|---------|------|------|
 | 2026-03-27 10:38 | P2-12 | 完成 | 创建 Video 单元测试 - 21个测试用例覆盖错误码1001/1002/1005/1006/1007，包含格式验证、5GB边界、分片索引、重复分片、完成验证 - 验证通过 (mvn test -Dtest=VideoUnitTest) |
 | 2026-03-27 10:23 | P2-10 | 完成 | 创建 Video 基础设施文件服务实现 - VideoFileInspectorImpl(ffprobe调用) + ChunkMergeServiceImpl(FileChannel合并) - 验证通过 (mvn clean compile) |
 | 2026-03-27 10:17 | P2-09 | 完成 | 创建 Video Repository 实现 - DurationTypeHandler + VideoRepositoryImpl + UploadSessionRepositoryImpl - 验证通过 (mvn clean compile) |

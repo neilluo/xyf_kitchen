@@ -19,7 +19,7 @@
   - `grace-platform/src/main/java/com/grace/platform/metadata/domain/VideoMetadata.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P1-04, P1-08
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: VideoMetadata 含 validate()（标题≤100、描述≤5000、标签5-15个）、update()（已确认不可编辑）、confirm()（设 confirmed=true 后不可逆）
 
 ---
