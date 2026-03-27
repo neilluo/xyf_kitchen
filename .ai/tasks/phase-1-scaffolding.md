@@ -107,7 +107,7 @@
   - `grace-platform/src/main/java/com/grace/platform/shared/application/dto/PageResponse.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P1-02
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
