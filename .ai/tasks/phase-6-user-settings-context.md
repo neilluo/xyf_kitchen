@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [x] 共 10 个任务，已完成 5/10
+- [x] 共 10 个任务，已完成 9/10
 
 ---
 
@@ -131,7 +131,7 @@
   - `grace-platform/src/main/java/com/grace/platform/usersettings/infrastructure/config/StorageProperties.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P1-02
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
