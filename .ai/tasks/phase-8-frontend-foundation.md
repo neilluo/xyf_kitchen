@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [x] 共 14 个任务，已完成 3/14
+- [x] 共 14 个任务，已完成 10/14
 
 ---
 
@@ -122,7 +122,7 @@
   - `grace-frontend/src/types/dashboard.ts`
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit`
 - **依赖**: P8-01
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 严格按 api.md 中定义的 API 请求/响应结构编写；VideoStatus 7 种、PromotionStatus 4 种、PublishStatus 5 种
 
 ---
@@ -136,7 +136,7 @@
   - `grace-frontend/src/utils/validation.ts`（客户端校验规则 + 消息）
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit`
 - **依赖**: P8-08
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 响应拦截器需解包 ApiResponse 信封，code !== 0 时 reject 为 ApiError；包含全部错误码（1001-9999）映射
 
 ---
@@ -154,7 +154,7 @@
   - `grace-frontend/src/api/settings.ts`（G1-G10）
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit`
 - **依赖**: P8-09
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 每个文件导出与 api.md 对应的请求函数；上传分片使用 multipart/form-data；所有函数通过 apiClient 调用
 
 ---

@@ -94,4 +94,5 @@
 | 2026-03-27 18:15 | P7-04 | 完成 | 创建 .env.example - 包含18个环境变量(MYSQL_HOST/PORT/DATABASE/USERNAME/PASSWORD、GRACE_ENCRYPTION_KEY、QWEN_API_KEY/MODEL/BASE_URL、YOUTUBE_CLIENT_ID/SECRET/REDIRECT_URI、OPENCRAWL_API_KEY/BASE_URL、GRACE_VIDEO_DIR/TEMP_DIR/AVATAR_DIR、LOG_LEVEL/LOG_FILE) - 验证通过 (mvn clean compile) |
 | 2026-03-27 18:05 | P6-07 | 完成 | 创建 SettingsController - SettingsController(10端点:G1-G10) + AvatarResponse内部类 - 完整实现用户资料/头像上传/已连接账户/通知偏好/API Key管理端点 - 验证通过 (mvn clean compile) |
 [2026-03-27] P8-07: 实现 AppLayout + Sidebar + Header 布局组件 - COMPLETED
+| 2026-03-27 21:10 | P8-10 | 完成 | 创建领域 API 请求函数 - dashboard.ts(A1)/video.ts(B1-B6)/metadata.ts(C1-C5)/distribution.ts(D1-D6)/channel.ts(E1-E5)/promotion.ts(F1-F5)/settings.ts(G1-G10) - 支持 multipart/form-data 上传 - 验证通过 (npx tsc --noEmit) |
 | 2026-03-27 19:34 | P8-08 | 完成 | 创建通用类型定义 - common.ts(ApiResponse/PaginatedData/PaginationParams) + video.ts(7种VideoStatus) + metadata.ts + distribution.ts(5种PublishStatus) + channel.ts + promotion.ts(4种PromotionStatus) + settings.ts + dashboard.ts - 严格按api.md定义 - 验证通过 (npx tsc --noEmit) |
