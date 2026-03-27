@@ -174,5 +174,5 @@
   - `grace-platform/src/test/java/com/grace/platform/distribution/DistributionUnitTest.java`
 - **验证命令**: `mvn test -Dtest="DistributionUnitTest"`
 - **依赖**: P4-03, P4-08, P1-16
-- **状态**: [ ]
+- **状态**: [x]
 - **测试要点**: 不支持的平台抛 3001；Token 过期时自动刷新；配额超限标记 QUOTA_EXCEEDED
