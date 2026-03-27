@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [ ] 共 12 个任务，已完成 6/12
+- [x] 共 12 个任务，已完成 7/12
 
 ---
 
@@ -141,7 +141,7 @@
   - `grace-platform/src/main/java/com/grace/platform/promotion/infrastructure/llm/PromotionCopyGenerationServiceImpl.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P5-04, P3-03
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 复用 Metadata 上下文的 LlmService；4 种 ChannelType 各有不同的 Prompt 风格（SOCIAL_MEDIA≤280字符、FORUM 结构化、BLOG 引流、OTHER 通用）
 
 ---
