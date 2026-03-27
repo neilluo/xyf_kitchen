@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [x] 共 10 个任务，已完成 4/10
+- [x] 共 10 个任务，已完成 5/10
 
 ---
 
@@ -78,7 +78,7 @@
   - `grace-platform/src/main/java/com/grace/platform/usersettings/infrastructure/acl/ConnectedAccountQueryService.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P4-04, P6-04
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 只读查询 Distribution 上下文的 OAuthTokenRepository；KNOWN_PLATFORMS 含 youtube/weibo/bilibili
 
 ---
