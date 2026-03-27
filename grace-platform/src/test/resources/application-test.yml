@@ -1,0 +1,17 @@
+spring:
+  flyway:
+    enabled: false
+
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+grace:
+  encryption:
+    master-key: dGVzdC1lbmNyeXB0aW9uLWtleS0xMjM0NTY3OA==
+  storage:
+    video-dir: ${java.io.tmpdir}/grace-test/videos
+    temp-dir: ${java.io.tmpdir}/grace-test/temp
+    avatar-dir: ${java.io.tmpdir}/grace-test/avatars
