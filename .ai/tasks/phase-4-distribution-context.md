@@ -151,7 +151,7 @@
   - `grace-platform/src/main/java/com/grace/platform/distribution/infrastructure/config/YouTubeProperties.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P4-03
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
@@ -162,7 +162,7 @@
   - `grace-platform/src/test/java/com/grace/platform/distribution/DistributionPropertyTest.java`
 - **验证命令**: `mvn test -Dtest="DistributionPropertyTest"`
 - **依赖**: P4-02, P4-03, P1-16
-- **状态**: [ ]
+- **状态**: [x]
 - **测试要点**: Property #6 Registry 路由解析正确性；Property #7 发布成功时 videoUrl 非空且格式合法；Property #8 PublishRecord 持久化往返
 
 ---

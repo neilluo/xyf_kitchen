@@ -2,6 +2,8 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 15:20 | P4-11 | 完成 | 创建 Distribution 属性测试 - DistributionPropertyTest(5个属性测试: 平台路由正确性/URL格式验证/记录往返/状态机转换) 覆盖 Property #6-#8 - 验证通过 (mvn test -Dtest=DistributionPropertyTest) |
+| 2026-03-27 15:14 | P4-10 | 完成 | 创建 Distribution 配置类 - DistributionConfig(VideoDistributorRegistry Bean) + YouTubeProperties(apiBaseUrl/uploadUrl/QuotaRetryProperties) - 验证通过 (mvn clean compile)
 | 2026-03-27 14:57 | P4-08 | 完成 | 创建 YouTube 适配器 - YouTubeDistributor(ResumableVideoDistributor实现) + YouTubeApiAdapter(接口) + YouTubeApiAdapterImpl(骨架) + YouTubeOAuthServiceImpl(OAuthService实现) + YouTubeProperties(配置) + 3个值对象(YouTubeUploadResult/Progress/Status) - 支持断点续传、每日10000配额、Token AES加密 - 验证通过 (mvn clean compile)
 | 2026-03-27 14:25 | P4-06 | 完成 | 创建 QuotaRetryScheduler - 配额超限自动重试调度器，30分钟间隔，最大5次重试，支持断点续传恢复，处理配额仍超限/成功/达到最大重试次数三种状态流转 - 验证通过 (mvn clean compile)
 | 2026-03-27 14:17 | P4-05 | 完成 | 创建 Distribution 应用层 - DistributionApplicationService(6方法: publish/getUploadStatus/initiateAuth/handleAuthCallback/listPlatforms/getPublishRecords) + PublishCommand + 4个DTO(PublishResultDTO/UploadStatusDTO/PlatformInfoDTO/PublishRecordDTO) + MetadataConfirmedEventListener - 验证通过 (mvn clean compile)
