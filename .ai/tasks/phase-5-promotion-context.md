@@ -115,7 +115,7 @@
   - `grace-platform/src/main/java/com/grace/platform/promotion/interfaces/dto/response/PromotionReportResponse.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P5-05, P5-06, P1-07, P1-09
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
