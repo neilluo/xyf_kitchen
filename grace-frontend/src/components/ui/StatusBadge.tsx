@@ -8,9 +8,11 @@ export type VideoStatus =
   | 'METADATA_GENERATED'
   | 'METADATA_APPROVED'
   | 'METADATA_REJECTED'
+  | 'READY_TO_PUBLISH'
   | 'PUBLISHING'
   | 'PUBLISHED'
   | 'PUBLISH_FAILED'
+  | 'PROMOTION_DONE'
 
 export type PromotionStatus =
   | 'PENDING'
@@ -69,6 +71,11 @@ const statusMap: Record<string, StatusConfig> = {
     bgClass: 'bg-error-container',
     textClass: 'text-on-error-container',
     label: '发布失败',
+  },
+  PROMOTION_DONE: {
+    bgClass: 'bg-green-100',
+    textClass: 'text-green-800',
+    label: '推广完成',
   },
   // Promotion 状态
   PENDING: {

@@ -5,7 +5,7 @@ import { ProgressBar } from '@/components/ui/ProgressBar'
 import { useInitUpload, useUploadChunk, useCompleteUpload, calculateUploadSpeed, estimateRemainingTime, getVideoFormat } from '@/hooks/useUpload'
 import { useAppStore } from '@/store/useAppStore'
 import { formatFileSize } from '@/utils/format'
-import { APP_ROUTES } from '@/utils/constants'
+import { ROUTES } from '@/utils/constants'
 
 // Supported video formats
 const SUPPORTED_FORMATS = ['mp4', 'mov', 'avi', 'mkv']
@@ -163,7 +163,6 @@ function DropZone({ onFileSelect, onValidationError, disabled }: DropZoneProps) 
             name="cloud_upload"
             size={48}
             className="text-primary"
-            style={{ fontVariationSettings: "'FILL' 1" }}
           />
         </div>
 
@@ -560,7 +559,7 @@ export function VideoUploadPage() {
 
   const handleReviewMetadata = useCallback(
     (videoId: string) => {
-      navigate(APP_ROUTES.VIDEO_METADATA_DETAIL.replace(':videoId', videoId))
+      navigate(ROUTES.VIDEO_METADATA(videoId))
     },
     [navigate]
   )

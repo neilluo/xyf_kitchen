@@ -113,7 +113,7 @@
   - `grace-frontend/.eslintrc.cjs` 或 `grace-frontend/eslint.config.js`
 - **验证命令**: `cd grace-frontend && npm run lint`
 - **依赖**: P8-01
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 配置 React + TypeScript ESLint 规则；确保 npm run lint 命令可用
 
 ---

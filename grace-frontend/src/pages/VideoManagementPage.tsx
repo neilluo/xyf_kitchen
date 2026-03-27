@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Pagination } from '@/components/ui/Pagination'
-import type { VideoListParams, VideoStatus } from '@/types/video'
+import type { VideoListParams, VideoStatus, Video } from '@/types/video'
 import { formatFileSize, formatDuration } from '@/utils/format'
 
 // 状态选项
@@ -43,8 +43,8 @@ export function VideoManagementPage() {
     keyword: debouncedKeyword,
   })
 
-  const videos = data?.data?.list ?? []
-  const pagination = data?.data?.pagination
+  const videos = data?.items ?? []
+  const pagination = data
 
   const handleKeywordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const keyword = e.target.value
@@ -192,7 +192,7 @@ export function VideoManagementPage() {
                 </td>
               </tr>
             ) : (
-              videos.map(video => (
+              videos.map((video: Video) => (
                 <tr
                   key={video.videoId}
                   className="hover:bg-surface-bright transition-colors group"

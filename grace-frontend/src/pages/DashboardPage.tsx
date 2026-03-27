@@ -319,17 +319,17 @@ export default function DashboardPage() {
   const { data, isLoading } = useDashboardOverview(dateRange)
   const navigate = useNavigate()
 
-  const stats = data?.data?.stats ?? {
+  const stats = data?.stats ?? {
     totalVideos: 0,
     pendingReview: 0,
     published: 0,
     promoting: 0,
   }
 
-  const recentUploads = data?.data?.recentUploads ?? []
-  const publishDistribution = data?.data?.publishDistribution ?? { published: 0, pending: 0, failed: 0 }
-  const promotionOverview = data?.data?.promotionOverview ?? []
-  const analytics = data?.data?.analytics ?? { avgEngagementRate: 0, totalImpressions: 0 }
+  const recentUploads = data?.recentUploads ?? []
+  const publishDistribution = data?.publishDistribution ?? { published: 0, pending: 0, failed: 0 }
+  const promotionOverview = data?.promotionOverview ?? []
+  const analytics = data?.analytics ?? { avgEngagementRate: 0, totalImpressions: 0 }
 
   return (
     <div className="px-8 py-6">
