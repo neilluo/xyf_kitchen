@@ -132,7 +132,7 @@
   - `grace-platform/src/main/java/com/grace/platform/video/infrastructure/persistence/UploadSessionRepositoryImpl.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P2-08
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
