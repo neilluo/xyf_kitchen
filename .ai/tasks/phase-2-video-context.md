@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [ ] 共 12 个任务，已完成 0/12
+- [x] 共 12 个任务，已完成 2/12
 
 ---
 
@@ -21,7 +21,7 @@
   - `grace-platform/src/main/java/com/grace/platform/video/domain/VideoFileInfo.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P1-02
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: VideoStatus 有 7 个状态（UPLOADED → METADATA_GENERATED → READY_TO_PUBLISH → PUBLISHING → PUBLISHED → PUBLISH_FAILED → PROMOTION_DONE），VideoFormat 为 MP4/MOV/AVI/MKV
 
 ---
@@ -33,7 +33,7 @@
   - `grace-platform/src/main/java/com/grace/platform/video/domain/Video.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P2-01, P1-04
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 状态转换方法需校验当前状态→目标状态合法性；字段含 id(VideoId)/fileName/fileSize/format/duration/filePath/status/createdAt/updatedAt
 
 ---

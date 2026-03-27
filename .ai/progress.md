@@ -2,7 +2,8 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
-| 2026-03-27 08:53 | P1-15 | 完成 | 创建 Flyway 迁移脚本 V1-V6 - Video/Metadata/Distribution/Promotion/UserSettings 上下文建表 + 索引 - 验证通过 (mvn clean compile) |
+| 2026-03-27 09:34 | P2-02 | 完成 | 创建 Video 聚合根 - 包含状态机验证、字段校验、工厂方法 - 验证通过 (mvn clean compile) |
+| 2026-03-27 09:30 | P2-01 | 完成 | 创建 Video 枚举与值对象 - VideoFormat/VideoStatus/UploadSessionStatus + VideoFileInfo - 验证通过 (mvn clean compile) |
 |------|---------|------|------|
 | 2026-03-27 08:55 | P1-14 | 完成 | 创建 logback-spring.xml - Console/File 按天滚动、traceId Pattern - 验证通过 (mvn clean compile) |
 | 2026-03-27 08:55 | P1-13 | 完成 | 创建日志基础设施 - TraceIdFilter/CachedBodyFilter/RequestResponseLoggingInterceptor/WebMvcConfig/AsyncConfig/MdcTaskDecorator/SlowSqlInterceptor - 验证通过 (mvn clean compile) |
