@@ -67,6 +67,21 @@ public interface VideoMapper {
     long countByStatusIn(@Param("statuses") List<String> statuses);
 
     /**
+     * 统计所有视频数量（用于 Dashboard）。
+     *
+     * @return 视频总数
+     */
+    long count();
+
+    /**
+     * 按状态统计视频数量（用于 Dashboard）。
+     *
+     * @param status 视频状态
+     * @return 符合条件的视频数量
+     */
+    long countByStatus(@Param("status") String status);
+
+    /**
      * 查询最近创建的 5 条视频。
      *
      * @return 视频列表（按创建时间降序）

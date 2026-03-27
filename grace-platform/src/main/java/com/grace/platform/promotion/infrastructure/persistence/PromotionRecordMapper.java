@@ -4,6 +4,7 @@ import com.grace.platform.promotion.domain.PromotionRecord;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import com.grace.platform.dashboard.application.dto.ChannelPromotionStats;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -75,6 +76,43 @@ public interface PromotionRecordMapper {
      * @return 不同视频的数量
      */
     long countDistinctVideosByStatus(@Param("status") String status);
+
+    /**
+     * 统计指定状态的推广所涉及的不同视频数量（用于 Dashboard）。
+     * <p>此方法为 {@link #countDistinctVideosByStatus} 的别名，用于保持与文档规范一致。
+     *
+     * @param status 推广状态
+     * @return 不同视频的数量
+     */
+    default long countDistinctVideoIdByStatus(@Param("status") String status) {
+        return countDistinctVideosByStatus(status);
+    }
+
+    /**
+     * 统计指定时间之后创建的推广记录数量（用于 Dashboard）。
+     *
+     * @param since 起始时间
+     * @return 推广记录数量
+     */
+    long countByCreatedAtAfter(@Param("since") LocalDateTime since);
+
+    /**
+     * 统计指定状态和指定时间之后创建的推广记录数量（用于 Dashboard）。
+     *
+     * @param status 推广状态
+     * @param since  起始时间
+     * @return 推广记录数量
+     */
+    long countByStatusAndCreatedAtAfter(@Param("status") String status,
+                                        @Param("since") LocalDateTime since);
+
+    /**
+     * 按渠道 ID 分组统计推广记录（用于 Dashboard）。
+     *
+     * @param since 起始时间
+     * @return 各渠道的推广统计
+     */
+    List<ChannelPromotionStats> countGroupByChannelId(@Param("since") LocalDateTime since);
 
     /**
      * 插入新推广记录。

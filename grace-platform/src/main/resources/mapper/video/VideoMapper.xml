@@ -73,6 +73,19 @@
         </foreach>
     </select>
 
+    <!-- 统计所有视频数量（用于 Dashboard） -->
+    <select id="count" resultType="long">
+        SELECT COUNT(*)
+        FROM video
+    </select>
+
+    <!-- 按状态统计视频数量（用于 Dashboard） -->
+    <select id="countByStatus" resultType="long">
+        SELECT COUNT(*)
+        FROM video
+        WHERE status = #{status}
+    </select>
+
     <!-- 查询最近创建的 5 条视频 -->
     <select id="findTop5ByCreatedAtDesc" resultMap="videoResultMap">
         SELECT id, file_name, file_size, format, duration_seconds, file_path, status, created_at, updated_at

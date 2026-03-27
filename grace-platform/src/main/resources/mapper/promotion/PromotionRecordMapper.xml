@@ -22,6 +22,14 @@
         <result property="successCount" column="success_count"/>
     </resultMap>
 
+    <!-- ChannelPromotionStats 结果映射 -->
+    <resultMap id="channelPromotionStatsResultMap" type="com.grace.platform.dashboard.application.dto.ChannelPromotionStats">
+        <result property="channelId" column="channel_id"/>
+        <result property="totalExecutions" column="total_executions"/>
+        <result property="successCount" column="success_count"/>
+        <result property="failedCount" column="failed_count"/>
+    </resultMap>
+
     <!-- 根据 ID 查询推广记录 -->
     <select id="findById" resultMap="recordResultMap">
         SELECT id, video_id, channel_id, promotion_copy, method, status, result_url, error_message, executed_at, created_at
@@ -78,6 +86,33 @@
         SELECT COUNT(DISTINCT video_id)
         FROM promotion_record
         WHERE status = #{status}
+    </select>
+
+    <!-- 统计指定时间之后创建的推广记录数量（用于 Dashboard） -->
+    <select id="countByCreatedAtAfter" resultType="long">
+        SELECT COUNT(*)
+        FROM promotion_record
+        WHERE created_at >= #{since}
+    </select>
+
+    <!-- 统计指定状态和指定时间之后创建的推广记录数量（用于 Dashboard） -->
+    <select id="countByStatusAndCreatedAtAfter" resultType="long">
+        SELECT COUNT(*)
+        FROM promotion_record
+        WHERE status = #{status}
+          AND created_at >= #{since}
+    </select>
+
+    <!-- 按渠道 ID 分组统计推广记录（用于 Dashboard） -->
+    <select id="countGroupByChannelId" resultMap="channelPromotionStatsResultMap">
+        SELECT
+            channel_id,
+            COUNT(*) AS total_executions,
+            SUM(CASE WHEN status = 'COMPLETED' THEN 1 ELSE 0 END) AS success_count,
+            SUM(CASE WHEN status = 'FAILED' THEN 1 ELSE 0 END) AS failed_count
+        FROM promotion_record
+        WHERE created_at >= #{since}
+        GROUP BY channel_id
     </select>
 
     <!-- 插入新推广记录 -->
