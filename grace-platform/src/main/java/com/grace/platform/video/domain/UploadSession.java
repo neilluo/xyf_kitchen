@@ -105,6 +105,39 @@ public class UploadSession {
     }
 
     /**
+     * 创建新的上传会话（指定 uploadId）。
+     * <p>
+     * 用于应用层控制 uploadId 的生成。
+     *
+     * @param uploadId      指定的上传会话 ID
+     * @param fileName      文件名
+     * @param fileSize      文件字节数
+     * @param format        视频格式
+     * @param tempDirectory 临时存储目录路径
+     * @param chunkSize     分片大小（字节），如果为null则使用默认值
+     * @return 新建的 UploadSession 实例
+     * @throws BusinessRuleViolationException 当验证失败时抛出
+     */
+    public static UploadSession createWithId(String uploadId, String fileName, long fileSize, 
+                                              VideoFormat format, String tempDirectory, Long chunkSize) {
+        // 验证 uploadId
+        if (uploadId == null || uploadId.isBlank()) {
+            throw new BusinessRuleViolationException(
+                ErrorCode.INTERNAL_SERVER_ERROR,
+                "Upload ID must not be blank"
+            );
+        }
+
+        // 使用默认创建流程
+        UploadSession session = create(fileName, fileSize, format, tempDirectory, chunkSize);
+        
+        // 替换 uploadId
+        session.uploadId = uploadId;
+        
+        return session;
+    }
+
+    /**
      * 计算总分片数
      *
      * @param fileSize  文件总大小

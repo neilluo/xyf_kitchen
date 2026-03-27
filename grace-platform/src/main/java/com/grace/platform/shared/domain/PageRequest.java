@@ -10,7 +10,9 @@ package com.grace.platform.shared.domain;
  */
 public record PageRequest(
     int page,
-    int pageSize
+    int pageSize,
+    String sort,
+    String order
 ) {
 
     /**
@@ -30,7 +32,7 @@ public record PageRequest(
      * @return 分页请求
      */
     public static PageRequest of(int page) {
-        return new PageRequest(normalizePage(page), DEFAULT_PAGE_SIZE);
+        return new PageRequest(normalizePage(page), DEFAULT_PAGE_SIZE, "createdAt", "desc");
     }
 
     /**
@@ -41,7 +43,22 @@ public record PageRequest(
      * @return 分页请求
      */
     public static PageRequest of(int page, int pageSize) {
-        return new PageRequest(normalizePage(page), normalizePageSize(pageSize));
+        return new PageRequest(normalizePage(page), normalizePageSize(pageSize), "createdAt", "desc");
+    }
+
+    /**
+     * 创建分页请求。
+     *
+     * @param page     页码（从 1 开始，API 层）
+     * @param pageSize 页大小
+     * @param sort     排序字段
+     * @param order    排序方向
+     * @return 分页请求
+     */
+    public static PageRequest of(int page, int pageSize, String sort, String order) {
+        return new PageRequest(normalizePage(page - 1), normalizePageSize(pageSize), 
+            sort != null ? sort : "createdAt", 
+            order != null ? order : "desc");
     }
 
     private static int normalizePage(int page) {

@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [x] 共 12 个任务，已完成 3/12
+- [x] 共 12 个任务，已完成 4/12
 
 ---
 
@@ -60,7 +60,7 @@
   - `grace-platform/src/main/java/com/grace/platform/video/domain/UploadSessionRepository.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P2-02, P2-03
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
@@ -71,7 +71,7 @@
   - `grace-platform/src/main/java/com/grace/platform/video/domain/event/VideoUploadedEvent.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P1-06, P1-04
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
