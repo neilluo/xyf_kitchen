@@ -68,3 +68,4 @@
 | 2026-03-27 15:10 | P4-09 | 完成 | 创建 Distribution MyBatis Mapper + Repository - PublishRecordMapper/OAuthTokenMapper接口 + PublishRecordRepositoryImpl/OAuthTokenRepositoryImpl实现(含反射加密解密) + XML映射文件 - 验证通过 (mvn clean compile) |
 | 2026-03-27 17:35 | P5-09 | 完成 | 创建 PromotionCopyGenerationServiceImpl - 复用Metadata的LlmService，4种ChannelType各不同Prompt模板(SOCIAL_MEDIA≤280字符/FORUM结构化/BLOG引流/OTHER通用)，JSON解析含markdown代码块处理，支持POST/COMMENT/SHARE方法推荐 - 验证通过 (mvn clean compile) |
 | 2026-03-27 15:53 | P5-05 | 完成 | 创建 Channel 应用层 - ChannelApplicationService(5方法:create/update/delete/list/get + 软/硬删除逻辑) + CreateChannelCommand + UpdateChannelCommand + ChannelDTO - 验证通过 (mvn clean compile) |
+| 2026-03-27 17:01 | P6-01 | 完成 | 创建 User/Settings 域实体 (UserProfile, NotificationPreference, ApiKey) - 验证通过 (mvn clean compile) |

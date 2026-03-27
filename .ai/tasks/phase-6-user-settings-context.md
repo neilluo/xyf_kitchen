@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [ ] 共 10 个任务，已完成 0/10
+- [x] 共 10 个任务，已完成 1/10
 
 ---
 
@@ -20,7 +20,7 @@
   - `grace-platform/src/main/java/com/grace/platform/usersettings/domain/model/ApiKey.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P1-04, P1-12
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: MVP 单用户模式，UserProfile 和 NotificationPreference 使用固定 ID（"default-user"、"default-notification"）；ApiKey.hashedKey 为 BCrypt 哈希不可逆
 
 ---
