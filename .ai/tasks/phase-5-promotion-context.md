@@ -130,7 +130,7 @@
   - `grace-platform/src/main/java/com/grace/platform/promotion/infrastructure/opencrawl/OpenCrawlResponse.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P5-03, P5-02, P1-11
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
