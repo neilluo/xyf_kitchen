@@ -2,6 +2,7 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 12:05 | P3-05 | 完成 | 创建 Metadata 应用层 - MetadataApplicationService(5个方法: generate/update/regenerate/confirm/getByVideoId) + UpdateMetadataCommand + VideoMetadataDTO + VideoUploadedEventListener - 验证通过 (mvn clean compile) |
 | 2026-03-27 11:47 | P3-03 | 完成 | 创建 LLM 基础设施 - LlmService 接口 + LlmRequest/LlmResponse records + QwenLlmServiceAdapter(指数退避重试1s/2s/4s，最多3次，失败抛9001) + WebConfig添加RestTemplate bean - 验证通过 (mvn clean compile) |
 | 2026-03-27 11:41 | P3-02 | 完成 | 创建 Metadata 领域接口与事件 - MetadataGenerationService 接口 + VideoMetadataRepository 接口(4个方法) + MetadataConfirmedEvent 领域事件 - 验证通过 (mvn clean compile) |
 | 2026-03-27 11:37 | P3-01 | 完成 | 创建 Metadata 枚举与域实体 - MetadataSource 枚举(AI_GENERATED/MANUAL/AI_EDITED) + VideoMetadata 聚合根(validate/update/confirm方法 + 领域不变量验证) - 验证通过 (mvn clean compile) |
@@ -37,3 +38,4 @@
 | 2026-03-27 10:12 | P2-08 | 完成 | 创建 Video MyBatis Mapper 接口与 XML - VideoMapper/UploadSessionMapper 接口 + ResultMap + 动态 SQL - 验证通过 (mvn clean compile) |
 | 2026-03-27 09:37 | P2-03 | 完成 | 创建 UploadSession 实体 - 包含分片计算、过期判断、状态管理、进度计算 - 验证通过 (mvn clean compile) |
 | 2026-03-27 10:30 | P2-11 | 完成 | 创建 Video 属性测试 - Property 1(文件信息提取100次) + Property 2(格式验证边界100次) + Property 2b(枚举一致性) - 验证通过 (mvn test -Dtest=VideoPropertyTest) |
+| 2026-03-27 11:50 | P3-04 | 完成 | 创建 MetadataGenerationServiceImpl - 实现AI元数据生成服务，包含美食专家角色设定、历史风格参考、JSON解析、字段验证 - 验证通过 (mvn clean compile)

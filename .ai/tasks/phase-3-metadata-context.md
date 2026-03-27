@@ -59,7 +59,7 @@
   - `grace-platform/src/main/java/com/grace/platform/metadata/infrastructure/llm/MetadataGenerationServiceImpl.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P3-02, P3-03
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: systemPrompt 为美食视频元数据专家角色；userPrompt 包含 fileName + 历史标题风格；temperature=0.7, maxTokens=2048
 
 ---
@@ -74,7 +74,7 @@
   - `grace-platform/src/main/java/com/grace/platform/metadata/application/listener/VideoUploadedEventListener.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P3-02, P3-04, P2-04, P1-07
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: generateMetadata 由 VideoUploadedEventListener 自动触发；confirmMetadata 需更新 Video 状态为 READY_TO_PUBLISH 并发布 MetadataConfirmedEvent
 
 ---
