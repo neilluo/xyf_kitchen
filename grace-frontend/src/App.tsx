@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AppLayout } from '@/components/layout/AppLayout'
+import DashboardPage from '@/pages/DashboardPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -11,15 +12,6 @@ const queryClient = new QueryClient({
     },
   },
 })
-
-function DashboardPage() {
-  return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold text-on-surface">仪表盘</h1>
-      <p className="text-on-surface-variant mt-2">Dashboard page placeholder</p>
-    </div>
-  )
-}
 
 function VideoManagementPage() {
   return (
