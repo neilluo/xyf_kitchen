@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [x] 共 17 个任务，已完成 1/17
+- [x] 共 17 个任务，已完成 8/17
 
 ---
 
@@ -124,7 +124,7 @@
   - `grace-platform/src/main/java/com/grace/platform/shared/ErrorCode.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P1-02
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
