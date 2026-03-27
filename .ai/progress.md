@@ -2,6 +2,8 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 08:41 | P1-09 | 完成 | 创建 GlobalExceptionHandler - 6个@ExceptionHandler方法 + resolveHttpStatus switch - 验证通过 (mvn clean compile) |
+| 2026-03-27 08:39 | P1-08 | 完成 | 创建异常体系 + ErrorCode 常量 - 7个文件验证通过 (mvn clean compile) |
 | 2026-03-27 08:37 | P1-07 | 完成 | 创建 ApiResponse + PageResponse - 验证通过 (mvn clean compile) |
 | 2026-03-27 08:35 | P1-06 | 完成 | 创建领域事件基础设施（DomainEvent + DomainEventPublisher + SpringDomainEventPublisher）- 验证通过 (mvn clean compile) |
 | 2026-03-27 08:31 | P1-05 | 完成 | 创建 9 个 MyBatis TypeHandler - 验证通过 (mvn clean compile) |

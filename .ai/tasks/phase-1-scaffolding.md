@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [x] 共 17 个任务，已完成 8/17
+- [x] 共 17 个任务，已完成 9/17
 
 ---
 
@@ -135,7 +135,7 @@
   - `grace-platform/src/main/java/com/grace/platform/shared/infrastructure/config/GlobalExceptionHandler.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P1-07, P1-08
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
