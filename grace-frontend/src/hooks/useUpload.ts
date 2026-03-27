@@ -101,7 +101,7 @@ export function createChunks(file: File, chunkSize: number = CHUNK_SIZE): Blob[]
 export function getVideoFormat(fileName: string): VideoFormat {
   const extension = fileName.split('.').pop()?.toUpperCase()
   const validFormats: VideoFormat[] = ['MP4', 'MOV', 'AVI', 'MKV']
-  return (validFormats.find((f) => f === extension) || 'MP4') as VideoFormat
+  return (validFormats.find((f) => f === extension) ?? 'MP4') as VideoFormat
 }
 
 // Upload state for tracking progress

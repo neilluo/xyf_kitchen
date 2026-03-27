@@ -33,7 +33,7 @@ export function VideoManagementPage() {
   // 防抖搜索 300ms
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedKeyword(params.keyword || '')
+      setDebouncedKeyword(params.keyword ?? '')
     }, 300)
     return () => clearTimeout(timer)
   }, [params.keyword])
@@ -43,7 +43,7 @@ export function VideoManagementPage() {
     keyword: debouncedKeyword,
   })
 
-  const videos = data?.data?.list || []
+  const videos = data?.data?.list ?? []
   const pagination = data?.data?.pagination
 
   const handleKeywordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

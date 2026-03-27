@@ -246,7 +246,7 @@ function MetadataEditorCard({ metadata, videoStatus, onConfirmed }: MetadataEdit
       // Show success toast (using alert for now, can be replaced with toast component)
       alert('保存成功')
     } catch (error) {
-      console.error('Failed to save draft:', error)
+      console.warn('Failed to save draft:', error)
       alert('保存失败，请重试')
     }
   }, [metadata, title, description, tags, updateMutation])
@@ -259,7 +259,7 @@ function MetadataEditorCard({ metadata, videoStatus, onConfirmed }: MetadataEdit
       await regenerateMutation.mutateAsync(metadata.metadataId)
       alert('元数据已重新生成')
     } catch (error) {
-      console.error('Failed to regenerate:', error)
+      console.warn('Failed to regenerate:', error)
       alert('重新生成失败，请重试')
     }
   }, [metadata, regenerateMutation])
@@ -291,7 +291,7 @@ function MetadataEditorCard({ metadata, videoStatus, onConfirmed }: MetadataEdit
       alert('元数据已确认')
       onConfirmed()
     } catch (error) {
-      console.error('Failed to confirm:', error)
+      console.warn('Failed to confirm:', error)
       alert('确认失败，请重试')
     }
   }, [metadata, title, description, tags, confirmMutation, onConfirmed])
@@ -493,8 +493,8 @@ function VideoPreviewSkeleton() {
 // Main Page Component
 export default function MetadataReviewPage() {
   const { videoId } = useParams<{ videoId: string }>()
-  const { data: video, isLoading, error } = useVideoDetail(videoId || '')
-  const { data: metadata } = useVideoMetadata(videoId || '')
+  const { data: video, isLoading, error } = useVideoDetail(videoId ?? '')
+  const { data: metadata } = useVideoMetadata(videoId ?? '')
 
   // Handle confirmed callback
   const handleConfirmed = useCallback(() => {
@@ -574,9 +574,9 @@ export default function MetadataReviewPage() {
         {/* Right Column: Metadata Editor */}
         <section>
           <MetadataEditorCard
-            key={metadata?.metadataId || video?.metadata?.metadataId || 'empty'}
-            metadata={metadata || video?.metadata || null}
-            videoStatus={video?.status || ''}
+            key={metadata?.metadataId ?? video?.metadata?.metadataId ?? 'empty'}
+            metadata={metadata ?? video?.metadata ?? null}
+            videoStatus={video?.status ?? ''}
             onConfirmed={handleConfirmed}
           />
         </section>
