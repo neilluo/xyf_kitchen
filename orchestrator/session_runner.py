@@ -137,8 +137,10 @@ def run_session(
 
 def _build_opencode_command(prompt: str, config: OrchestratorConfig) -> list[str]:
     """Build the opencode CLI command."""
+    import os
+    opencode_path = os.path.expanduser("~/.opencode/bin/opencode")
     cmd = [
-        "opencode",
+        opencode_path,
         "run",
         prompt,
         "--dir", str(config.project_dir),
