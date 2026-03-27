@@ -2,6 +2,10 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 19:35 | P8-04 | 完成 | 实现 Button 组件 - 5种变体(Primary渐变CTA/Secondary/Ghost/Danger/Icon Button)，Props支持variant/children/icon/disabled/onClick/className，Primary使用bg-gradient-to-r from-primary to-primary-container - 验证通过 (npx tsc --noEmit)
+| 2026-03-27 19:30 | P8-03 | 完成 | 实现 Icon 组件 - 封装 Google Material Symbols Outlined，支持 name/size/className Props，size 默认 20px - 验证通过 (npx tsc --noEmit) |
+| 2026-03-27 19:25 | P8-02 | 完成 | 配置 Tailwind CSS 设计系统 - 完整 color token (primary/secondary/tertiary/error/surface 系列)、fontFamily (Manrope/Inter)、自定义 borderRadius；index.css 含 @tailwind 指令和 Material Symbols 基线样式 - 验证通过 (npx tsc --noEmit && npm run build) |
+| 2026-03-27 19:15 | P8-01 | 完成 | 初始化 Vite + React + TypeScript 项目 - 核心依赖安装(router@6/query@5/zustand@4/axios@1/recharts@2/tailwind@3) + vite.config.ts(proxy /api → localhost:8080, port 3000) + tsconfig.json(strict mode) + index.html(Google Fonts/Material Symbols) + tailwind.config.ts + .env - 验证通过 (npm install && npx tsc --noEmit) |
 | 2026-03-27 19:10 | P7-08 | 完成 | 全量编译 + 全量测试通过 - 编译成功(287源文件) + 属性测试16个(Promotion5/Distribution5/Metadata3/Video3) + 单元测试107个(Video21/Metadata21/Distribution22/Promotion24/UserSettings19) - 全部通过，0失败0错误 - Docker不可用跳过集成测试 |
 | 2026-03-27 18:39 | P7-07 | 完成 | 创建 LlmProperties 和 EncryptionProperties 配置类 - LlmProperties(provider/apiKey/model/baseUrl/temperature/maxTokens/timeoutSeconds + RetryProperties inner class) + EncryptionProperties(algorithm/key/ivLength/tagLength for AES-256-GCM) - 遵循既有配置类模式(Component/ConfigurationProperties) - 验证通过 (mvn clean compile) |
 | 2026-03-27 18:32 | P7-06 | 完成 | 创建 6 个集成测试 - VideoIntegrationTest(3测试)/MetadataIntegrationTest(3测试)/DistributionIntegrationTest(4测试)/PromotionIntegrationTest(3测试)/UserSettingsIntegrationTest(6测试)/DashboardIntegrationTest(3测试) - 全部继承AbstractIntegrationTest，外部服务使用@MockBean模拟 - 编译通过，Docker运行时需要容器环境 |

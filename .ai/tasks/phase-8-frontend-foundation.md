@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [ ] 共 14 个任务，已完成 0/14
+- [ ] 共 14 个任务，已完成 2/14
 
 ---
 
@@ -22,7 +22,7 @@
   - `grace-frontend/.env`
 - **验证命令**: `cd grace-frontend && npm install && npx tsc --noEmit`
 - **依赖**: 无
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 安装全部核心依赖（react-router-dom@6, @tanstack/react-query@5, zustand@4, axios@1, recharts@2, tailwindcss@3, postcss, autoprefixer, @tailwindcss/forms）；Vite server 端口 3000，proxy /api → localhost:8080
 
 ---
@@ -35,7 +35,7 @@
   - `grace-frontend/src/index.css`（Tailwind 指令 + Material Symbols font-variation-settings）
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit && npm run build`
 - **依赖**: P8-01
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 包含全部自定义颜色 token（primary/secondary/tertiary/error/surface 系列）、fontFamily（Manrope/Inter）、自定义 borderRadius；index.css 仅含 @tailwind 指令和 Material Symbols 基线样式
 
 ---
@@ -47,7 +47,7 @@
   - `grace-frontend/src/components/ui/Icon.tsx`
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit`
 - **依赖**: P8-02
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 封装 Google Material Symbols Outlined；Props: name(string), className?(string), size?(number, default 20)
 
 ---
@@ -59,7 +59,7 @@
   - `grace-frontend/src/components/ui/Button.tsx`
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit`
 - **依赖**: P8-03
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 5 种变体：Primary(渐变 CTA)、Secondary、Ghost、Danger、Icon Button；Props: variant, children, icon?, disabled?, onClick, className?；Primary 使用 bg-gradient-to-r from-primary to-primary-container
 
 ---
