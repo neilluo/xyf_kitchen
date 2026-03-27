@@ -2,6 +2,8 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 19:10 | P7-08 | 完成 | 全量编译 + 全量测试通过 - 编译成功(287源文件) + 属性测试16个(Promotion5/Distribution5/Metadata3/Video3) + 单元测试107个(Video21/Metadata21/Distribution22/Promotion24/UserSettings19) - 全部通过，0失败0错误 - Docker不可用跳过集成测试 |
+| 2026-03-27 18:39 | P7-07 | 完成 | 创建 LlmProperties 和 EncryptionProperties 配置类 - LlmProperties(provider/apiKey/model/baseUrl/temperature/maxTokens/timeoutSeconds + RetryProperties inner class) + EncryptionProperties(algorithm/key/ivLength/tagLength for AES-256-GCM) - 遵循既有配置类模式(Component/ConfigurationProperties) - 验证通过 (mvn clean compile) |
 | 2026-03-27 18:32 | P7-06 | 完成 | 创建 6 个集成测试 - VideoIntegrationTest(3测试)/MetadataIntegrationTest(3测试)/DistributionIntegrationTest(4测试)/PromotionIntegrationTest(3测试)/UserSettingsIntegrationTest(6测试)/DashboardIntegrationTest(3测试) - 全部继承AbstractIntegrationTest，外部服务使用@MockBean模拟 - 编译通过，Docker运行时需要容器环境 |
 | 2026-03-27 18:15 | P7-05 | 完成 | 补全 TestFixtures + GraceArbitraries - TestFixtures(7工厂方法: createVideo/createUploadSession/createMetadata/createPublishRecord/createChannel/createPromotionRecord/createApiKey) + GraceArbitraries(12枚举生成器 + 附加值对象生成器) - 验证通过 (mvn test-compile) |
 | 2026-03-27 18:15 | P7-03 | 完成 | 扩展各 Mapper 添加 Dashboard 查询方法 - ChannelPromotionStats投影接口 + VideoMapper扩展(count/countByStatus) + PromotionRecordMapper扩展(countDistinctVideoIdByStatus/countByCreatedAtAfter/countByStatusAndCreatedAtAfter/countGroupByChannelId) + 对应XML SQL - 验证通过 (mvn clean compile) |

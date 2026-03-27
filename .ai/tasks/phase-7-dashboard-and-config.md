@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [ ] 共 8 个任务，已完成 0/8
+- [x] 共 8 个任务，已完成 8/8
 
 ---
 
@@ -102,7 +102,7 @@
   - `grace-platform/src/main/java/com/grace/platform/shared/infrastructure/config/EncryptionProperties.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P1-02
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
@@ -112,5 +112,5 @@
 - **产出文件**: 无新文件，修复全部编译和测试错误
 - **验证命令**: `mvn clean compile && mvn test`
 - **依赖**: P7-01 至 P7-07
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 此任务为后端收尾验证，确保全部代码编译通过且全部测试（属性测试+单元测试+集成测试）通过；如果 Docker 不可用则跳过集成测试：`mvn test -Dtest="*PropertyTest,*UnitTest"`
