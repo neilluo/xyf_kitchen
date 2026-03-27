@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [ ] 共 10 个任务，已完成 0/10
+- [ ] 共 10 个任务，已完成 8/10
 
 ---
 
@@ -78,7 +78,7 @@
   - `grace-frontend/src/pages/MetadataReviewPage.tsx`（页面骨架 + 左侧视频预览）
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit`
 - **依赖**: P8-14, P8-11
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 双栏布局 grid lg:grid-cols-2 gap-8；左侧含 aspect-video 视频预览（缩略图 + 播放按钮覆层 + 底部进度条）+ 视频信息网格（文件名/格式/大小/时长）；使用 useVideoDetail(videoId)
 
 ---
@@ -90,7 +90,7 @@
   - `grace-frontend/src/pages/MetadataReviewPage.tsx`（完善右侧编辑器 + 全部交互）
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit && npm run lint`
 - **依赖**: P9-06
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 编辑器含：AiBadge（auto_awesome 图标）、标题 Input（字符计数 /100）、描述 Textarea（字符计数 /5000）、TagChip 列表（可删除 + 添加）；操作栏：重新生成（C3）、保存草稿（C2）、确认元数据（C4，不可逆）；确认后编辑器变只读；glass-panel 毛玻璃效果可选；参考 HTML 原型
 
 ---
@@ -101,7 +101,7 @@
 - **产出文件**: 无新增文件，修复上述任务中的 lint/type 问题
 - **验证命令**: `cd grace-frontend && npm run lint && npx tsc --noEmit`
 - **依赖**: P9-01 ~ P9-07
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 确保全部页面组件通过 ESLint + TypeScript strict 检查；修复所有 warning 和 error
 
 ---
