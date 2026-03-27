@@ -24,7 +24,7 @@
   - `grace-platform/src/main/java/com/grace/platform/dashboard/application/dto/AnalyticsDto.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P2-04, P4-04, P5-04
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: @Transactional(readOnly=true)；依赖 VideoRepository/PublishRecordRepository/PromotionRecordRepository/PromotionChannelRepository 的只读查询
 
 ---
