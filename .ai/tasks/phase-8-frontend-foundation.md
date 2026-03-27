@@ -74,7 +74,7 @@
   - `grace-frontend/src/components/ui/Select.tsx`
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit`
 - **依赖**: P8-02
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: StatusBadge 需映射 VideoStatus/PromotionStatus/PublishStatus 到对应背景和文字色；Card 遵循 No-Line 规则（无 border/shadow）；Input 无 border，focus 时 ring-2 ring-primary/40
 
 ---

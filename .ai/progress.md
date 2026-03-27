@@ -2,6 +2,7 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 20:00 | P8-05 | 完成 | 实现 StatusBadge/Card/Input/Select 组件 - StatusBadge(10种状态映射+脉冲动画)/Card(No-Line设计+hoverable)/Input(无border+focus ring)/Select(同Input+expand_more图标) - 新增 lib/utils.ts (cn函数) + 安装 clsx/tailwind-merge - 验证通过 (npx tsc --noEmit) |
 | 2026-03-27 19:35 | P8-04 | 完成 | 实现 Button 组件 - 5种变体(Primary渐变CTA/Secondary/Ghost/Danger/Icon Button)，Props支持variant/children/icon/disabled/onClick/className，Primary使用bg-gradient-to-r from-primary to-primary-container - 验证通过 (npx tsc --noEmit)
 | 2026-03-27 19:30 | P8-03 | 完成 | 实现 Icon 组件 - 封装 Google Material Symbols Outlined，支持 name/size/className Props，size 默认 20px - 验证通过 (npx tsc --noEmit) |
 | 2026-03-27 19:25 | P8-02 | 完成 | 配置 Tailwind CSS 设计系统 - 完整 color token (primary/secondary/tertiary/error/surface 系列)、fontFamily (Manrope/Inter)、自定义 borderRadius；index.css 含 @tailwind 指令和 Material Symbols 基线样式 - 验证通过 (npx tsc --noEmit && npm run build) |
