@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.grace.platform.distribution.infrastructure.persistence.PublishRecordMapper">
+
+    <!-- ResultMap：利用 mybatis.configuration.map-underscore-to-camel-case=true 自动映射 -->
+    <!-- 仅需对 TypeHandler 类型的字段显式声明 -->
+    <resultMap id="publishRecordResultMap" type="com.grace.platform.distribution.domain.PublishRecord">
+        <id property="id" column="id" typeHandler="com.grace.platform.shared.infrastructure.persistence.typehandler.PublishRecordIdTypeHandler"/>
+        <result property="videoId" column="video_id" typeHandler="com.grace.platform.shared.infrastructure.persistence.typehandler.VideoIdTypeHandler"/>
+        <result property="metadataId" column="metadata_id" typeHandler="com.grace.platform.shared.infrastructure.persistence.typehandler.MetadataIdTypeHandler"/>
+        <result property="status" column="status" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+    </resultMap>
+
+    <!-- 根据 ID 查询发布记录 -->
+    <select id="findById" resultMap="publishRecordResultMap">
+        SELECT id, video_id, metadata_id, platform, status, video_url, upload_task_id,
+               progress_percent, error_message, retry_count, published_at, created_at
+        FROM publish_record
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据视频 ID 查询所有发布记录 -->
+    <select id="findByVideoId" resultMap="publishRecordResultMap">
+        SELECT id, video_id, metadata_id, platform, status, video_url, upload_task_id,
+               progress_percent, error_message, retry_count, published_at, created_at
+        FROM publish_record
+        WHERE video_id = #{videoId}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 根据上传任务 ID 查询发布记录 -->
+    <select id="findByUploadTaskId" resultMap="publishRecordResultMap">
+        SELECT id, video_id, metadata_id, platform, status, video_url, upload_task_id,
+               progress_percent, error_message, retry_count, published_at, created_at
+        FROM publish_record
+        WHERE upload_task_id = #{uploadTaskId}
+    </select>
+
+    <!-- 根据状态查询发布记录 -->
+    <select id="findByStatus" resultMap="publishRecordResultMap">
+        SELECT id, video_id, metadata_id, platform, status, video_url, upload_task_id,
+               progress_percent, error_message, retry_count, published_at, created_at
+        FROM publish_record
+        WHERE status = #{status}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 根据状态统计发布记录数量 -->
+    <select id="countByStatus" resultType="long">
+        SELECT COUNT(*)
+        FROM publish_record
+        WHERE status = #{status}
+    </select>
+
+    <!-- 根据状态列表统计发布记录数量 -->
+    <select id="countByStatusIn" resultType="long">
+        SELECT COUNT(*)
+        FROM publish_record
+        WHERE status IN
+        <foreach collection="statuses" item="status" open="(" separator="," close=")">
+            #{status}
+        </foreach>
+    </select>
+
+    <!-- 插入新发布记录 -->
+    <insert id="insert" useGeneratedKeys="false" keyProperty="id">
+        INSERT INTO publish_record (id, video_id, metadata_id, platform, status, video_url,
+                                    upload_task_id, progress_percent, error_message, retry_count,
+                                    published_at, created_at)
+        VALUES (
+            #{id, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.PublishRecordIdTypeHandler},
+            #{videoId, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.VideoIdTypeHandler},
+            #{metadataId, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.MetadataIdTypeHandler},
+            #{platform},
+            #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+            #{videoUrl},
+            #{uploadTaskId},
+            #{progressPercent},
+            #{errorMessage},
+            #{retryCount},
+            #{publishedAt},
+            #{createdAt}
+        )
+    </insert>
+
+    <!-- 更新发布记录信息 -->
+    <update id="update">
+        UPDATE publish_record
+        SET video_id = #{videoId, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.VideoIdTypeHandler},
+            metadata_id = #{metadataId, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.MetadataIdTypeHandler},
+            platform = #{platform},
+            status = #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+            video_url = #{videoUrl},
+            upload_task_id = #{uploadTaskId},
+            progress_percent = #{progressPercent},
+            error_message = #{errorMessage},
+            retry_count = #{retryCount},
+            published_at = #{publishedAt}
+        WHERE id = #{id, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.PublishRecordIdTypeHandler}
+    </update>
+
+</mapper>

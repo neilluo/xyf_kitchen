@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.grace.platform.distribution.infrastructure.persistence.OAuthTokenMapper">
+
+    <!-- ResultMap：利用 mybatis.configuration.map-underscore-to-camel-case=true 自动映射 -->
+    <!-- 仅需对 TypeHandler 类型的字段显式声明 -->
+    <resultMap id="oAuthTokenResultMap" type="com.grace.platform.distribution.domain.OAuthToken">
+        <id property="id" column="id" typeHandler="com.grace.platform.shared.infrastructure.persistence.typehandler.OAuthTokenIdTypeHandler"/>
+    </resultMap>
+
+    <!-- 根据 ID 查询 OAuth Token -->
+    <select id="findById" resultMap="oAuthTokenResultMap">
+        SELECT id, platform, encrypted_access_token, encrypted_refresh_token, expires_at, created_at, updated_at
+        FROM oauth_token
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据平台标识查询 OAuth Token -->
+    <select id="findByPlatform" resultMap="oAuthTokenResultMap">
+        SELECT id, platform, encrypted_access_token, encrypted_refresh_token, expires_at, created_at, updated_at
+        FROM oauth_token
+        WHERE platform = #{platform}
+    </select>
+
+    <!-- 查询所有 OAuth Token -->
+    <select id="findAll" resultMap="oAuthTokenResultMap">
+        SELECT id, platform, encrypted_access_token, encrypted_refresh_token, expires_at, created_at, updated_at
+        FROM oauth_token
+        ORDER BY platform
+    </select>
+
+    <!-- 插入新 OAuth Token -->
+    <insert id="insert" useGeneratedKeys="false" keyProperty="id">
+        INSERT INTO oauth_token (id, platform, encrypted_access_token, encrypted_refresh_token, expires_at, created_at, updated_at)
+        VALUES (
+            #{id, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.OAuthTokenIdTypeHandler},
+            #{platform},
+            #{accessToken},
+            #{refreshToken},
+            #{expiresAt},
+            #{createdAt},
+            #{updatedAt}
+        )
+    </insert>
+
+    <!-- 更新 OAuth Token 信息 -->
+    <update id="update">
+        UPDATE oauth_token
+        SET platform = #{platform},
+            encrypted_access_token = #{accessToken},
+            encrypted_refresh_token = #{refreshToken},
+            expires_at = #{expiresAt},
+            updated_at = #{updatedAt}
+        WHERE id = #{id, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.OAuthTokenIdTypeHandler}
+    </update>
+
+    <!-- 根据平台标识删除 OAuth Token -->
+    <delete id="deleteByPlatform">
+        DELETE FROM oauth_token
+        WHERE platform = #{platform}
+    </delete>
+
+</mapper>
