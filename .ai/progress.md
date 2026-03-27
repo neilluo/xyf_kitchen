@@ -2,6 +2,7 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 13:57 | P4-03 | 完成 | 创建 Strategy 接口与 Registry - VideoDistributor策略接口 + ResumableVideoDistributor扩展 + VideoDistributorRegistry(Map路由/3001错误) + VideoFile/VideoMetadata/PlatformInfo值对象 - 验证通过 (mvn clean compile) |
 | 2026-03-27 13:50 | P4-02 | 完成 | 创建 PublishRecord 与 OAuthToken 实体 - PublishRecord聚合根(状态管理/重试机制) + OAuthToken(加密存储/isExpired) - 验证通过 (mvn clean compile) |
 | 2026-03-27 12:30 | P4-01 | 完成 | 创建 Distribution 枚举与值对象 - PublishStatus枚举(5状态) + PublishResult记录 + UploadStatus记录 - 验证通过 (mvn clean compile) |
 | 2026-03-27 12:18 | P3-10 | 完成 | 创建 MetadataUnitTest - 21个测试用例覆盖错误码2001(标签数量边界)/2003(已确认不可编辑)，包含标题/描述长度边界测试 - 验证通过 (mvn test -Dtest=MetadataUnitTest) |

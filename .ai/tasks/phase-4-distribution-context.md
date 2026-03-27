@@ -47,7 +47,7 @@
   - `grace-platform/src/main/java/com/grace/platform/distribution/domain/VideoDistributorRegistry.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P4-01, P1-08
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: VideoDistributorRegistry 构造器接收 List<VideoDistributor>，通过 Stream 转为 Map<platform, distributor>；getDistributor 未找到时抛 3001
 
 ---
