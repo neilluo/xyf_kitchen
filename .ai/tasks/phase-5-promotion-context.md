@@ -50,7 +50,7 @@
   - `grace-platform/src/main/java/com/grace/platform/promotion/domain/PromotionExecutorRegistry.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P5-01, P1-08
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 

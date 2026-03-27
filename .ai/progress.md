@@ -2,6 +2,7 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 16:00 | P5-03 | 完成 | 创建 Promotion Strategy 接口与 Registry - PromotionExecutor(策略接口channelType/execute) + PromotionExecutorRegistry(Map注册/getExecutor) - 使用INVALID_CHANNEL_CONFIG错误码(4002) - 验证通过 (mvn clean compile) |
 | 2026-03-27 15:37 | P5-02 | 完成 | 创建 PromotionChannel 与 PromotionRecord 实体 - PromotionChannel(工厂方法/API Key加密/enable/disable/priority 1-99验证) + PromotionRecord(状态机PENDING→EXECUTING→COMPLETED/FAILED/重试支持) + INVALID_PROMOTION_STATUS错误码(4005) - 验证通过 (mvn clean compile) |
 | 2026-03-27 15:33 | P5-01 | 完成 | 创建 Promotion 枚举与值对象 - ChannelType/ChannelStatus/PromotionMethod/PromotionStatus枚举 + PromotionResult记录 + PromotionCopy/PromotionReport/ChannelExecutionSummary值对象 - 验证通过 (mvn clean compile) |
 | 2026-03-27 15:28 | P4-12 | 完成 | 创建 Distribution 单元测试 - 22个测试用例覆盖错误码3001(不支持平台)、OAuth Token自动刷新、配额超限标记QUOTA_EXCEEDED、状态机转换 - 验证通过 (mvn test -Dtest=DistributionUnitTest) |
