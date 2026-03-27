@@ -18,7 +18,7 @@
   - `grace-frontend/src/pages/DashboardPage.tsx`（页面骨架 + StatsCardGrid）
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit`
 - **依赖**: P8-14, P8-11
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 4 列 grid，每张卡片含 border-l-4 颜色区分（primary/orange/green/tertiary）；使用 useDashboardOverview hook；日期范围使用 useState 管理
 
 ---
@@ -30,7 +30,7 @@
   - `grace-frontend/src/pages/DashboardPage.tsx`（完善完整页面）
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit && npm run lint`
 - **依赖**: P9-01
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: RecentUploadsTable 行可点击跳转元数据审核；DonutChart 使用 Recharts PieChart 或 SVG 实现；PromotionOverview 渠道行含 ProgressBar；底部 Analytics 展示平均互动率和总曝光量；参考 HTML 原型 `ui/stitch_grace_video_management/grace_dashboard/code.html`
 
 ---
@@ -42,7 +42,7 @@
   - `grace-frontend/src/pages/VideoManagementPage.tsx`
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit && npm run lint`
 - **依赖**: P8-14, P8-11
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: FilterBar 含搜索（防抖 300ms）+ 状态下拉 + 日期范围；VideoTable 含缩略图（hover 显示 play_arrow 覆层）、文件名+格式 badge、时长、大小、状态 StatusBadge、操作按钮（visibility/edit/send/more_vert）；分页组件；"上传新视频"按钮导航到 /upload；参考 HTML 原型
 
 ---
