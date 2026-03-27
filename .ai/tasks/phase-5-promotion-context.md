@@ -37,7 +37,7 @@
   - `grace-platform/src/main/java/com/grace/platform/promotion/domain/PromotionRecord.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P5-01, P1-04, P1-11
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: PromotionChannel.setApiKey 接收 EncryptionService 进行加密；priority 范围 1-99
 
 ---
