@@ -59,7 +59,7 @@
   - `grace-platform/.env.example`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P1-03
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: .env.example 包含全部 18 个环境变量（MYSQL_HOST/PORT/DATABASE/USERNAME/PASSWORD、GRACE_ENCRYPTION_KEY、QWEN_API_KEY/MODEL/BASE_URL、YOUTUBE_CLIENT_ID/SECRET/REDIRECT_URI、OPENCRAWL_API_KEY/BASE_URL 等），值为占位符
 
 ---
