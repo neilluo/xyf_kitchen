@@ -30,7 +30,7 @@
   - 创建所有限界上下文的空包目录（每个 context 下的 `domain/`、`application/`、`infrastructure/`、`interfaces/` 空 package-info 或占位）
 - **验证命令**: `mvn clean compile`
 - **依赖**: P1-01
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
@@ -229,7 +229,7 @@
   - `grace-platform/src/test/java/com/grace/platform/testutil/GraceArbitraries.java`
 - **验证命令**: `mvn clean compile` (test-compile)
 - **依赖**: P1-04（TestFixtures 需要 ID 类型）
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 

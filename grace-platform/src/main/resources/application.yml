@@ -1,0 +1,90 @@
+spring:
+  application:
+    name: grace-platform
+
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:grace}?useUnicode=true&characterEncoding=utf8mb4&serverTimezone=UTC
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+
+  servlet:
+    multipart:
+      max-file-size: 5GB
+      max-request-size: 5GB
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+    default-property-inclusion: non_null
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.grace.platform
+  type-handlers-package: com.grace.platform.shared.infrastructure.persistence.typehandler
+  configuration:
+    map-underscore-to-camel-case: true
+    default-enum-type-handler: org.apache.ibatis.type.EnumTypeHandler
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+
+grace:
+  encryption:
+    master-key: ${GRACE_ENCRYPTION_KEY}
+
+  storage:
+    video-dir: ${GRACE_VIDEO_DIR:./data/videos}
+    temp-dir: ${GRACE_TEMP_DIR:./data/temp}
+    avatar-dir: ${GRACE_AVATAR_DIR:./data/avatars}
+
+  upload:
+    chunk-size: 16777216
+    session-ttl: 86400
+    max-file-size: 5368709120
+
+  llm:
+    provider: qwen
+    api-key: ${QWEN_API_KEY}
+    model: qwen-max
+    base-url: https://dashscope.aliyuncs.com/api/v1
+    max-tokens: 2048
+    temperature: 0.7
+    retry:
+      max-attempts: 3
+      backoff-multiplier: 2
+
+  youtube:
+    client-id: ${YOUTUBE_CLIENT_ID}
+    client-secret: ${YOUTUBE_CLIENT_SECRET}
+    redirect-uri: ${YOUTUBE_REDIRECT_URI:http://localhost:8080/api/distribution/auth/youtube/callback}
+    scopes: https://www.googleapis.com/auth/youtube.upload,https://www.googleapis.com/auth/youtube.readonly
+
+  opencrawl:
+    base-url: ${OPENCRAWL_BASE_URL:https://api.opencrawl.io/v1}
+    api-key: ${OPENCRAWL_API_KEY}
+    timeout: 30000
+
+  scheduler:
+    quota-retry:
+      fixed-delay: 1800000
+      max-retries: 5
+
+server:
+  port: ${SERVER_PORT:8080}
+
+logging:
+  level:
+    com.grace.platform: DEBUG
