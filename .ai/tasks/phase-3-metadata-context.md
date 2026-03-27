@@ -33,7 +33,7 @@
   - `grace-platform/src/main/java/com/grace/platform/metadata/domain/event/MetadataConfirmedEvent.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P3-01, P1-06
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
