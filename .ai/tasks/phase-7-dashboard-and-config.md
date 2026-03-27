@@ -72,7 +72,7 @@
   - `grace-platform/src/test/java/com/grace/platform/testutil/GraceArbitraries.java`
 - **验证命令**: `mvn test-compile`
 - **依赖**: P1-16, P2-01, P3-01, P4-01, P5-01, P6-01
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 此任务是补全 P1-16 中创建的骨架，添加所有上下文的工厂方法和生成器
 
 ---

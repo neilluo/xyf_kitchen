@@ -2,6 +2,7 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 18:15 | P7-05 | 完成 | 补全 TestFixtures + GraceArbitraries - TestFixtures(7工厂方法: createVideo/createUploadSession/createMetadata/createPublishRecord/createChannel/createPromotionRecord/createApiKey) + GraceArbitraries(12枚举生成器 + 附加值对象生成器) - 验证通过 (mvn test-compile) |
 | 2026-03-27 18:15 | P7-03 | 完成 | 扩展各 Mapper 添加 Dashboard 查询方法 - ChannelPromotionStats投影接口 + VideoMapper扩展(count/countByStatus) + PromotionRecordMapper扩展(countDistinctVideoIdByStatus/countByCreatedAtAfter/countByStatusAndCreatedAtAfter/countGroupByChannelId) + 对应XML SQL - 验证通过 (mvn clean compile) |
 | 2026-03-27 18:10 | P7-02 | 完成 | 创建 DashboardController - 实现GET /api/dashboard/overview端点，支持dateRange参数(默认30d)，注入DashboardQueryService，返回ApiResponse<DashboardOverviewResponse> - 验证通过 (mvn clean compile) |
 | 2026-03-27 18:05 | P7-01 | 完成 | 创建 DashboardQueryService + DTO - DashboardQueryService(5查询方法:queryStats/queryRecentUploads/queryPublishDistribution/queryPromotionOverview/queryAnalytics) + 6个DTO(Stats/RecentUpload/PublishDistribution/PromotionOverview/Analytics/DashboardOverviewResponse) - @Transactional(readOnly=true)跨上下文聚合 - 验证通过 (mvn clean compile) |
