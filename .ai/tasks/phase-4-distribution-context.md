@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [ ] 共 12 个任务，已完成 0/12
+- [ ] 共 12 个任务，已完成 1/12
 
 ---
 
@@ -20,7 +20,7 @@
   - `grace-platform/src/main/java/com/grace/platform/distribution/domain/UploadStatus.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P1-02
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: PublishStatus 有 5 个状态（PENDING/UPLOADING/COMPLETED/FAILED/QUOTA_EXCEEDED）；PublishResult 和 UploadStatus 为 record 值对象
 
 ---
@@ -33,7 +33,7 @@
   - `grace-platform/src/main/java/com/grace/platform/distribution/domain/OAuthToken.java`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P4-01, P1-04
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: OAuthToken 的 accessToken/refreshToken 为加密存储字段；PublishRecord 含 retryCount 用于配额重试
 
 ---

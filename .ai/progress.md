@@ -2,6 +2,8 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 13:50 | P4-02 | 完成 | 创建 PublishRecord 与 OAuthToken 实体 - PublishRecord聚合根(状态管理/重试机制) + OAuthToken(加密存储/isExpired) - 验证通过 (mvn clean compile) |
+| 2026-03-27 12:30 | P4-01 | 完成 | 创建 Distribution 枚举与值对象 - PublishStatus枚举(5状态) + PublishResult记录 + UploadStatus记录 - 验证通过 (mvn clean compile) |
 | 2026-03-27 12:18 | P3-10 | 完成 | 创建 MetadataUnitTest - 21个测试用例覆盖错误码2001(标签数量边界)/2003(已确认不可编辑)，包含标题/描述长度边界测试 - 验证通过 (mvn test -Dtest=MetadataUnitTest) |
 | 2026-03-27 12:10 | P3-07 | 完成 | 创建 VideoMetadataMapper + JsonStringListTypeHandler - 5个方法(findById/findByVideoId/findByVideoIdOrdered/insert/update) + tags_json JSON转换TypeHandler - 验证通过 (mvn clean compile) |
 | 2026-03-27 12:15 | P3-08 | 完成 | 创建 VideoMetadataRepositoryImpl - 实现4个方法(save/findById/findLatestByVideoId/findByVideoId) - 验证通过 (mvn clean compile) |
