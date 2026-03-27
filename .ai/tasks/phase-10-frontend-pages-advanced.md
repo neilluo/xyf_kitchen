@@ -18,7 +18,7 @@
   - `grace-frontend/src/pages/DistributionPromotionPage.tsx`（页面骨架 + Step 导航逻辑）
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit`
 - **依赖**: P8-14, P8-11
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 3 步向导：Step 1（确认信息）→ Step 2（选择平台）→ Step 3（推广配置）；StepIndicator 使用圆点 + 连接线，支持 completed/active/future 三态；使用 useState 管理当前步骤
 
 ---
