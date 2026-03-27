@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [x] 共 12 个任务，已完成 7/12
+- [x] 共 12 个任务，已完成 8/12
 
 ---
 
@@ -158,7 +158,7 @@
   - `grace-platform/src/main/resources/mapper/promotion/PromotionRecordMapper.xml`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P5-02, P1-05
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
