@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [ ] 共 12 个任务，已完成 8/12
+- [ ] 共 12 个任务，已完成 9/12
 
 ---
 
@@ -138,7 +138,7 @@
   - `grace-platform/src/main/resources/mapper/distribution/OAuthTokenMapper.xml`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P4-02, P1-05
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: OAuthTokenRepositoryImpl 读取时需调 EncryptionService.decrypt()，存储时调 encrypt()
 
 ---

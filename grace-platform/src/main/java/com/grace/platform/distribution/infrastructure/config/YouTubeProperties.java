@@ -21,6 +21,9 @@ public class YouTubeProperties {
     private String clientSecret;
     private String redirectUri;
     private List<String> scopes;
+    private String apiBaseUrl;
+    private String uploadUrl;
+    private QuotaRetryProperties quotaRetry;
 
     // OAuth 端点常量
     private static final String GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
@@ -58,6 +61,30 @@ public class YouTubeProperties {
         this.scopes = scopes;
     }
 
+    public String getApiBaseUrl() {
+        return apiBaseUrl;
+    }
+
+    public void setApiBaseUrl(String apiBaseUrl) {
+        this.apiBaseUrl = apiBaseUrl;
+    }
+
+    public String getUploadUrl() {
+        return uploadUrl;
+    }
+
+    public void setUploadUrl(String uploadUrl) {
+        this.uploadUrl = uploadUrl;
+    }
+
+    public QuotaRetryProperties getQuotaRetry() {
+        return quotaRetry;
+    }
+
+    public void setQuotaRetry(QuotaRetryProperties quotaRetry) {
+        this.quotaRetry = quotaRetry;
+    }
+
     public String getGoogleAuthUrl() {
         return GOOGLE_AUTH_URL;
     }
@@ -74,5 +101,38 @@ public class YouTubeProperties {
             return "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly";
         }
         return String.join(" ", scopes);
+    }
+
+    /**
+     * 配额重试配置属性
+     */
+    public static class QuotaRetryProperties {
+        private boolean enabled;
+        private long fixedDelayMs;
+        private int maxRetryCount;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public long getFixedDelayMs() {
+            return fixedDelayMs;
+        }
+
+        public void setFixedDelayMs(long fixedDelayMs) {
+            this.fixedDelayMs = fixedDelayMs;
+        }
+
+        public int getMaxRetryCount() {
+            return maxRetryCount;
+        }
+
+        public void setMaxRetryCount(int maxRetryCount) {
+            this.maxRetryCount = maxRetryCount;
+        }
     }
 }
