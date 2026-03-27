@@ -2,6 +2,7 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-27 17:50 | P6-08 | 完成 | 创建 User/Settings MyBatis Mapper + Repository 实现 - UserProfileMapper(3方法)/NotificationPreferenceMapper(3方法)/ApiKeyMapper(4方法) + RepositoryImpl(各2-4方法) + XML映射文件(含ResultMap/TypeHandler) - TypeHandler自动转换typed IDs - 验证通过 (mvn clean compile) |
 | 2026-03-27 17:40 | P6-06 | 完成 | 创建 DefaultUserInitializer - ApplicationRunner实现，启动时创建默认用户和通知偏好 - 固定ID(default-user/default-notification) + 52行代码 - 验证通过 (mvn clean compile) |
 | 2026-03-27 17:37 | P6-05 | 完成 | 创建 ConnectedAccountQueryService ACL实现 - ConnectedAccountQueryServiceImpl(queryConnectedAccounts/disconnectPlatform) + KNOWN_PLATFORMS(youtube/weibo/bilibili) - 跨上下文查询Distribution OAuthTokenRepository - 验证通过 (mvn clean compile) |
 | 2026-03-27 17:30 | P6-04 | 完成 | 创建 UserSettingsApplicationService - UserSettingsApplicationService(10方法:G1-G10) + 8个DTO(Profile/Notification/APIKey相关) + ConnectedAccountQueryService ACL接口 - uploadAvatar校验JPG/PNG和2MB限制 - 验证通过 (mvn clean compile) |

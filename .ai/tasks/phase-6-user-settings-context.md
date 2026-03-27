@@ -120,7 +120,7 @@
   - `grace-platform/src/main/resources/mapper/usersettings/ApiKeyMapper.xml`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P6-01, P1-05
-- **状态**: [ ]
+- **状态**: [x]
 
 ---
 
