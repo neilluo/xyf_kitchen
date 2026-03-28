@@ -55,8 +55,8 @@ public class YouTubeApiAdapterImpl implements YouTubeApiAdapter {
             // PUT {uploadUri}
             YouTubeUploadResult result = uploadVideoContent(accessToken, uploadUri, videoFile);
 
-            logger.info("YouTube video upload completed: taskId={}, status={}",
-                result.taskId(), result.status());
+            logger.info("YouTube video upload completed: videoId={}, status={}",
+                result.getVideoId(), result.getUploadStatus());
 
             return result;
 
@@ -107,8 +107,8 @@ public class YouTubeApiAdapterImpl implements YouTubeApiAdapter {
             // PUT {uploadUri} with Content-Range: bytes {resumeFrom}-{total-1}/{total}
             YouTubeUploadResult result = resumeVideoUpload(accessToken, uploadUri, videoFile, resumeFrom);
 
-            logger.info("YouTube upload resumed successfully: taskId={}, status={}",
-                result.taskId(), result.status());
+            logger.info("YouTube upload resumed successfully: videoId={}, status={}",
+                result.getVideoId(), result.getUploadStatus());
 
             return result;
 

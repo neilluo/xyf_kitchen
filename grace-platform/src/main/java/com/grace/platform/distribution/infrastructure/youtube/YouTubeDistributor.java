@@ -80,16 +80,16 @@ public class YouTubeDistributor implements ResumableVideoDistributor {
             );
 
             // 3. 根据上传结果构建 PublishResult
-            PublishStatus status = mapYouTubeStatus(uploadResult.status());
-            String videoUrl = uploadResult.videoUrl();
+            PublishStatus status = mapYouTubeStatus(uploadResult.getUploadStatus());
+            String videoUrl = uploadResult.getVideoUrl();
 
             PublishResult result = new PublishResult(
-                uploadResult.taskId(),
+                uploadResult.getVideoId(),
                 status,
                 videoUrl
             );
 
-            logger.info("YouTube publish initiated: taskId={}, status={}",
+            logger.info("YouTube publish initiated: videoId={}, status={}",
                 result.taskId(), result.status());
 
             return result;
@@ -179,11 +179,29 @@ public class YouTubeDistributor implements ResumableVideoDistributor {
      * 将 YouTube 上传状态映射为领域 PublishStatus
      */
     private PublishStatus mapYouTubeStatus(YouTubeUploadStatus youtubeStatus) {
+        if (youtubeStatus == null) {
+            return PublishStatus.PENDING;
+        }
         return switch (youtubeStatus) {
             case UPLOADING -> PublishStatus.UPLOADING;
             case COMPLETED -> PublishStatus.COMPLETED;
             case FAILED -> PublishStatus.FAILED;
             case QUOTA_EXCEEDED -> PublishStatus.QUOTA_EXCEEDED;
+        };
+    }
+    
+    /**
+     * 将字符串状态映射为领域 PublishStatus
+     */
+    private PublishStatus mapYouTubeStatus(String status) {
+        if (status == null) {
+            return PublishStatus.PENDING;
+        }
+        return switch (status.toLowerCase()) {
+            case "uploading" -> PublishStatus.UPLOADING;
+            case "completed", "processed" -> PublishStatus.COMPLETED;
+            case "failed" -> PublishStatus.FAILED;
+            default -> PublishStatus.PENDING;
         };
     }
 }

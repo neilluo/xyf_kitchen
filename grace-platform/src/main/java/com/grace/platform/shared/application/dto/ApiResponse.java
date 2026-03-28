@@ -25,6 +25,10 @@ public record ApiResponse<T>(
     public static <T> ApiResponse<T> error(int code, String message) {
         return new ApiResponse<>(code, message, null, null, LocalDateTime.now());
     }
+    
+    public static <T> ApiResponse<T> error(String message) {
+        return new ApiResponse<>(500, message, null, null, LocalDateTime.now());
+    }
 
     public static <T> ApiResponse<T> error(int code, String message, List<FieldError> errors) {
         return new ApiResponse<>(code, message, null, errors, LocalDateTime.now());

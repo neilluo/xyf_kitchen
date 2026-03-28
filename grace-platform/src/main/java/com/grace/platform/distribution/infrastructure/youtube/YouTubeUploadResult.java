@@ -1,90 +1,66 @@
 package com.grace.platform.distribution.infrastructure.youtube;
 
 /**
- * YouTube 上传结果
- * <p>
- * 表示 YouTube 视频上传操作的结果，包含上传任务ID、上传URI和视频链接。
- * </p>
- *
- * @param taskId    上传任务ID（视频ID）
- * @param uploadUri 上传会话URI（用于断点续传）
- * @param videoUrl  发布后的视频链接
- * @param status    上传状态
+ * YouTube 视频上传结果
  */
-public record YouTubeUploadResult(
-    String taskId,
-    String uploadUri,
-    String videoUrl,
-    YouTubeUploadStatus status
-) {
-
-    /**
-     * 构造上传结果（进行中状态）
-     *
-     * @param taskId    上传任务ID
-     * @param uploadUri 上传会话URI
-     */
-    public YouTubeUploadResult(String taskId, String uploadUri) {
-        this(taskId, uploadUri, null, YouTubeUploadStatus.UPLOADING);
+public class YouTubeUploadResult {
+    
+    private String videoId;            // YouTube 视频 ID
+    private String videoUrl;           // YouTube 视频链接
+    private String title;              // 视频标题
+    private String uploadStatus;       // 上传状态
+    
+    public YouTubeUploadResult() {
     }
-
-    /**
-     * 构造上传结果（已完成）
-     *
-     * @param taskId   视频ID
-     * @param videoUrl 视频链接
-     */
-    public static YouTubeUploadResult completed(String taskId, String videoUrl) {
-        return new YouTubeUploadResult(taskId, null, videoUrl, YouTubeUploadStatus.COMPLETED);
+    
+    public YouTubeUploadResult(String videoId, String videoUrl, String title, String uploadStatus) {
+        this.videoId = videoId;
+        this.videoUrl = videoUrl;
+        this.title = title;
+        this.uploadStatus = uploadStatus;
     }
-
-    /**
-     * 构造上传结果（失败）
-     *
-     * @param taskId       任务ID
-     * @param errorMessage 错误信息
-     */
-    public static YouTubeUploadResult failed(String taskId, String errorMessage) {
-        return new YouTubeUploadResult(taskId, null, null, YouTubeUploadStatus.FAILED);
+    
+    // Getters and Setters
+    public String getVideoId() {
+        return videoId;
     }
-
-    /**
-     * 构造上传结果（配额超限）
-     *
-     * @param taskId    任务ID
-     * @param uploadUri 上传会话URI
-     */
-    public static YouTubeUploadResult quotaExceeded(String taskId, String uploadUri) {
-        return new YouTubeUploadResult(taskId, uploadUri, null, YouTubeUploadStatus.QUOTA_EXCEEDED);
+    
+    public void setVideoId(String videoId) {
+        this.videoId = videoId;
     }
-
-    public YouTubeUploadResult {
-        if (taskId == null || taskId.isBlank()) {
-            throw new IllegalArgumentException("taskId must not be blank");
-        }
-        if (status == null) {
-            throw new IllegalArgumentException("status must not be null");
-        }
+    
+    public String getVideoUrl() {
+        return videoUrl;
     }
-
-    /**
-     * 检查上传是否已完成
-     */
-    public boolean isCompleted() {
-        return status == YouTubeUploadStatus.COMPLETED;
+    
+    public void setVideoUrl(String videoUrl) {
+        this.videoUrl = videoUrl;
     }
-
-    /**
-     * 检查上传是否失败
-     */
-    public boolean isFailed() {
-        return status == YouTubeUploadStatus.FAILED;
+    
+    public String getTitle() {
+        return title;
     }
-
+    
+    public void setTitle(String title) {
+        this.title = title;
+    }
+    
+    public String getUploadStatus() {
+        return uploadStatus;
+    }
+    
+    public void setUploadStatus(String uploadStatus) {
+        this.uploadStatus = uploadStatus;
+    }
+    
     /**
-     * 检查是否配额超限
+     * 创建已完成的上传结果
      */
-    public boolean isQuotaExceeded() {
-        return status == YouTubeUploadStatus.QUOTA_EXCEEDED;
+    public static YouTubeUploadResult completed(String videoId, String videoUrl) {
+        YouTubeUploadResult result = new YouTubeUploadResult();
+        result.setVideoId(videoId);
+        result.setVideoUrl(videoUrl);
+        result.setUploadStatus("completed");
+        return result;
     }
 }
