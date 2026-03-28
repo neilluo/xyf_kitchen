@@ -36,7 +36,7 @@
                 AND DATE(created_at) >= #{startDate}
             </if>
             <if test="endDate != null">
-                AND DATE(created_at) <= #{endDate}
+                AND DATE(created_at) &lt;= #{endDate}
             </if>
         </where>
         ORDER BY created_at DESC
@@ -58,7 +58,7 @@
                 AND DATE(created_at) >= #{startDate}
             </if>
             <if test="endDate != null">
-                AND DATE(created_at) <= #{endDate}
+                AND DATE(created_at) &lt;= #{endDate}
             </if>
         </where>
     </select>

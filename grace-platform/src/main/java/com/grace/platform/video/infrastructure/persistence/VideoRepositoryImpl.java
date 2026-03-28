@@ -58,8 +58,8 @@ public class VideoRepositoryImpl implements VideoRepository {
             status = statuses.get(0).name();
         }
 
-        // 计算分页参数
-        int offset = pageRequest.page() * pageRequest.pageSize();
+        // 计算分页参数（page 从 1 开始，需要转换为 0-based offset）
+        int offset = (pageRequest.page() - 1) * pageRequest.pageSize();
         int limit = pageRequest.pageSize();
 
         // 查询列表

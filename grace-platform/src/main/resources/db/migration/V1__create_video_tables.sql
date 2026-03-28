@@ -23,5 +23,5 @@ CREATE TABLE upload_session (
     temp_directory  VARCHAR(1000) NOT NULL,
     status          VARCHAR(20)   NOT NULL DEFAULT 'ACTIVE',
     created_at      TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    expires_at      TIMESTAMP     NOT NULL
+    expires_at      TIMESTAMP     NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

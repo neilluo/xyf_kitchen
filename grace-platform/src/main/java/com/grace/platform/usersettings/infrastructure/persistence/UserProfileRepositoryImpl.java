@@ -33,7 +33,8 @@ public class UserProfileRepositoryImpl implements UserProfileRepository {
 
     @Override
     public UserProfile save(UserProfile profile) {
-        if (profile.getId() == null) {
+        // 根据数据库中是否存在记录决定是插入还是更新
+        if (userProfileMapper.findById(profile.getId().value()) == null) {
             // 新增
             userProfileMapper.insert(profile);
         } else {

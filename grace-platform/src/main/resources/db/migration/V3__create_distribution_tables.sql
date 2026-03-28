@@ -24,7 +24,7 @@ CREATE TABLE oauth_token (
     platform                VARCHAR(30)   NOT NULL UNIQUE,
     encrypted_access_token  TEXT          NOT NULL,
     encrypted_refresh_token TEXT          NOT NULL,
-    expires_at              TIMESTAMP     NOT NULL,
+    expires_at              TIMESTAMP     NULL DEFAULT NULL,
     created_at              TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at              TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

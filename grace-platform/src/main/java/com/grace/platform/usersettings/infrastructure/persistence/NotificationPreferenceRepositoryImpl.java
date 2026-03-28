@@ -33,7 +33,8 @@ public class NotificationPreferenceRepositoryImpl implements NotificationPrefere
 
     @Override
     public NotificationPreference save(NotificationPreference preference) {
-        if (preference.getId() == null) {
+        // 根据数据库中是否存在记录决定是插入还是更新
+        if (notificationPreferenceMapper.findById(preference.getId().value()) == null) {
             // 新增
             notificationPreferenceMapper.insert(preference);
         } else {

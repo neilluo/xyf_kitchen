@@ -12,7 +12,7 @@
 | 云服务商 | 阿里云 RDS for MySQL |
 | 实例连接地址 | `rm-2ze54x34bt9597z4ryo.mysql.rds.aliyuncs.com` |
 | 端口 | `3306` |
-| 数据库名 | `grace` |
+| 数据库名 | `xyfkitchen` |
 | 用户名 | `neilluo1220` |
 | 字符集 | `utf8mb4` |
 | 排序规则 | `utf8mb4_unicode_ci` |
@@ -26,7 +26,7 @@
 # application-dev.yml（本地开发）
 spring:
   datasource:
-    url: jdbc:mysql://rm-2ze54x34bt9597z4ryo.mysql.rds.aliyuncs.com:3306/grace?useUnicode=true&characterEncoding=utf8mb4&useSSL=true&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://rm-2ze54x34bt9597z4ryo.mysql.rds.aliyuncs.com:3306/xyfkitchen?useUnicode=true&characterEncoding=utf8mb4&useSSL=true&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: neilluo1220
     password: ${MYSQL_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -34,7 +34,7 @@ spring:
 # application-prod.yml（生产环境 — 所有敏感值走环境变量）
 spring:
   datasource:
-    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:grace}?useUnicode=true&characterEncoding=utf8mb4&useSSL=true&serverTimezone=Asia/Shanghai&requireSSL=true&verifyServerCertificate=true
+    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:xyfkitchen}?useUnicode=true&characterEncoding=utf8mb4&useSSL=true&serverTimezone=Asia/Shanghai&requireSSL=true&verifyServerCertificate=true
     username: ${MYSQL_USERNAME}
     password: ${MYSQL_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
