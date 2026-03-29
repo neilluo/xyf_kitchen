@@ -5,6 +5,7 @@ import com.grace.platform.shared.domain.id.ApiKeyId;
 import com.grace.platform.shared.domain.id.NotificationPreferenceId;
 import com.grace.platform.shared.domain.id.UserProfileId;
 import com.grace.platform.shared.infrastructure.exception.EntityNotFoundException;
+import com.grace.platform.shared.infrastructure.exception.FileOperationException;
 import com.grace.platform.usersettings.application.dto.*;
 import com.grace.platform.usersettings.domain.model.NotificationPreference;
 import com.grace.platform.usersettings.domain.model.UserProfile;
@@ -120,7 +121,7 @@ public class UserSettingsApplicationService {
             Files.createDirectories(avatarPath.getParent());
             Files.write(avatarPath, file.getBytes());
         } catch (IOException e) {
-            throw new RuntimeException("Failed to save avatar file", e);
+            throw new FileOperationException("Failed to save avatar file", e);
         }
 
         // 4. 更新 UserProfile.avatarUrl

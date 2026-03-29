@@ -2,6 +2,7 @@ package com.grace.platform.video.interfaces;
 
 import com.grace.platform.shared.application.dto.ApiResponse;
 import com.grace.platform.shared.application.dto.PageResponse;
+import com.grace.platform.shared.infrastructure.exception.FileOperationException;
 import com.grace.platform.video.application.VideoApplicationService;
 import com.grace.platform.video.application.command.UploadInitCommand;
 import com.grace.platform.video.application.command.VideoQueryCommand;
@@ -138,7 +139,7 @@ public class VideoUploadController {
 
             return ResponseEntity.ok(ApiResponse.success(response));
         } catch (IOException e) {
-            throw new RuntimeException("Failed to read chunk file", e);
+            throw new FileOperationException("Failed to read chunk file", e);
         }
     }
 

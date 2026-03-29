@@ -2,6 +2,7 @@ package com.grace.platform.video.infrastructure.file;
 
 import com.grace.platform.shared.ErrorCode;
 import com.grace.platform.shared.infrastructure.exception.BusinessRuleViolationException;
+import com.grace.platform.shared.infrastructure.exception.FileOperationException;
 import com.grace.platform.video.domain.VideoFileInfo;
 import com.grace.platform.video.domain.VideoFileInspector;
 import com.grace.platform.video.domain.VideoFormat;
@@ -45,7 +46,7 @@ public class VideoFileInspectorImpl implements VideoFileInspector {
     @Override
     public VideoFileInfo inspect(Path filePath) {
         if (!Files.exists(filePath)) {
-            throw new RuntimeException("Video file does not exist: " + filePath);
+            throw new FileOperationException("Video file does not exist: " + filePath);
         }
 
         String fileName = filePath.getFileName().toString();
@@ -54,7 +55,7 @@ public class VideoFileInspectorImpl implements VideoFileInspector {
             fileSize = Files.size(filePath);
         } catch (IOException e) {
             logger.error("Failed to get file size: {}", filePath, e);
-            throw new RuntimeException("Failed to get file size: " + filePath, e);
+            throw new FileOperationException("Failed to get file size: " + filePath, e);
         }
 
         VideoFormat format = extractFormat(fileName);
@@ -111,13 +112,13 @@ public class VideoFileInspectorImpl implements VideoFileInspector {
                 process.destroyForcibly();
                 logger.error("ffprobe timeout after {} seconds for file: {}",
                         FFPROBE_TIMEOUT_SECONDS, filePath);
-                throw new RuntimeException("ffprobe timeout after " + FFPROBE_TIMEOUT_SECONDS + " seconds");
+                throw new FileOperationException("ffprobe timeout after " + FFPROBE_TIMEOUT_SECONDS + " seconds");
             }
 
             int exitCode = process.exitValue();
             if (exitCode != 0) {
                 logger.error("ffprobe failed with exit code {}: {}", exitCode, output);
-                throw new RuntimeException("ffprobe failed: " + output);
+                throw new FileOperationException("ffprobe failed: " + output);
             }
 
             double durationSeconds = parseDuration(output);
@@ -125,11 +126,11 @@ public class VideoFileInspectorImpl implements VideoFileInspector {
 
         } catch (IOException e) {
             logger.error("Failed to execute ffprobe for file: {}", filePath, e);
-            throw new RuntimeException("Failed to execute ffprobe. Make sure ffmpeg is installed.", e);
+            throw new FileOperationException("Failed to execute ffprobe. Make sure ffmpeg is installed.", e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             logger.error("ffprobe interrupted for file: {}", filePath, e);
-            throw new RuntimeException("ffprobe interrupted", e);
+            throw new FileOperationException("ffprobe interrupted", e);
         } finally {
             if (process != null && process.isAlive()) {
                 process.destroyForcibly();

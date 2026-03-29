@@ -8,6 +8,7 @@ import com.grace.platform.shared.domain.PaginatedResult;
 import com.grace.platform.shared.domain.id.VideoId;
 import com.grace.platform.shared.infrastructure.exception.BusinessRuleViolationException;
 import com.grace.platform.shared.infrastructure.exception.EntityNotFoundException;
+import com.grace.platform.shared.infrastructure.exception.FileOperationException;
 import com.grace.platform.video.application.command.UploadInitCommand;
 import com.grace.platform.video.application.command.VideoQueryCommand;
 import com.grace.platform.video.application.dto.*;
@@ -129,7 +130,7 @@ public class VideoApplicationService {
         try {
             Files.createDirectories(tempDir);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to create temp directory: " + tempDir, e);
+            throw new FileOperationException("Failed to create temp directory: " + tempDir, e);
         }
 
         // 创建上传会话
@@ -210,7 +211,7 @@ public class VideoApplicationService {
         try {
             Files.copy(chunkInput, chunkPath);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to save chunk file: " + chunkPath, e);
+            throw new FileOperationException("Failed to save chunk file: " + chunkPath, e);
         }
 
         // 更新已上传分片数
@@ -276,7 +277,7 @@ public class VideoApplicationService {
             finalFilePath = videoDir.resolve(finalFileName);
             Files.move(mergedFilePath, finalFilePath);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to move video file to final location", e);
+            throw new FileOperationException("Failed to move video file to final location", e);
         }
 
         // 提取视频信息

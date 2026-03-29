@@ -4,6 +4,7 @@ import com.grace.platform.distribution.domain.OAuthToken;
 import com.grace.platform.distribution.domain.OAuthTokenRepository;
 import com.grace.platform.shared.domain.id.OAuthTokenId;
 import com.grace.platform.shared.infrastructure.encryption.EncryptionService;
+import com.grace.platform.shared.infrastructure.exception.EncryptionException;
 import org.springframework.stereotype.Repository;
 
 import java.lang.reflect.Constructor;
@@ -68,7 +69,7 @@ public class OAuthTokenRepositoryImpl implements OAuthTokenRepository {
             this.setCreatedAtMethod.setAccessible(true);
             this.setUpdatedAtMethod.setAccessible(true);
         } catch (NoSuchMethodException e) {
-            throw new RuntimeException("Failed to initialize OAuthToken reflection methods", e);
+            throw new EncryptionException("Failed to initialize OAuthToken reflection methods", e);
         }
     }
 
@@ -85,7 +86,7 @@ public class OAuthTokenRepositoryImpl implements OAuthTokenRepository {
                 oAuthTokenMapper.update(encryptedToken);
             }
         } catch (Exception e) {
-            throw new RuntimeException("Failed to save OAuth token", e);
+            throw new EncryptionException("Failed to save OAuth token", e);
         }
 
         return token;
@@ -140,7 +141,7 @@ public class OAuthTokenRepositoryImpl implements OAuthTokenRepository {
 
             return encrypted;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to encrypt OAuth token fields", e);
+            throw new EncryptionException("Failed to encrypt OAuth token fields", e);
         }
     }
 
@@ -159,7 +160,7 @@ public class OAuthTokenRepositoryImpl implements OAuthTokenRepository {
             setAccessTokenMethod.invoke(token, encryptionService.decrypt(encryptedAccessToken));
             setRefreshTokenMethod.invoke(token, encryptionService.decrypt(encryptedRefreshToken));
         } catch (Exception e) {
-            throw new RuntimeException("Failed to decrypt OAuth token fields", e);
+            throw new EncryptionException("Failed to decrypt OAuth token fields", e);
         }
     }
 }
