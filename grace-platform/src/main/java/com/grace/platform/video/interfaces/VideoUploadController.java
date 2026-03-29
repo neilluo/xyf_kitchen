@@ -2,7 +2,8 @@ package com.grace.platform.video.interfaces;
 
 import com.grace.platform.shared.application.dto.ApiResponse;
 import com.grace.platform.shared.application.dto.PageResponse;
-import com.grace.platform.shared.infrastructure.exception.FileOperationException;
+import com.grace.platform.storage.domain.OssStorageService;
+import com.grace.platform.storage.domain.UploadCallback;
 import com.grace.platform.video.application.VideoApplicationService;
 import com.grace.platform.video.application.command.UploadInitCommand;
 import com.grace.platform.video.application.command.VideoQueryCommand;
@@ -16,15 +17,11 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,13 +29,12 @@ import java.util.stream.Collectors;
 /**
  * 视频上传控制器。
  * <p>
- * 负责处理视频分片上传相关的 REST API 端点。
+ * 负责处理视频 OSS 直传上传相关的 REST API 端点。
  * <p>
  * 端点列表：
  * <ul>
- *   <li>B1: POST /api/videos/upload/init - 初始化上传</li>
- *   <li>B2: POST /api/videos/upload/{uploadId}/chunk - 上传分片</li>
- *   <li>B3: POST /api/videos/upload/{uploadId}/complete - 完成上传</li>
+ *   <li>B1: POST /api/videos/upload/init - 初始化上传，返回 STS 凭证</li>
+ *   <li>B2: POST /api/videos/upload/callback - OSS 上传完成回调（原分片上传已移除）</li>
  *   <li>B4: GET /api/videos/upload/{uploadId}/progress - 查询上传进度</li>
  *   <li>B5: GET /api/videos - 视频列表（分页/搜索/筛选）</li>
  *   <li>B6: GET /api/videos/{videoId} - 视频详情</li>
@@ -52,31 +48,35 @@ import java.util.stream.Collectors;
 public class VideoUploadController {
 
     private final VideoApplicationService videoApplicationService;
+    private final OssStorageService ossStorageService;
 
     /**
      * 构造器注入依赖。
      *
      * @param videoApplicationService 视频应用服务
+     * @param ossStorageService        OSS 存储服务
      */
-    public VideoUploadController(VideoApplicationService videoApplicationService) {
+    public VideoUploadController(
+            VideoApplicationService videoApplicationService,
+            OssStorageService ossStorageService) {
         this.videoApplicationService = videoApplicationService;
+        this.ossStorageService = ossStorageService;
     }
 
     // ==================== B1: 初始化上传 ====================
 
     /**
-     * 初始化分片上传。
+     * 初始化 OSS 直传上传。
      * <p>
-     * 校验文件格式和大小，创建上传会话。
+     * 校验文件格式和大小，创建上传会话，返回 STS 临时凭证。
      *
      * @param request 初始化请求
-     * @return 上传会话信息
+     * @return 上传会话信息（包含 STS 凭证）
      */
     @PostMapping("/upload/init")
     public ResponseEntity<ApiResponse<UploadInitResponse>> initUpload(
             @Valid @RequestBody UploadInitRequest request) {
         
-        // 转换格式字符串为枚举
         VideoFormat format;
         try {
             format = VideoFormat.valueOf(request.format().toUpperCase());
@@ -95,69 +95,64 @@ public class VideoUploadController {
 
         UploadInitDTO dto = videoApplicationService.initUpload(command);
 
+        UploadInitResponse.StsCredentialsResponse stsResponse = new UploadInitResponse.StsCredentialsResponse(
+            dto.stsCredentials().accessKeyId(),
+            dto.stsCredentials().accessKeySecret(),
+            dto.stsCredentials().securityToken(),
+            dto.stsCredentials().expiration(),
+            dto.stsCredentials().region(),
+            dto.stsCredentials().bucket()
+        );
+
         UploadInitResponse response = new UploadInitResponse(
             dto.uploadId(),
             dto.totalChunks(),
             dto.chunkSize(),
-            dto.expiresAt()
+            dto.expiresAt(),
+            dto.storageKey(),
+            dto.ossBucket(),
+            stsResponse
         );
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    // ==================== B2: 上传分片 ====================
+    // ==================== B3: OSS 上传完成回调 ====================
 
     /**
-     * 上传单个分片。
+     * OSS 上传完成回调。
      * <p>
-     * 接收分片文件并存储到临时目录。
+     * OSS 分片上传完成后回调此端点，验证签名并创建视频记录。
      *
-     * @param uploadId   上传会话 ID
-     * @param chunkIndex 分片索引（从请求参数或表单数据获取）
-     * @param chunk      分片文件
-     * @return 分片上传结果
-     */
-    @PostMapping(value = "/upload/{uploadId}/chunk", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<ChunkUploadResponse>> uploadChunk(
-            @PathVariable String uploadId,
-            @RequestParam("chunkIndex") int chunkIndex,
-            @RequestParam("chunk") MultipartFile chunk) {
-        
-        try {
-            ChunkUploadDTO dto = videoApplicationService.uploadChunk(
-                uploadId,
-                chunkIndex,
-                chunk.getInputStream()
-            );
-
-            ChunkUploadResponse response = new ChunkUploadResponse(
-                dto.uploadId(),
-                dto.chunkIndex(),
-                dto.uploadedChunks(),
-                dto.totalChunks()
-            );
-
-            return ResponseEntity.ok(ApiResponse.success(response));
-        } catch (IOException e) {
-            throw new FileOperationException("Failed to read chunk file", e);
-        }
-    }
-
-    // ==================== B3: 完成上传 ====================
-
-    /**
-     * 完成上传。
-     * <p>
-     * 合并所有分片，提取视频信息，创建视频记录。
-     *
-     * @param uploadId 上传会话 ID
+     * @param authorization OSS 回调签名
+     * @param pubKeyUrl     OSS 公钥 URL
+     * @param request       回调请求体
      * @return 视频信息
      */
-    @PostMapping("/upload/{uploadId}/complete")
-    public ResponseEntity<ApiResponse<VideoInfoResponse>> completeUpload(
-            @PathVariable String uploadId) {
+    @PostMapping("/upload/callback")
+    public ResponseEntity<ApiResponse<VideoInfoResponse>> handleOssCallback(
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestHeader(value = "x-oss-pub-key-url", required = false) String pubKeyUrl,
+            @RequestBody OssCallbackRequest request) {
         
-        VideoInfoDTO dto = videoApplicationService.completeUpload(uploadId);
+        boolean verified = ossStorageService.verifyCallbackSignature(authorization, pubKeyUrl, request.toJson());
+        if (!verified) {
+            throw new com.grace.platform.shared.infrastructure.exception.BusinessRuleViolationException(
+                com.grace.platform.shared.ErrorCode.OSS_CALLBACK_INVALID,
+                "OSS callback signature verification failed"
+            );
+        }
+
+        UploadCallback callback = new UploadCallback(
+            request.bucket(),
+            request.objectKey(),
+            request.etag(),
+            request.fileSize(),
+            request.mimeType(),
+            request.uploadId()
+        );
+
+        VideoInfoDTO dto = videoApplicationService.completeUpload(callback);
 
         VideoInfoResponse response = new VideoInfoResponse(
             dto.videoId(),
@@ -177,7 +172,7 @@ public class VideoUploadController {
     /**
      * 查询上传进度。
      * <p>
-     * 用于前端轮询展示上传进度条。
+     * 用于前端轮询展示上传状态（OSS SDK 处理实际上传进度）。
      *
      * @param uploadId 上传会话 ID
      * @return 上传进度信息
@@ -277,9 +272,6 @@ public class VideoUploadController {
 
     // ==================== 私有辅助方法 ====================
 
-    /**
-     * 解析状态列表字符串。
-     */
     private List<com.grace.platform.video.domain.VideoStatus> parseStatusList(String status) {
         if (status == null || status.isBlank()) {
             return List.of();
@@ -298,9 +290,6 @@ public class VideoUploadController {
             .collect(Collectors.toList());
     }
 
-    /**
-     * 格式化 Duration 为 ISO 8601 字符串。
-     */
     private String formatDuration(Duration duration) {
         if (duration == null) {
             return "PT0S";
@@ -308,9 +297,6 @@ public class VideoUploadController {
         return duration.toString();
     }
 
-    /**
-     * 转换 VideoListItemDTO 为 VideoListItemResponse。
-     */
     private VideoListItemResponse toVideoListItemResponse(VideoListItemDTO dto) {
         return new VideoListItemResponse(
             dto.videoId(),
@@ -326,9 +312,6 @@ public class VideoUploadController {
         );
     }
 
-    /**
-     * 转换 VideoDetailDTO 为 VideoDetailResponse。
-     */
     private VideoDetailResponse toVideoDetailResponse(VideoDetailDTO dto) {
         VideoDetailResponse.MetadataResponse metadata = null;
         if (dto.metadata() != null) {
@@ -377,20 +360,6 @@ public class VideoUploadController {
 
     // ==================== 内部响应记录 ====================
 
-    /**
-     * 分片上传响应。
-     */
-    private record ChunkUploadResponse(
-        String uploadId,
-        int chunkIndex,
-        int uploadedChunks,
-        int totalChunks
-    ) {
-    }
-
-    /**
-     * 上传进度响应。
-     */
     private record UploadProgressResponse(
         String uploadId,
         int uploadedChunks,
@@ -400,9 +369,6 @@ public class VideoUploadController {
     ) {
     }
 
-    /**
-     * 视频列表项响应。
-     */
     private record VideoListItemResponse(
         String videoId,
         String fileName,
@@ -415,5 +381,19 @@ public class VideoUploadController {
         java.time.LocalDateTime createdAt,
         java.time.LocalDateTime updatedAt
     ) {
+    }
+
+    private record OssCallbackRequest(
+        String bucket,
+        String objectKey,
+        String etag,
+        long fileSize,
+        String mimeType,
+        String uploadId
+    ) {
+        String toJson() {
+            return String.format("{\"bucket\":\"%s\",\"objectKey\":\"%s\",\"etag\":\"%s\",\"fileSize\":%d,\"mimeType\":\"%s\",\"uploadId\":\"%s\"}",
+                bucket, objectKey, etag, fileSize, mimeType, uploadId);
+        }
     }
 }
