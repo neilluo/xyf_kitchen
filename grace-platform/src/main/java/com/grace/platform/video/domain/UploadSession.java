@@ -21,6 +21,7 @@ public class UploadSession {
     private String storageKey;
     private String ossBucket;
     private String tempDirectory;
+    private UploadMode uploadMode;
     private UploadSessionStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime expiresAt;
@@ -78,6 +79,7 @@ public class UploadSession {
         session.storageKey = storageKey;
         session.ossBucket = ossBucket;
         session.tempDirectory = null;
+        session.uploadMode = UploadMode.DIRECT_OSS;
         session.status = UploadSessionStatus.ACTIVE;
         session.createdAt = LocalDateTime.now();
         session.expiresAt = session.createdAt.plus(DEFAULT_SESSION_TTL_HOURS, ChronoUnit.HOURS);
@@ -129,6 +131,7 @@ public class UploadSession {
         session.storageKey = "local/" + session.uploadId;
         session.ossBucket = "local";
         session.tempDirectory = tempDirectory;
+        session.uploadMode = UploadMode.SERVER_UPLOAD;
         session.status = UploadSessionStatus.ACTIVE;
         session.createdAt = LocalDateTime.now();
         session.expiresAt = session.createdAt.plus(DEFAULT_SESSION_TTL_HOURS, ChronoUnit.HOURS);
@@ -147,6 +150,7 @@ public class UploadSession {
 
         UploadSession session = create(fileName, fileSize, format, storageKey, ossBucket, chunkSize);
         session.uploadId = uploadId;
+        session.uploadMode = UploadMode.DIRECT_OSS;
         return session;
     }
 
@@ -201,6 +205,7 @@ public class UploadSession {
         session.storageKey = "local/" + uploadId;
         session.ossBucket = "local";
         session.tempDirectory = tempDirectory;
+        session.uploadMode = UploadMode.SERVER_UPLOAD;
         session.status = UploadSessionStatus.ACTIVE;
         session.createdAt = LocalDateTime.now();
         session.expiresAt = session.createdAt.plus(DEFAULT_SESSION_TTL_HOURS, ChronoUnit.HOURS);
@@ -368,6 +373,10 @@ public class UploadSession {
         return expiresAt;
     }
 
+    public UploadMode getUploadMode() {
+        return uploadMode;
+    }
+
     void setUploadId(String uploadId) {
         this.uploadId = uploadId;
     }
@@ -415,6 +424,10 @@ public class UploadSession {
 
     void setExpiresAt(LocalDateTime expiresAt) {
         this.expiresAt = expiresAt;
+    }
+
+    void setUploadMode(UploadMode uploadMode) {
+        this.uploadMode = uploadMode;
     }
 
     @Override
