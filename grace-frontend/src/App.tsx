@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AppLayout } from '@/components/layout/AppLayout'
 import DashboardPage from '@/pages/DashboardPage'
 import { VideoManagementPage } from '@/pages/VideoManagementPage'
+import { VideoUploadPage } from '@/pages/VideoUploadPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -13,15 +14,6 @@ const queryClient = new QueryClient({
     },
   },
 })
-
-function VideoUploadPage() {
-  return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold text-on-surface">上传视频</h1>
-      <p className="text-on-surface-variant mt-2">Video upload page placeholder</p>
-    </div>
-  )
-}
 
 function MetadataReviewPage() {
   return (
