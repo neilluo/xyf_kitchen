@@ -401,7 +401,7 @@ class DistributionPropertyTest {
         }
 
         @Override
-        public PublishResult publish(VideoFile videoFile, VideoMetadata metadata) {
+        public PublishResult publish(String storageUrl, VideoMetadata metadata) {
             return new PublishResult("task-" + System.nanoTime(), PublishStatus.UPLOADING);
         }
 
