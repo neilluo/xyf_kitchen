@@ -42,10 +42,16 @@ public final class ErrorCode {
     public static final int PROFILE_NOT_FOUND              = 5001;
     public static final int API_KEY_NOT_FOUND              = 5002;
 
+    // ===== 6001-6099: Storage Context =====
+    public static final int STS_TOKEN_GENERATION_FAILED    = 6001;
+    public static final int OSS_CALLBACK_INVALID           = 6002;
+    public static final int OSS_OBJECT_NOT_FOUND           = 6003;
+
     // ===== 9001-9099: Infrastructure =====
     public static final int LLM_SERVICE_UNAVAILABLE        = 9001;
     public static final int OPENCRAWL_EXECUTION_FAILED     = 9002;
     public static final int ENCRYPTION_ERROR               = 9003;
     public static final int FILE_OPERATION_ERROR           = 9004;
+    public static final int INFRA_CONFIG_ERROR             = 9005;
     public static final int INTERNAL_SERVER_ERROR          = 9999;
 }

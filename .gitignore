@@ -26,8 +26,8 @@ dist/
 .DS_Store
 Thumbs.db
 
-# Storage (runtime data)
-storage/
+# Storage (runtime data - root level only)
+/storage/
 logs/
 
 # OpenCode
