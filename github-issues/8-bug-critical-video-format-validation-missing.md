@@ -76,12 +76,37 @@ try {
 }
 ```
 
+## 修复状态
+
+**已修复** ✅
+
+**修复时间**: 2026-03-29 02:25
+**修复文件**: `grace-platform/src/main/java/com/grace/platform/video/interfaces/VideoUploadController.java`
+
+**修复内容**:
+```java
+// 修改前（Bug）:
+} catch (IllegalArgumentException e) {
+    format = VideoFormat.MP4; // 错误：默认设置为 MP4
+}
+
+// 修改后（Fix）:
+} catch (IllegalArgumentException e) {
+    throw new BusinessRuleViolationException(
+        ErrorCode.UNSUPPORTED_VIDEO_FORMAT,
+        String.format("Unsupported video format: %s. Supported formats: MP4, MOV, AVI, MKV", request.format())
+    );
+}
+```
+
 ## 验收标准
 
-- [ ] WMV/FLV 等不支持格式返回 1001 错误
-- [ ] MP4/MOV/AVI/MKV 格式正常接受
-- [ ] 错误信息明确列出支持的格式
-- [ ] 添加单元测试验证格式校验
+- [x] WMV/FLV 等不支持格式返回 1001 错误
+- [x] MP4/MOV/AVI/MKV 格式正常接受
+- [x] 错误信息明确列出支持的格式
+- [x] 添加单元测试验证格式校验
+- [x] 编译通过 (mvn compile)
+- [x] 属性测试通过 (VideoPropertyTest)
 
 ## 测试报告
 

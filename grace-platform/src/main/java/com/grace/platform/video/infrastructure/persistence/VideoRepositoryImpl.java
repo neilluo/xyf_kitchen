@@ -33,7 +33,7 @@ public class VideoRepositoryImpl implements VideoRepository {
 
     @Override
     public Video save(Video video) {
-        if (video.getId() == null) {
+        if (video.getId() == null || findById(video.getId()).isEmpty()) {
             // 新增
             videoMapper.insert(video);
         } else {

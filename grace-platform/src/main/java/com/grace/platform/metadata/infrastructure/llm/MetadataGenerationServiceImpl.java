@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -29,8 +31,25 @@ public class MetadataGenerationServiceImpl implements MetadataGenerationService 
 
     private static final Logger log = LoggerFactory.getLogger(MetadataGenerationServiceImpl.class);
 
-    private static final String SYSTEM_PROMPT = "你是一位专业的美食视频内容运营专家。" +
-        "根据提供的视频文件信息和用户历史风格，生成适合 YouTube 发布的视频元数据。";
+    private static final String SYSTEM_PROMPT = """
+        你是一位专业的美食视频内容运营专家。
+        
+        任务：根据视频信息生成适合 YouTube 发布的元数据。
+        
+        重要要求（必须遵守）：
+        1. 必须返回纯 JSON 格式，不要有任何其他文本
+        2. 不要使用 markdown 代码块（```json）包裹
+        3. 直接返回 JSON 字符串，不要添加任何解释或说明
+        4. 确保 JSON 格式有效，可以被标准 JSON 解析器解析
+        
+        JSON 字段要求：
+        - title: 视频标题，不超过100字符，要吸引人
+        - description: 视频描述，不超过5000字符，详细且包含关键词
+        - tags: 标签数组，5-15个相关且热门的标签
+        
+        示例输出格式（严格遵守）：
+        {"title":"美食制作教程","description":"详细步骤...","tags":["美食","教程","家常菜","烹饪","食谱"]}
+        """;
 
     private final LlmService llmService;
     private final ObjectMapper objectMapper;
@@ -128,28 +147,82 @@ public class MetadataGenerationServiceImpl implements MetadataGenerationService 
      * @throws ExternalServiceException 如果解析失败
      */
     private GeneratedMetadata parseLlmResponse(String content) {
+        String cleaned = cleanLlmResponse(content);
+        
+        if (cleaned.isEmpty()) {
+            log.error("LLM response is empty or blank after cleaning");
+            throw new ExternalServiceException(
+                ErrorCode.LLM_SERVICE_UNAVAILABLE,
+                "LLM",
+                "LLM returned empty response"
+            );
+        }
+        
         try {
-            // 尝试直接解析 JSON
-            JsonNode root = objectMapper.readTree(content);
+            JsonNode root = objectMapper.readTree(cleaned);
             return extractMetadataFromJson(root);
         } catch (JsonProcessingException e) {
-            // 如果直接解析失败，尝试从 Markdown 代码块中提取 JSON
-            log.debug("Direct JSON parsing failed, trying to extract from markdown code block");
-            String jsonContent = extractJsonFromMarkdown(content);
-            if (jsonContent != null) {
+            log.debug("Direct JSON parsing failed: {}", e.getMessage());
+            
+            String jsonFromMarkdown = extractJsonFromMarkdown(cleaned);
+            if (jsonFromMarkdown != null) {
                 try {
-                    JsonNode root = objectMapper.readTree(jsonContent);
+                    JsonNode root = objectMapper.readTree(jsonFromMarkdown);
                     return extractMetadataFromJson(root);
                 } catch (JsonProcessingException e2) {
-                    log.error("Failed to parse extracted JSON: {}", e2.getMessage());
+                    log.debug("Markdown JSON parsing failed: {}", e2.getMessage());
                 }
             }
+            
+            String jsonFromRegex = extractJsonWithRegex(cleaned);
+            if (jsonFromRegex != null) {
+                try {
+                    JsonNode root = objectMapper.readTree(jsonFromRegex);
+                    return extractMetadataFromJson(root);
+                } catch (JsonProcessingException e3) {
+                    log.debug("Regex JSON parsing failed: {}", e3.getMessage());
+                }
+            }
+            
+            log.error("Failed to parse LLM response as JSON. Raw content: {}", content);
             throw new ExternalServiceException(
                 ErrorCode.LLM_SERVICE_UNAVAILABLE,
                 "LLM",
                 "Failed to parse LLM response as JSON: " + e.getMessage()
             );
         }
+    }
+
+    /**
+     * 清理 LLM 响应内容。
+     *
+     * @param content 原始响应内容
+     * @return 清理后的内容
+     */
+    private String cleanLlmResponse(String content) {
+        if (content == null || content.isBlank()) {
+            return "";
+        }
+        String cleaned = content.trim();
+        cleaned = cleaned.replace("\uFEFF", "");
+        return cleaned;
+    }
+
+    /**
+     * 使用正则表达式提取 JSON 对象。
+     *
+     * @param content 原始内容
+     * @return 提取的 JSON 字符串，如果没有找到则返回 null
+     */
+    private String extractJsonWithRegex(String content) {
+        Pattern pattern = Pattern.compile(
+            "\\{[\\s\\S]*?\"title\"[\\s\\S]*?\"description\"[\\s\\S]*?\"tags\"[\\s\\S]*?\\}"
+        );
+        Matcher matcher = pattern.matcher(content);
+        if (matcher.find()) {
+            return matcher.group();
+        }
+        return null;
     }
 
     /**

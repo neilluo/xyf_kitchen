@@ -5,7 +5,7 @@
 
 ## 进度统计
 
-- [ ] 共 10 个任务，已完成 0/10
+- [x] 共 10 个任务，已完成 10/10
 
 ---
 
@@ -30,7 +30,7 @@
   - `grace-frontend/src/pages/DistributionPromotionPage.tsx`（完善 Step 1 + Step 2）
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit`
 - **依赖**: P10-01
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: Step 1 展示视频缩略图 + 元数据摘要（标题/描述/标签）；Step 2 使用 usePlatforms() 加载平台列表，grid-cols-4 PlatformCard（YouTube active，其他 coming soon 禁用），含 PrivacyStatusSelect；参考 HTML 原型
 
 ---
@@ -42,7 +42,7 @@
   - `grace-frontend/src/pages/DistributionPromotionPage.tsx`（完善 Step 3 + 发布逻辑）
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit && npm run lint`
 - **依赖**: P10-02
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: Step 3 进入时自动调用 F1 生成推广文案；PromotionCopyCard grid-cols-3 显示渠道图标/推广方式 badge/可编辑标题+正文/重新生成按钮；确认发布：调用 D1 发布 → 轮询 D2 状态 → 同时调用 F2 执行推广 → 显示结果摘要
 
 ---
@@ -54,7 +54,7 @@
   - `grace-frontend/src/pages/PromotionHistoryPage.tsx`（页面骨架 + FilterBar + PromotionTable）
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit`
 - **依赖**: P8-14, P8-11
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: FilterBar 含视频选择下拉（useVideoList 加载）+ 日期范围 + 导出按钮；PromotionTable 按视频分组，SummaryRow 可展开（chevron 切换），含视频标题/渠道数/圆形 SVG 进度/状态/日期
 
 ---
@@ -66,7 +66,7 @@
   - `grace-frontend/src/pages/PromotionHistoryPage.tsx`（完善展开详情 + InsightCards + 分页）
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit && npm run lint`
 - **依赖**: P10-04
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: ExpandedDetail 每行显示渠道图标/渠道名/推广方式 badge/状态/结果链接（open_in_new）/失败时显示重试按钮（F5）；InsightCards 3 列 bento 布局（成功率 tertiary-fixed、最佳方式 secondary-fixed、高峰时段 surface-container-high）；Pagination 组件
 
 ---
@@ -78,7 +78,7 @@
   - `grace-frontend/src/pages/SettingsPage.tsx`（页面骨架 + 12 列 grid + ProfileSection）
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit`
 - **依赖**: P8-14, P8-11
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 12 列网格布局（左 col-span-7 右 col-span-5）；ProfileSection 含头像上传（w-32 h-32 rounded-full + ring-4 + CameraOverlay）+ displayName/email 表单；使用 useProfile/useUpdateProfile/useUploadAvatar hooks
 
 ---
@@ -90,7 +90,7 @@
   - `grace-frontend/src/pages/SettingsPage.tsx`（完善连接账户 + 通知偏好）
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit`
 - **依赖**: P10-06
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: ConnectedAccounts 列出平台，已连接显示 check_circle 绿色 + 账户名，未连接显示"连接"按钮（触发 D3 OAuth）；NotificationSection 3 行通知项，每行 Label + Description + Toggle 开关；Toggle 变更立即调用 G7
 
 ---
@@ -102,7 +102,7 @@
   - `grace-frontend/src/pages/SettingsPage.tsx`（完善右侧 API Key 管理 + ProTipCard）
 - **验证命令**: `cd grace-frontend && npx tsc --noEmit && npm run lint`
 - **依赖**: P10-07
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: ApiKeyCard 显示遮蔽的 Key（••••••••abcd）+ 复制按钮 + 查看按钮 + 过期时间 + 最后使用时间 + 重新生成按钮；使用 useApiKeys/useCreateApiKey/useDeleteApiKey hooks；ProTipCard 含 auto_awesome 图标 + 使用提示
 
 ---

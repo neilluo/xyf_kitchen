@@ -80,7 +80,10 @@ public class VideoUploadController {
         try {
             format = VideoFormat.valueOf(request.format().toUpperCase());
         } catch (IllegalArgumentException e) {
-            format = VideoFormat.MP4; // 让应用服务处理无效格式
+            throw new com.grace.platform.shared.infrastructure.exception.BusinessRuleViolationException(
+                com.grace.platform.shared.ErrorCode.UNSUPPORTED_VIDEO_FORMAT,
+                String.format("Unsupported video format: %s. Supported formats: MP4, MOV, AVI, MKV", request.format())
+            );
         }
 
         UploadInitCommand command = new UploadInitCommand(

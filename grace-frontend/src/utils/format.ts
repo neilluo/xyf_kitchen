@@ -18,7 +18,8 @@ export function formatDuration(isoDuration: string): string {
 }
 
 // 日期格式化
-export function formatDate(isoString: string): string {
+export function formatDate(isoString: string | null | undefined): string {
+  if (!isoString) return '-'
   return new Date(isoString).toLocaleDateString('zh-CN', {
     year: 'numeric',
     month: '2-digit',

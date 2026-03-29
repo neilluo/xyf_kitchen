@@ -60,7 +60,7 @@ grace:
     provider: qwen
     api-key: ${QWEN_API_KEY}
     model: qwen-max
-    base-url: https://dashscope.aliyuncs.com/api/v1
+    base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
     max-tokens: 2048
     temperature: 0.7
     retry:
