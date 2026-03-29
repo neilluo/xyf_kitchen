@@ -32,7 +32,6 @@
 | 2026-03-27 21:20 | P8-12 | 完成 | 实现 Zustand Store (useAppStore.ts) - Toast通知队列(id/type/message) + 上传队列(file/uploadId/progress/status) - addToast自动生成ID/removeToast按ID移除/updateUploadItem安全边界检查 - 验证通过 (npx tsc --noEmit) |
 | 2026-03-27 20:25 | P8-11 | 完成 | 实现 React Query Hooks - 8个领域hook(useDashboard/useVideos/useUpload/useMetadata/useDistribution/useChannels/usePromotions/useSettings) - 每个文件导出queryKeys常量 + 查询/变更hooks - useUpload含分片上传核心逻辑 + 速度计算工具函数 - usePublishStatus和useUploadProgress使用refetchInterval轮询(1秒/2秒) - 验证通过 (npx tsc --noEmit) |
 | 时间 | 任务 ID | 状态 | 备注 |
-|------|---------|------|------|
 | 2026-03-27 20:15 | P8-06 | 完成 | 实现 TagChip/ProgressBar/Pagination/Toggle/Table 组件 - TagChip(可删除+close图标)/ProgressBar(进度条+aria支持)/Pagination(页码导航+ellipsis)/Toggle(checkbox peer模式)/Table(thead/tbody封装) - 全部使用设计系统token - 验证通过 (npx tsc --noEmit) |
 | 2026-03-27 20:00 | P8-05 | 完成 | 实现 StatusBadge/Card/Input/Select 组件 - StatusBadge(10种状态映射+脉冲动画)/Card(No-Line设计+hoverable)/Input(无border+focus ring)/Select(同Input+expand_more图标) - 新增 lib/utils.ts (cn函数) + 安装 clsx/tailwind-merge - 验证通过 (npx tsc --noEmit) |
 | 2026-03-27 19:35 | P8-04 | 完成 | 实现 Button 组件 - 5种变体(Primary渐变CTA/Secondary/Ghost/Danger/Icon Button)，Props支持variant/children/icon/disabled/onClick/className，Primary使用bg-gradient-to-r from-primary to-primary-container - 验证通过 (npx tsc --noEmit)
@@ -46,8 +45,6 @@
 | 2026-03-27 18:15 | P7-03 | 完成 | 扩展各 Mapper 添加 Dashboard 查询方法 - ChannelPromotionStats投影接口 + VideoMapper扩展(count/countByStatus) + PromotionRecordMapper扩展(countDistinctVideoIdByStatus/countByCreatedAtAfter/countByStatusAndCreatedAtAfter/countGroupByChannelId) + 对应XML SQL - 验证通过 (mvn clean compile) |
 | 2026-03-27 18:10 | P7-02 | 完成 | 创建 DashboardController - 实现GET /api/dashboard/overview端点，支持dateRange参数(默认30d)，注入DashboardQueryService，返回ApiResponse<DashboardOverviewResponse> - 验证通过 (mvn clean compile) |
 | 2026-03-27 18:05 | P7-01 | 完成 | 创建 DashboardQueryService + DTO - DashboardQueryService(5查询方法:queryStats/queryRecentUploads/queryPublishDistribution/queryPromotionOverview/queryAnalytics) + 6个DTO(Stats/RecentUpload/PublishDistribution/PromotionOverview/Analytics/DashboardOverviewResponse) - @Transactional(readOnly=true)跨上下文聚合 - 验证通过 (mvn clean compile) |
-| 2026-03-27 17:56 | P6-10 | 完成 | 创建 User/Settings 单元测试 - UserSettingsUnitTest(19个测试用例)覆盖头像文件类型验证(JPG/PNG)/大小边界(2MB)/ApiKey明文仅返回一次/BCrypt哈希不可逆 - 验证通过 (mvn test -Dtest=UserSettingsUnitTest)
-|------|---------|------|------|
 | 2026-03-27 17:50 | P6-08 | 完成 | 创建 User/Settings MyBatis Mapper + Repository 实现 - UserProfileMapper(3方法)/NotificationPreferenceMapper(3方法)/ApiKeyMapper(4方法) + RepositoryImpl(各2-4方法) + XML映射文件(含ResultMap/TypeHandler) - TypeHandler自动转换typed IDs - 验证通过 (mvn clean compile) |
 | 2026-03-27 17:40 | P6-06 | 完成 | 创建 DefaultUserInitializer - ApplicationRunner实现，启动时创建默认用户和通知偏好 - 固定ID(default-user/default-notification) + 52行代码 - 验证通过 (mvn clean compile) |
 | 2026-03-27 17:37 | P6-05 | 完成 | 创建 ConnectedAccountQueryService ACL实现 - ConnectedAccountQueryServiceImpl(queryConnectedAccounts/disconnectPlatform) + KNOWN_PLATFORMS(youtube/weibo/bilibili) - 跨上下文查询Distribution OAuthTokenRepository - 验证通过 (mvn clean compile) |
@@ -60,9 +57,6 @@
 | 2026-03-27 16:30 | P5-06 | 完成 | 创建 Promotion 应用层 - PromotionApplicationService(5方法:generateCopy/executePromotion/getPromotionHistory/getPromotionReport/retryPromotion) + ExecutePromotionCommand(含PromotionItem内联记录) + 4个DTO(PromotionCopyDTO/PromotionResultDTO/PromotionRecordDTO/PromotionReportDTO) - 实现批量执行策略(按priority排序/单失败不中断) - 验证通过 (mvn clean compile) |
 | 2026-03-27 16:00 | P5-03 | 完成 | 创建 Promotion Strategy 接口与 Registry - PromotionExecutor(策略接口channelType/execute) + PromotionExecutorRegistry(Map注册/getExecutor) - 使用INVALID_CHANNEL_CONFIG错误码(4002) - 验证通过 (mvn clean compile) |
 | 2026-03-27 15:37 | P5-02 | 完成 | 创建 PromotionChannel 与 PromotionRecord 实体 - PromotionChannel(工厂方法/API Key加密/enable/disable/priority 1-99验证) + PromotionRecord(状态机PENDING→EXECUTING→COMPLETED/FAILED/重试支持) + INVALID_PROMOTION_STATUS错误码(4005) - 验证通过 (mvn clean compile) |
-| 2026-03-27 15:33 | P5-01 | 完成 | 创建 Promotion 枚举与值对象 - ChannelType/ChannelStatus/PromotionMethod/PromotionStatus枚举 + PromotionResult记录 + PromotionCopy/PromotionReport/ChannelExecutionSummary值对象 - 验证通过 (mvn clean compile) |
-| 2026-03-27 15:28 | P4-12 | 完成 | 创建 Distribution 单元测试 - 22个测试用例覆盖错误码3001(不支持平台)、OAuth Token自动刷新、配额超限标记QUOTA_EXCEEDED、状态机转换 - 验证通过 (mvn test -Dtest=DistributionUnitTest) |
-|------|---------|------|------|
 | 2026-03-27 15:20 | P4-11 | 完成 | 创建 Distribution 属性测试 - DistributionPropertyTest(5个属性测试: 平台路由正确性/URL格式验证/记录往返/状态机转换) 覆盖 Property #6-#8 - 验证通过 (mvn test -Dtest=DistributionPropertyTest) |
 | 2026-03-27 15:14 | P4-10 | 完成 | 创建 Distribution 配置类 - DistributionConfig(VideoDistributorRegistry Bean) + YouTubeProperties(apiBaseUrl/uploadUrl/QuotaRetryProperties) - 验证通过 (mvn clean compile)
 | 2026-03-27 14:57 | P4-08 | 完成 | 创建 YouTube 适配器 - YouTubeDistributor(ResumableVideoDistributor实现) + YouTubeApiAdapter(接口) + YouTubeApiAdapterImpl(骨架) + YouTubeOAuthServiceImpl(OAuthService实现) + YouTubeProperties(配置) + 3个值对象(YouTubeUploadResult/Progress/Status) - 支持断点续传、每日10000配额、Token AES加密 - 验证通过 (mvn clean compile) |
@@ -75,21 +69,12 @@
 | 2026-03-27 12:10 | P3-07 | 完成 | 创建 VideoMetadataMapper + JsonStringListTypeHandler - 5个方法(findById/findByVideoId/findByVideoIdOrdered/insert/update) + tags_json JSON转换TypeHandler - 验证通过 (mvn clean compile) |
 | 2026-03-27 12:15 | P3-08 | 完成 | 创建 VideoMetadataRepositoryImpl - 实现4个方法(save/findById/findLatestByVideoId/findByVideoId) - 验证通过 (mvn clean compile) |
 | 2026-03-27 12:10 | P3-06 | 完成 | 创建 MetadataController - 5个REST端点(C1-C5): generate/update/regenerate/confirm/getByVideoId + 3个DTO(GenerateMetadataRequest/UpdateMetadataRequest/VideoMetadataResponse) + Validation注解 - 验证通过 (mvn clean compile) |
-| 2026-03-27 12:05 | P3-05 | 完成 | 创建 Metadata 应用层 - MetadataApplicationService(5个方法: generate/update/regenerate/confirm/getByVideoId) + UpdateMetadataCommand + VideoMetadataDTO + VideoUploadedEventListener - 验证通过 (mvn clean compile) |
-| 2026-03-27 11:47 | P3-03 | 创建 LLM 基础设施 - LlmService 接口 + LlmRequest/LlmResponse records + QwenLlmServiceAdapter(指数退避重试1s/2s/4s，最多3次，失败抛9001) + WebConfig添加RestTemplate bean - 验证通过 (mvn clean compile) |
-| 2026-03-27 11:41 | P3-02 | 完成 | 创建 Metadata 领域接口与事件 - MetadataGenerationService 接口 + VideoMetadataRepository 接口(4个方法) + MetadataConfirmedEvent 领域事件 - 验证通过 (mvn clean compile) |
 | 2026-03-27 11:37 | P3-01 | 完成 | 创建 Metadata 枚举与域实体 - MetadataSource 枚举(AI_GENERATED/MANUAL/AI_EDITED) + VideoMetadata 聚合根(validate/update/confirm方法 + 领域不变量验证) - 验证通过 (mvn clean compile) |
-|------|---------|------|------|
 | 2026-03-27 10:38 | P2-12 | 完成 | 创建 Video 单元测试 - 21个测试用例覆盖错误码1001/1002/1005/1006/1007，包含格式验证、5GB边界、分片索引、重复分片、完成验证 - 验证通过 (mvn test -Dtest=VideoUnitTest) |
 | 2026-03-27 10:23 | P2-10 | 完成 | 创建 Video 基础设施文件服务实现 - VideoFileInspectorImpl(ffprobe调用) + ChunkMergeServiceImpl(FileChannel合并) - 验证通过 (mvn clean compile) |
 | 2026-03-27 10:17 | P2-09 | 完成 | 创建 Video Repository 实现 - DurationTypeHandler + VideoRepositoryImpl + UploadSessionRepositoryImpl - 验证通过 (mvn clean compile) |
 | 2026-03-27 10:00 | P2-07 | 完成 | 创建 VideoUploadController - 6个REST端点(B1-B6)、5个DTO文件、集成VideoApplicationService、ApiResponse包装 - 验证通过 (mvn clean compile) |
 | 2026-03-27 09:52 | P2-06 | 完成 | 创建 Video 应用层 - VideoApplicationService 含6个方法、Command/DTO 共9个文件、UploadSession.createWithId、PageRequest支持sort/order - 验证通过 (mvn clean compile) |
-| 2026-03-27 09:42 | P2-05 | 完成 | 创建 VideoUploadedEvent 领域事件 - 包含 videoId/fileName/fileSize/format 字段，继承 DomainEvent - 验证通过 (mvn clean compile) |
-| 2026-03-27 09:40 | P2-04 | 完成 | 创建 Video 领域接口 - VideoFileInspector/ChunkMergeService/VideoRepository/UploadSessionRepository + 共享分页类 - 验证通过 (mvn clean compile) |
-| 2026-03-27 09:34 | P2-02 | 完成 | 创建 Video 聚合根 - 包含状态机验证、字段校验、工厂方法 - 验证通过 (mvn clean compile) |
-| 2026-03-27 09:30 | P2-01 | 完成 | 创建 Video 枚举与值对象 - VideoFormat/VideoStatus/UploadSessionStatus + VideoFileInfo - 验证通过 (mvn clean compile) |
-|------|---------|------|------|
 | 2026-03-27 08:55 | P1-14 | 完成 | 创建 logback-spring.xml - Console/File 按天滚动、traceId Pattern - 验证通过 (mvn clean compile) |
 | 2026-03-27 08:55 | P1-13 | 完成 | 创建日志基础设施 - TraceIdFilter/CachedBodyFilter/RequestResponseLoggingInterceptor/WebMvcConfig/AsyncConfig/MdcTaskDecorator/SlowSqlInterceptor - 验证通过 (mvn clean compile) |
 | 2026-03-27 08:46 | P1-12 | 完成 | 创建 API Key 哈希服务 - ApiKeyHashService 接口 + BcryptApiKeyHashService 实现 - 验证通过 (mvn clean compile) |
