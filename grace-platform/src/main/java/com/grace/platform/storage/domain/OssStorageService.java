@@ -1,13 +1,27 @@
 package com.grace.platform.storage.domain;
 
+import java.nio.file.Path;
+
 /**
  * OSS 存储服务接口
  * <p>
- * 定义 OSS 存储的核心操作：获取 STS 临时凭证、验证上传回调签名。
+ * 定义 OSS 存储的核心操作：获取 STS 临时凭证、验证上传回调签名、上传文件。
  * domain 层接口，不依赖具体的 OSS SDK 或 Spring 框架。
  * </p>
  */
 public interface OssStorageService {
+
+    /**
+     * 上传本地文件到 OSS
+     * <p>
+     * 用于服务端上传场景：合并分片后上传到 OSS。
+     * </p>
+     *
+     * @param localFile  本地文件路径
+     * @param objectKey  OSS Object Key
+     * @return 上传成功后的 Object Key
+     */
+    String uploadFile(Path localFile, String objectKey);
 
     /**
      * 生成 STS 临时凭证
