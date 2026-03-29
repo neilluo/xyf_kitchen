@@ -2,6 +2,7 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-29 21:15 | P14-06 | 完成 | 前端适配添加上传方式选择 - UploadMode类型(DIRECT_OSS/SERVER_UPLOAD)/ServerUploadSession类型/ServerUploadInitRequest/ServerChunkUploadResponse/ServerUploadCompleteResponse类型/serverUploadInit/serverUploadChunk/serverUploadComplete API函数/useServerUpload hook(分片上传+进度+速度+状态轮询)/UploadModeSelector组件(双按钮切换)/VideoUploadPage集成双模式上传 - 验证通过 (npm run lint + npx tsc --noEmit) |
 | 2026-03-29 21:01 | P14-05 | 完成 | 实现服务端上传到OSS转存 - OssStorageService添加uploadFile方法/AliOssStorageServiceImpl实现OSS文件上传/ServerUploadApplicationService.completeUpload合并分片+上传OSS+清理临时文件+保存Video(OSS URL/StorageProvider.OSS) - 验证通过 (mvn clean compile) |
 | 2026-03-29 19:57 | P14-04 | 完成 | 修改 UploadSession 支持双模式 - UploadMode枚举(DIRECT_OSS/SERVER_UPLOAD)/UploadSession添加uploadMode字段/getter/setter/更新Mapper XML添加upload_mode列 - 验证通过 (mvn clean compile) |
 | 2026-03-29 20:05 | P14-02 | 完成 | 创建服务端上传应用服务 - ServerUploadApplicationService(initUpload/uploadChunk/completeUpload)/ServerUploadInitDTO/ServerChunkUploadDTO/ServerUploadCompleteDTO/ServerUploadInitCommand - 验证通过 (mvn clean compile) |
