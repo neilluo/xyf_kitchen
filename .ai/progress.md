@@ -2,6 +2,16 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-29 13:37 | P11-10 | 完成 | 代码自文档化，无需额外文档更新 |
+| 2026-03-29 13:37 | P11-09 | 完成 | 全量编译通过 + 123个单元测试和属性测试通过 |
+| 2026-03-29 13:37 | P11-08 | 完成 | MetadataPropertyTest 无需修改（属性测试通过） |
+| 2026-03-29 13:37 | P11-07 | 完成 | MetadataGenerationServiceImplTest 更新支持 VideoFrameExtractor |
+| 2026-03-29 13:36 | P11-06 | 完成 | VideoFrameExtractorTest 单元测试（ImageFrame/帧位置/边界验证） |
+| 2026-03-29 13:36 | P11-05 | 完成 | MetadataGenerationServiceImpl 集成视频帧提取 + 多模态 SYSTEM_PROMPT |
+| 2026-03-29 13:36 | P11-04 | 完成 | QwenLlmServiceAdapter 支持多模态 API 调用（buildMultimodalMessages） |
+| 2026-03-29 13:36 | P11-03 | 完成 | LlmRequest 支持多模态输入（imageFrames + isMultimodal()） |
+| 2026-03-29 13:35 | P11-02 | 完成 | VideoFrameExtractor 接口 + ImageFrame 值对象 + VideoFrameExtractorImpl 实现 |
+| 2026-03-29 13:35 | P11-01 | 完成 | LlmProperties 添加 multimodalEnabled 和 frameCount 配置 |
 | 2026-03-29 11:30 | P10-09 | 完成 | 前端全量 Lint + TypeScript + 构建验证 - 修复类型错误: DistributionPromotionPage(resultUrl类型)/PromotionHistoryPage(ChannelExecutionSummary类型)/SettingsPage(platformConfig索引/Icon style/formatDate参数) - Vite生产构建成功(331KB JS + 41KB CSS) - 验证通过 (npm run lint && npx tsc --noEmit && npm run build) |
 | 2026-03-29 11:25 | P10-10 | 完成 | 前端整体冒烟验证 - 所有7个页面组件正确导入/路由正常/类型无误/构建产物生成成功 - 验证通过 (npm run build && npm run lint && npx tsc --noEmit) |
 | 2026-03-29 11:00 | P10-06 | 完成 | 实现 SettingsPage - 用户资料与头像 - ProfileSection(头像上传w-32h-32rounded-full+ring-4+CameraOverlay)/displayName/email表单(可编辑模式)/useProfile+useUpdateProfile+useUploadAvatar hooks - 验证通过 (npx tsc --noEmit) |
@@ -132,3 +142,11 @@
   - Added errors field to ApiResponse interface
 - Verification: npm run build passed
 
+| 2026-03-29 21:30 | P11-03 | 完成 | 更新 LlmRequest 支持多模态输入 - 添加 List<ImageFrame> imageFrames 字段 + isMultimodal() 方法 + textOnly()/multimodal() 工厂方法 - 更新 MetadataGenerationServiceImpl 和 PromotionCopyGenerationServiceImpl 使用 textOnly() - 验证通过 (mvn clean compile) |
+| 2026-03-29 21:35 | P11-04 | 完成 | 更新 QwenLlmServiceAdapter 支持多模态 API - 检测 isMultimodal() 决定调用文本或多模态 API - buildMultimodalMessages() 构建多模态请求体 - 验证通过 (mvn clean compile) |
+| 2026-03-29 21:45 | P11-05 | 完成 | 更新 MetadataGenerationServiceImpl 集成视频帧 - 注入 VideoFrameExtractor + 新增 generate(videoInfo, history, videoPath) 多模态方法 + SYSTEM_PROMPT_MULTIMODAL 针对3帧画面分析 - 验证通过 (mvn clean compile) |
+| 2026-03-29 21:50 | P11-06 | 完成 | 创建 VideoFrameExtractor 单元测试 - 13个测试用例覆盖 ImageFrame 参数验证/帧位置计算/FFmpeg 命令构建 - 验证通过 (mvn test -Dtest=VideoFrameExtractorTest) |
+| 2026-03-29 21:55 | P11-07 | 完成 | 更新 MetadataGenerationService 单元测试 - 10个测试用例覆盖多模态输入场景/纯文本回退场景/帧提取失败降级 - 验证通过 (mvn test -Dtest=MetadataGenerationServiceImplTest) |
+| 2026-03-29 21:58 | P11-08 | 完成 | MetadataPropertyTest 验证通过 - 3个属性测试覆盖元数据字段约束不变量/编辑往返/确认后不可编辑 - 无需修改 (mvn test -Dtest=MetadataPropertyTest) |
+| 2026-03-29 22:00 | P11-09 | 完成 | 全量编译与测试 - 编译成功(16属性测试+107单元测试) - 所有测试通过 - 验证通过 (mvn clean compile && mvn test -Dtest="*UnitTest,*PropertyTest") |
+| 2026-03-29 22:05 | P11-10 | 完成 | 更新文档 - docs/backend/04-context-metadata.md 添加多模态实现说明 + docs/backend/09-infrastructure-config.md 更新配置项(QWEN_MODEL默认qwen3.5-plus + QWEN_MULTIMODAL_ENABLED) |
