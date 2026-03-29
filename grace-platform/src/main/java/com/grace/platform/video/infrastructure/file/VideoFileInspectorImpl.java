@@ -12,9 +12,13 @@ import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
@@ -33,16 +37,20 @@ public class VideoFileInspectorImpl implements VideoFileInspector {
 
     private static final String FFPROBE_COMMAND = "ffprobe";
     private static final long FFPROBE_TIMEOUT_SECONDS = 30;
+    private static final long DOWNLOAD_TIMEOUT_SECONDS = 60;
+    private static final long DOWNLOAD_MAX_SIZE = 50 * 1024 * 1024;
 
-    /**
-     * 检查视频文件，提取元信息。
-     * <p>
-     * 使用 ffprobe 命令行工具提取视频时长、格式等信息。
-     *
-     * @param filePath 视频文件路径
-     * @return 视频文件信息（包含文件名、文件大小、格式、时长等）
-     * @throws InfrastructureException 如果文件不存在或 ffprobe 执行失败
-     */
+    private final Path tempDir;
+
+    public VideoFileInspectorImpl() {
+        this.tempDir = Path.of(System.getProperty("java.io.tmpdir"), "grace-video-inspect");
+        try {
+            Files.createDirectories(tempDir);
+        } catch (IOException e) {
+            logger.warn("Failed to create temp directory for video inspection: {}", tempDir, e);
+        }
+    }
+
     @Override
     public VideoFileInfo inspect(Path filePath) {
         if (!Files.exists(filePath)) {
@@ -67,12 +75,71 @@ public class VideoFileInspectorImpl implements VideoFileInspector {
         return new VideoFileInfo(fileName, fileSize, format, duration);
     }
 
-    /**
-     * 从文件名提取视频格式。
-     *
-     * @param fileName 文件名
-     * @return 视频格式枚举
-     */
+    @Override
+    public VideoFileInfo inspectFromUrl(String url) {
+        logger.debug("Inspecting video from URL: {}", url);
+
+        Path tempFile = downloadToTempFile(url);
+
+        try {
+            VideoFileInfo info = inspect(tempFile);
+            String fileName = extractFileNameFromUrl(url);
+            return new VideoFileInfo(fileName, info.fileSize(), info.format(), info.duration());
+        } finally {
+            deleteTempFile(tempFile);
+        }
+    }
+
+    private Path downloadToTempFile(String url) {
+        try {
+            URL videoUrl = new URL(url);
+            HttpURLConnection connection = (HttpURLConnection) videoUrl.openConnection();
+            connection.setConnectTimeout((int) DOWNLOAD_TIMEOUT_SECONDS * 1000);
+            connection.setReadTimeout((int) DOWNLOAD_TIMEOUT_SECONDS * 1000);
+            connection.setRequestMethod("GET");
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                throw new FileOperationException("Failed to download video from URL: HTTP " + responseCode);
+            }
+
+            String fileName = extractFileNameFromUrl(url);
+            Path tempFile = tempDir.resolve("inspect_" + System.currentTimeMillis() + "_" + fileName);
+
+            try (InputStream inputStream = connection.getInputStream()) {
+                long copied = Files.copy(inputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
+                if (copied > DOWNLOAD_MAX_SIZE) {
+                    Files.deleteIfExists(tempFile);
+                    throw new FileOperationException("Video file too large for inspection: " + copied + " bytes");
+                }
+            }
+
+            logger.debug("Video downloaded to temp file: {} ({} bytes)", tempFile, Files.size(tempFile));
+            return tempFile;
+
+        } catch (IOException e) {
+            logger.error("Failed to download video from URL: {}", url, e);
+            throw new FileOperationException("Failed to download video from URL: " + url, e);
+        }
+    }
+
+    private void deleteTempFile(Path tempFile) {
+        try {
+            Files.deleteIfExists(tempFile);
+            logger.debug("Deleted temp file: {}", tempFile);
+        } catch (IOException e) {
+            logger.warn("Failed to delete temp file: {}", tempFile, e);
+        }
+    }
+
+    private String extractFileNameFromUrl(String url) {
+        int lastSlash = url.lastIndexOf('/');
+        if (lastSlash >= 0 && lastSlash < url.length() - 1) {
+            return url.substring(lastSlash + 1);
+        }
+        return "video_" + System.currentTimeMillis();
+    }
+
     private VideoFormat extractFormat(String fileName) {
         String extension = fileName.substring(fileName.lastIndexOf('.') + 1).toUpperCase();
         try {
@@ -82,14 +149,6 @@ public class VideoFileInspectorImpl implements VideoFileInspector {
         }
     }
 
-    /**
-     * 使用 ffprobe 提取视频时长。
-     * <p>
-     * 命令格式: ffprobe -v error -show_entries format=duration -of csv=p=0 <file>
-     *
-     * @param filePath 视频文件路径
-     * @return 视频时长
-     */
     private Duration extractDuration(Path filePath) {
         ProcessBuilder pb = new ProcessBuilder(
                 FFPROBE_COMMAND,
@@ -138,13 +197,6 @@ public class VideoFileInspectorImpl implements VideoFileInspector {
         }
     }
 
-    /**
-     * 读取进程输出。
-     *
-     * @param process 进程
-     * @return 输出字符串
-     * @throws IOException 如果读取失败
-     */
     private String readProcessOutput(Process process) throws IOException {
         StringBuilder output = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(
@@ -157,12 +209,6 @@ public class VideoFileInspectorImpl implements VideoFileInspector {
         return output.toString().trim();
     }
 
-    /**
-     * 解析时长字符串。
-     *
-     * @param output ffprobe 输出
-     * @return 时长秒数
-     */
     private double parseDuration(String output) {
         try {
             return Double.parseDouble(output);

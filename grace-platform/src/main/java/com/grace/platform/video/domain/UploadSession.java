@@ -281,6 +281,33 @@ public class UploadSession {
         this.status = UploadSessionStatus.COMPLETED;
     }
 
+    /**
+     * 通过 OSS 回调标记上传已完成。
+     * <p>
+     * OSS 分片上传完成回调时使用，不需要检查 uploadedChunks 数量，
+     * 因为 OSS 服务端已经完成了分片合并。
+     *
+     * @throws BusinessRuleViolationException 当会话状态不是 ACTIVE 或已过期时
+     */
+    public void markAsCompletedByOssCallback() {
+        if (status != UploadSessionStatus.ACTIVE) {
+            throw new BusinessRuleViolationException(
+                ErrorCode.UPLOAD_NOT_COMPLETE,
+                "Cannot complete a session with status: " + status
+            );
+        }
+
+        if (isExpired()) {
+            throw new BusinessRuleViolationException(
+                ErrorCode.UPLOAD_SESSION_EXPIRED,
+                "Upload session has expired"
+            );
+        }
+
+        this.uploadedChunks = this.totalChunks;
+        this.status = UploadSessionStatus.COMPLETED;
+    }
+
     public void markAsExpired() {
         this.status = UploadSessionStatus.EXPIRED;
     }

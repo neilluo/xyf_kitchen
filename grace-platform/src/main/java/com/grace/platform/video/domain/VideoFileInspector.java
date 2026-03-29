@@ -20,4 +20,15 @@ public interface VideoFileInspector {
      * @return 视频文件信息（包含文件名、文件大小、格式、时长等）
      */
     VideoFileInfo inspect(Path filePath);
+
+    /**
+     * 从 URL 检查视频文件，提取元信息。
+     * <p>
+     * 用于 OSS 直传场景，从 OSS URL 提取视频信息。
+     * 实现可能需要下载到临时文件后提取，或使用 OSS 视频处理 API。
+     *
+     * @param url 视频 URL（OSS 或其他存储 URL）
+     * @return 视频文件信息（包含时长等）
+     */
+    VideoFileInfo inspectFromUrl(String url);
 }

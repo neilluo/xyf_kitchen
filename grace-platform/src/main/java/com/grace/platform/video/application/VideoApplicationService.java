@@ -8,7 +8,10 @@ import com.grace.platform.shared.domain.PaginatedResult;
 import com.grace.platform.shared.domain.id.VideoId;
 import com.grace.platform.shared.infrastructure.exception.BusinessRuleViolationException;
 import com.grace.platform.shared.infrastructure.exception.EntityNotFoundException;
-import com.grace.platform.shared.infrastructure.exception.FileOperationException;
+import com.grace.platform.storage.domain.OssStorageService;
+import com.grace.platform.storage.domain.StsCredentials;
+import com.grace.platform.storage.domain.StorageProvider;
+import com.grace.platform.storage.domain.UploadCallback;
 import com.grace.platform.video.application.command.UploadInitCommand;
 import com.grace.platform.video.application.command.VideoQueryCommand;
 import com.grace.platform.video.application.dto.*;
@@ -18,17 +21,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -36,10 +30,9 @@ import java.util.stream.Collectors;
  * <p>
  * 负责视频上传流程的编排，包括：
  * <ul>
- *   <li>初始化分片上传会话</li>
- *   <li>接收并存储分片</li>
- *   <li>完成上传并合并分片</li>
- *   <li>查询上传进度</li>
+ *   <li>初始化 OSS 上传会话，返回 STS 凭证</li>
+ *   <li>接收 OSS 上传完成回调</li>
+ *   <li>查询上传进度或回调状态</li>
  *   <li>视频列表查询</li>
  *   <li>视频详情查询</li>
  * </ul>
@@ -54,15 +47,11 @@ public class VideoApplicationService {
     private final VideoRepository videoRepository;
     private final UploadSessionRepository uploadSessionRepository;
     private final VideoFileInspector videoFileInspector;
-    private final ChunkMergeService chunkMergeService;
+    private final OssStorageService ossStorageService;
     private final DomainEventPublisher eventPublisher;
 
-    private final String tempDirBase;
-    private final String videoDirBase;
-    private final long chunkSize;
-
-    // Track uploaded chunks to detect duplicates
-    private final Set<String> uploadedChunkKeys = new HashSet<>();
+    private final long defaultChunkSize;
+    private final long stsDurationSeconds;
 
     /**
      * 构造器注入依赖。
@@ -70,44 +59,40 @@ public class VideoApplicationService {
      * @param videoRepository          视频仓储
      * @param uploadSessionRepository  上传会话仓储
      * @param videoFileInspector       视频文件检查器
-     * @param chunkMergeService        分片合并服务
+     * @param ossStorageService        OSS 存储服务
      * @param eventPublisher           领域事件发布器
-     * @param tempDirBase              临时目录基路径（从配置注入）
-     * @param videoDirBase             视频目录基路径（从配置注入）
-     * @param chunkSize                分片大小（从配置注入）
+     * @param defaultChunkSize         默认分片大小（从配置注入）
+     * @param stsDurationSeconds       STS 凭证有效期（从配置注入）
      */
     public VideoApplicationService(
             VideoRepository videoRepository,
             UploadSessionRepository uploadSessionRepository,
             VideoFileInspector videoFileInspector,
-            ChunkMergeService chunkMergeService,
+            OssStorageService ossStorageService,
             DomainEventPublisher eventPublisher,
-            @Value("${grace.storage.temp-dir:./data/temp}") String tempDirBase,
-            @Value("${grace.storage.video-dir:./data/videos}") String videoDirBase,
-            @Value("${grace.upload.chunk-size:16777216}") long chunkSize) {
+            @Value("${grace.upload.chunk-size:16777216}") long defaultChunkSize,
+            @Value("${grace.oss.sts.duration-seconds:3600}") long stsDurationSeconds) {
         this.videoRepository = videoRepository;
         this.uploadSessionRepository = uploadSessionRepository;
         this.videoFileInspector = videoFileInspector;
-        this.chunkMergeService = chunkMergeService;
+        this.ossStorageService = ossStorageService;
         this.eventPublisher = eventPublisher;
-        this.tempDirBase = tempDirBase;
-        this.videoDirBase = videoDirBase;
-        this.chunkSize = chunkSize;
+        this.defaultChunkSize = defaultChunkSize;
+        this.stsDurationSeconds = stsDurationSeconds;
     }
 
     // ==================== B1: 初始化上传 ====================
 
     /**
-     * 初始化分片上传。
+     * 初始化 OSS 直传上传。
      * <p>
-     * 流程：校验格式+大小 → 计算分片数 → 创建临时目录 → 创建 UploadSession
+     * 流程：校验格式+大小 → 生成 storageKey → 创建 UploadSession → 生成 STS 凭证
      *
      * @param command 初始化命令
-     * @return 上传初始化 DTO
+     * @return 上传初始化 DTO（包含 STS 凭证）
      * @throws BusinessRuleViolationException 当格式不支持或文件大小超过限制时
      */
     public UploadInitDTO initUpload(UploadInitCommand command) {
-        // 验证格式
         if (!Video.SUPPORTED_FORMATS.contains(command.format())) {
             throw new BusinessRuleViolationException(
                 ErrorCode.UNSUPPORTED_VIDEO_FORMAT,
@@ -115,7 +100,6 @@ public class VideoApplicationService {
             );
         }
 
-        // 验证文件大小
         if (command.fileSize() > Video.MAX_FILE_SIZE) {
             throw new BusinessRuleViolationException(
                 ErrorCode.VIDEO_FILE_SIZE_EXCEEDED,
@@ -124,56 +108,59 @@ public class VideoApplicationService {
             );
         }
 
-        // 创建临时目录
         String uploadId = generateUploadId();
-        Path tempDir = Paths.get(tempDirBase, uploadId);
-        try {
-            Files.createDirectories(tempDir);
-        } catch (IOException e) {
-            throw new FileOperationException("Failed to create temp directory: " + tempDir, e);
-        }
+        String storageKey = generateStorageKey(uploadId, command.fileName());
+        String bucket = ossStorageService.getBucketName();
 
-        // 创建上传会话
         UploadSession session = UploadSession.createWithId(
             uploadId,
             command.fileName(),
             command.fileSize(),
             command.format(),
-            tempDir.toString(),
-            chunkSize
+            storageKey,
+            bucket,
+            defaultChunkSize
         );
 
-        // 保存会话
         uploadSessionRepository.save(session);
+
+        StsCredentials stsCredentials = ossStorageService.generateStsCredentials(
+            bucket,
+            storageKey,
+            stsDurationSeconds
+        );
 
         return new UploadInitDTO(
             session.getUploadId(),
             session.getTotalChunks(),
-            chunkSize,
-            session.getExpiresAt()
+            defaultChunkSize,
+            session.getExpiresAt(),
+            storageKey,
+            bucket,
+            stsCredentials
         );
     }
 
-    // ==================== B2: 上传分片 ====================
+    // ==================== B3: 完成上传（OSS 回调） ====================
 
     /**
-     * 上传单个分片。
+     * 完成 OSS 上传。
      * <p>
-     * 流程：查 Session → 校验索引+重复 → 存分片 → 更新 uploadedChunks
+     * 流程：验证回调 → 查 Session → 提取信息 → 保存 Video → 发布 VideoUploadedEvent
+     * 由 OSS 上传完成回调触发，不再合并分片。
      *
-     * @param uploadId    上传会话 ID
-     * @param chunkIndex  分片索引
-     * @param chunkInput  分片数据流
-     * @return 分片上传 DTO
+     * @param callback OSS 上传回调数据
+     * @return 视频信息 DTO
      * @throws EntityNotFoundException        当会话不存在时
-     * @throws BusinessRuleViolationException 当会话过期、索引越界或重复上传时
+     * @throws BusinessRuleViolationException 当会话过期或状态异常时
      */
-    public ChunkUploadDTO uploadChunk(String uploadId, int chunkIndex, InputStream chunkInput) {
+    public VideoInfoDTO completeUpload(UploadCallback callback) {
+        String uploadId = extractUploadIdFromStorageKey(callback.objectKey());
+        
         UploadSession session = uploadSessionRepository.findById(uploadId)
             .orElseThrow(() -> new EntityNotFoundException(
                 ErrorCode.UPLOAD_SESSION_NOT_FOUND, "UploadSession", uploadId));
 
-        // 检查会话是否过期
         if (session.isExpired()) {
             throw new BusinessRuleViolationException(
                 ErrorCode.UPLOAD_SESSION_EXPIRED,
@@ -181,7 +168,6 @@ public class VideoApplicationService {
             );
         }
 
-        // 检查会话状态
         if (session.getStatus() != UploadSessionStatus.ACTIVE) {
             throw new BusinessRuleViolationException(
                 ErrorCode.UPLOAD_NOT_COMPLETE,
@@ -189,117 +175,24 @@ public class VideoApplicationService {
             );
         }
 
-        // 检查分片索引范围
-        if (!session.isValidChunkIndex(chunkIndex)) {
-            throw new BusinessRuleViolationException(
-                ErrorCode.CHUNK_INDEX_OUT_OF_RANGE,
-                String.format("Chunk index %d is out of range [0, %d)", chunkIndex, session.getTotalChunks())
-            );
-        }
+        String storageUrl = ossStorageService.buildObjectUrl(callback.objectKey());
 
-        // 检查重复分片
-        String chunkKey = uploadId + "_" + chunkIndex;
-        if (uploadedChunkKeys.contains(chunkKey)) {
-            throw new BusinessRuleViolationException(
-                ErrorCode.DUPLICATE_CHUNK,
-                String.format("Chunk %d has already been uploaded", chunkIndex)
-            );
-        }
+        VideoFileInfo fileInfo = videoFileInspector.inspectFromUrl(storageUrl);
 
-        // 存储分片文件
-        Path chunkPath = Paths.get(session.getTempDirectory(), "chunk_" + chunkIndex);
-        try {
-            Files.copy(chunkInput, chunkPath);
-        } catch (IOException e) {
-            throw new FileOperationException("Failed to save chunk file: " + chunkPath, e);
-        }
-
-        // 更新已上传分片数
-        session.incrementUploadedChunks();
-        uploadSessionRepository.save(session);
-
-        // 记录已上传
-        uploadedChunkKeys.add(chunkKey);
-
-        return new ChunkUploadDTO(
-            uploadId,
-            chunkIndex,
-            session.getUploadedChunks(),
-            session.getTotalChunks()
-        );
-    }
-
-    // ==================== B3: 完成上传 ====================
-
-    /**
-     * 完成上传。
-     * <p>
-     * 流程：查 Session → 校验完整 → 合并分片 → 提取信息 → 保存 Video → 发布 VideoUploadedEvent → 更新 Session 状态
-     *
-     * @param uploadId 上传会话 ID
-     * @return 视频信息 DTO
-     * @throws EntityNotFoundException        当会话不存在时
-     * @throws BusinessRuleViolationException 当上传未完成时
-     */
-    public VideoInfoDTO completeUpload(String uploadId) {
-        UploadSession session = uploadSessionRepository.findById(uploadId)
-            .orElseThrow(() -> new EntityNotFoundException(
-                ErrorCode.UPLOAD_SESSION_NOT_FOUND, "UploadSession", uploadId));
-
-        // 检查会话是否过期
-        if (session.isExpired()) {
-            throw new BusinessRuleViolationException(
-                ErrorCode.UPLOAD_SESSION_EXPIRED,
-                "Upload session has expired"
-            );
-        }
-
-        // 校验是否全部上传完成
-        if (!session.isUploadComplete()) {
-            throw new BusinessRuleViolationException(
-                ErrorCode.UPLOAD_NOT_COMPLETE,
-                String.format("Upload incomplete: %d of %d chunks uploaded", 
-                    session.getUploadedChunks(), session.getTotalChunks())
-            );
-        }
-
-        // 合并分片
-        Path tempDir = Paths.get(session.getTempDirectory());
-        String targetFileName = session.getUploadId() + "." + session.getFormat().name().toLowerCase();
-        Path mergedFilePath = chunkMergeService.mergeChunks(tempDir, session.getTotalChunks(), targetFileName);
-
-        // 移动最终文件到视频目录
-        Path videoDir = Paths.get(videoDirBase);
-        Path finalFilePath;
-        try {
-            Files.createDirectories(videoDir);
-            String finalFileName = generateVideoFileName(session.getUploadId(), session.getFormat());
-            finalFilePath = videoDir.resolve(finalFileName);
-            Files.move(mergedFilePath, finalFilePath);
-        } catch (IOException e) {
-            throw new FileOperationException("Failed to move video file to final location", e);
-        }
-
-        // 提取视频信息
-        VideoFileInfo fileInfo = videoFileInspector.inspect(finalFilePath);
-
-        // 创建 Video 聚合根
-        Video video = Video.create(
+        Video video = Video.createWithStorageUrl(
             session.getFileName(),
             session.getFileSize(),
             session.getFormat(),
             fileInfo.duration(),
-            finalFilePath.toString()
+            storageUrl,
+            StorageProvider.OSS
         );
 
-        // 保存 Video
         videoRepository.save(video);
 
-        // 标记会话为已完成
-        session.markAsCompleted();
+        session.markAsCompletedByOssCallback();
         uploadSessionRepository.save(session);
 
-        // 发布 VideoUploadedEvent
         VideoUploadedEvent event = new VideoUploadedEvent(
             video.getId(),
             video.getFileName(),
@@ -324,7 +217,7 @@ public class VideoApplicationService {
     /**
      * 查询上传进度。
      * <p>
-     * 流程：查 Session → 计算进度百分比
+     * 查 Session → 返回状态（前端通过 OSS SDK 获取实际上传进度）
      *
      * @param uploadId 上传会话 ID
      * @return 上传进度 DTO
@@ -336,11 +229,18 @@ public class VideoApplicationService {
             .orElseThrow(() -> new EntityNotFoundException(
                 ErrorCode.UPLOAD_SESSION_NOT_FOUND, "UploadSession", uploadId));
 
+        int progressPercent = 0;
+        if (session.getStatus() == UploadSessionStatus.COMPLETED) {
+            progressPercent = 100;
+        } else if (session.getStatus() == UploadSessionStatus.ACTIVE) {
+            progressPercent = -1;
+        }
+
         return new UploadProgressDTO(
             uploadId,
             session.getUploadedChunks(),
             session.getTotalChunks(),
-            session.getProgressPercentage(),
+            progressPercent,
             session.getStatus()
         );
     }
@@ -392,10 +292,8 @@ public class VideoApplicationService {
             .orElseThrow(() -> new EntityNotFoundException(
                 ErrorCode.VIDEO_NOT_FOUND, "Video", videoId));
 
-        // TODO: 从 Metadata 上下文获取元数据（通过查询或防腐层）
         VideoDetailDTO.MetadataDTO metadata = null;
 
-        // TODO: 从 Distribution 上下文获取发布记录
         List<VideoDetailDTO.PublishRecordDTO> publishRecords = List.of();
 
         return new VideoDetailDTO(
@@ -404,9 +302,9 @@ public class VideoApplicationService {
             video.getFormat().name(),
             video.getFileSize(),
             video.getDuration(),
-            video.getFilePath(),
+            video.getStorageUrl() != null ? video.getStorageUrl() : video.getFilePath(),
             video.getStatus(),
-            null, // thumbnailUrl - TODO
+            null,
             video.getCreatedAt(),
             video.getUpdatedAt(),
             metadata,
@@ -424,19 +322,36 @@ public class VideoApplicationService {
             video.getFileSize(),
             video.getDuration(),
             video.getStatus(),
-            null, // thumbnailUrl - TODO
-            false, // hasMetadata - TODO
+            null,
+            false,
             video.getCreatedAt(),
             video.getUpdatedAt()
         );
     }
 
     private String generateUploadId() {
-        return "upl_" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+        return "upl_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
     }
 
-    private String generateVideoFileName(String uploadId, VideoFormat format) {
-        String videoId = "vid_" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-        return videoId + "." + format.name().toLowerCase();
+    private String generateStorageKey(String uploadId, String fileName) {
+        String sanitizedFileName = fileName.replaceAll("[^a-zA-Z0-9._-]", "_");
+        return "videos/" + uploadId + "/" + sanitizedFileName;
+    }
+
+    private String extractUploadIdFromStorageKey(String storageKey) {
+        if (storageKey == null || !storageKey.startsWith("videos/")) {
+            throw new BusinessRuleViolationException(
+                ErrorCode.INTERNAL_SERVER_ERROR,
+                "Invalid storageKey format: " + storageKey
+            );
+        }
+        String[] parts = storageKey.split("/");
+        if (parts.length < 3) {
+            throw new BusinessRuleViolationException(
+                ErrorCode.INTERNAL_SERVER_ERROR,
+                "Invalid storageKey format: " + storageKey
+            );
+        }
+        return parts[1];
     }
 }
