@@ -2,6 +2,7 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-29 21:01 | P14-05 | 完成 | 实现服务端上传到OSS转存 - OssStorageService添加uploadFile方法/AliOssStorageServiceImpl实现OSS文件上传/ServerUploadApplicationService.completeUpload合并分片+上传OSS+清理临时文件+保存Video(OSS URL/StorageProvider.OSS) - 验证通过 (mvn clean compile) |
 | 2026-03-29 19:57 | P14-04 | 完成 | 修改 UploadSession 支持双模式 - UploadMode枚举(DIRECT_OSS/SERVER_UPLOAD)/UploadSession添加uploadMode字段/getter/setter/更新Mapper XML添加upload_mode列 - 验证通过 (mvn clean compile) |
 | 2026-03-29 20:05 | P14-02 | 完成 | 创建服务端上传应用服务 - ServerUploadApplicationService(initUpload/uploadChunk/completeUpload)/ServerUploadInitDTO/ServerChunkUploadDTO/ServerUploadCompleteDTO/ServerUploadInitCommand - 验证通过 (mvn clean compile) |
 | 2026-03-29 20:55 | P14-03 | 完成 | 创建服务端上传控制器 - ServerUploadController(3端点)/ServerUploadInitRequest/ServerUploadInitResponse/ServerChunkUploadRequest/ServerChunkUploadResponse/ServerUploadCompleteResponse - API路径/api/videos/upload/server/* - 验证通过 (mvn clean compile) |
