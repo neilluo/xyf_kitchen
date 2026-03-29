@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grace.platform.shared.ErrorCode;
 import com.grace.platform.shared.infrastructure.exception.ExternalServiceException;
+import com.grace.platform.video.domain.ImageFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,12 +16,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * 阿里云通义千问 LLM 服务适配器。
+ * <p>
+ * 支持两种模式：
+ * - 纯文本模式：使用标准 chat/completions API
+ * - 多模态模式：使用多模态 API，支持图像输入
  * <p>
  * 实现指数退避重试策略（1s, 2s, 4s，最多3次），
  * 失败后抛出 ExternalServiceException(9001)。
@@ -60,7 +66,8 @@ public class QwenLlmServiceAdapter implements LlmService {
 
         while (attempt < maxAttempts) {
             attempt++;
-            log.debug("LLM request attempt {} of {}", attempt, maxAttempts);
+            String mode = request.isMultimodal() ? "multimodal" : "text";
+            log.debug("LLM request attempt {} of {} (mode: {})", attempt, maxAttempts, mode);
 
             try {
                 return executeRequest(request);
@@ -76,7 +83,6 @@ public class QwenLlmServiceAdapter implements LlmService {
                     );
                 }
 
-                // 指数退避等待
                 try {
                     log.debug("Waiting {}ms before retry", backoffInterval);
                     Thread.sleep(backoffInterval);
@@ -89,12 +95,10 @@ public class QwenLlmServiceAdapter implements LlmService {
                     );
                 }
 
-                // 计算下一次等待时间
                 backoffInterval *= backoffMultiplier;
             }
         }
 
-        // 不应该到达这里，但为了编译安全
         throw new ExternalServiceException(
             ErrorCode.LLM_SERVICE_UNAVAILABLE,
             "Qwen",
@@ -129,13 +133,39 @@ public class QwenLlmServiceAdapter implements LlmService {
         requestBody.put("temperature", request.temperature());
         requestBody.put("max_tokens", request.maxTokens());
 
-        List<Map<String, String>> messages = List.of(
-            Map.of("role", "system", "content", request.systemPrompt()),
-            Map.of("role", "user", "content", request.userPrompt())
-        );
-        requestBody.put("messages", messages);
+        if (request.isMultimodal()) {
+            List<Map<String, Object>> messages = buildMultimodalMessages(request);
+            requestBody.put("messages", messages);
+            log.debug("Building multimodal request with {} image frames", request.imageFrames().size());
+        } else {
+            List<Map<String, String>> messages = List.of(
+                Map.of("role", "system", "content", request.systemPrompt()),
+                Map.of("role", "user", "content", request.userPrompt())
+            );
+            requestBody.put("messages", messages);
+        }
 
         return requestBody;
+    }
+
+    private List<Map<String, Object>> buildMultimodalMessages(LlmRequest request) {
+        List<Map<String, Object>> messages = new ArrayList<>();
+
+        messages.add(Map.of("role", "system", "content", request.systemPrompt()));
+
+        List<Map<String, Object>> userContent = new ArrayList<>();
+        userContent.add(Map.of("type", "text", "text", request.userPrompt()));
+
+        for (ImageFrame frame : request.imageFrames()) {
+            Map<String, Object> imageContent = new HashMap<>();
+            imageContent.put("type", "image_url");
+            imageContent.put("image_url", Map.of("url", frame.toDataUri()));
+            userContent.add(imageContent);
+        }
+
+        messages.add(Map.of("role", "user", "content", userContent));
+
+        return messages;
     }
 
     private LlmResponse parseResponse(String responseBody) {

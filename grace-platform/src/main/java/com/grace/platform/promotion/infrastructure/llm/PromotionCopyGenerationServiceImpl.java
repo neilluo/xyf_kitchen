@@ -137,7 +137,7 @@ public class PromotionCopyGenerationServiceImpl implements PromotionCopyGenerati
         String userPrompt = buildPrompt(channel.getType(), metadata, videoUrl);
 
         // 2. 构建 LLM 请求
-        LlmRequest llmRequest = new LlmRequest(
+        LlmRequest llmRequest = LlmRequest.textOnly(
             model,
             SYSTEM_PROMPT_TEMPLATE,
             userPrompt,

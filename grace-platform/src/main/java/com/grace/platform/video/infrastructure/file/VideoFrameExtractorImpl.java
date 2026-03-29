@@ -83,7 +83,7 @@ public class VideoFrameExtractorImpl implements VideoFrameExtractor {
     /**
      * 验证输入参数。
      */
-    private void validateInput(Path videoPath, int frameCount) {
+    void validateInput(Path videoPath, int frameCount) {
         if (!Files.exists(videoPath)) {
             throw new FileOperationException("Video file does not exist: " + videoPath);
         }
@@ -104,7 +104,7 @@ public class VideoFrameExtractorImpl implements VideoFrameExtractor {
      * <p>
      * 均匀分布在 [0.0, 1.0] 范围内，包括两端点。
      */
-    private List<Double> calculateFramePositions(int frameCount) {
+    List<Double> calculateFramePositions(int frameCount) {
         List<Double> positions = new ArrayList<>();
         if (frameCount == 1) {
             positions.add(0.5);
@@ -114,6 +114,42 @@ public class VideoFrameExtractorImpl implements VideoFrameExtractor {
             }
         }
         return positions;
+    }
+
+    /**
+     * 获取临时文件前缀。
+     */
+    String getTempFilePrefix() {
+        return TEMP_FILE_PREFIX;
+    }
+
+    /**
+     * 获取临时文件后缀。
+     */
+    String getTempFileSuffix() {
+        return TEMP_FILE_SUFFIX;
+    }
+
+    /**
+     * 构建 FFmpeg 命令参数列表。
+     *
+     * @param videoPath  视频文件路径
+     * @param duration   视频时长
+     * @param position   帧位置（0.0-1.0）
+     * @param outputPath 输出文件路径
+     * @return FFmpeg 命令参数列表
+     */
+    List<String> buildFfmpegCommand(Path videoPath, Duration duration, double position, Path outputPath) {
+        double timestampSeconds = duration.toMillis() / 1000.0 * position;
+        return List.of(
+                FFMPEG_COMMAND,
+                "-ss", String.format("%.3f", timestampSeconds),
+                "-i", videoPath.toString(),
+                "-vframes", "1",
+                "-q:v", "2",
+                "-y",
+                outputPath.toString()
+        );
     }
 
     /**

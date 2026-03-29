@@ -26,13 +26,16 @@ class MetadataGenerationServiceImplTest {
     @Mock
     private LlmService llmService;
 
+    @Mock
+    private com.grace.platform.video.domain.VideoFrameExtractor videoFrameExtractor;
+
     private ObjectMapper objectMapper;
     private MetadataGenerationServiceImpl service;
 
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
-        service = new MetadataGenerationServiceImpl(llmService, objectMapper);
+        service = new MetadataGenerationServiceImpl(llmService, objectMapper, videoFrameExtractor);
     }
 
     @Test
