@@ -33,8 +33,9 @@ public class UserProfileRepositoryImpl implements UserProfileRepository {
 
     @Override
     public UserProfile save(UserProfile profile) {
-        // 根据数据库中是否存在记录决定是插入还是更新
-        if (userProfileMapper.findById(profile.getId().value()) == null) {
+        // 判断是否是新记录：createdAt 等于 updatedAt 表示是新创建的记录
+        boolean isNew = profile.getCreatedAt().equals(profile.getUpdatedAt());
+        if (isNew) {
             // 新增
             userProfileMapper.insert(profile);
         } else {

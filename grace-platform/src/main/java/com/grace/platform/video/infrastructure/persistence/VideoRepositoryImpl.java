@@ -33,7 +33,10 @@ public class VideoRepositoryImpl implements VideoRepository {
 
     @Override
     public Video save(Video video) {
-        if (video.getId() == null || findById(video.getId()).isEmpty()) {
+        // 判断是否是新视频：createdAt 等于 updatedAt 表示是新创建的视频
+        // 因为 Video.create() 预生成 ID，不能通过 id == null 判断
+        boolean isNew = video.getCreatedAt().equals(video.getUpdatedAt());
+        if (isNew) {
             // 新增
             videoMapper.insert(video);
         } else {
