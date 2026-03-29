@@ -2,6 +2,7 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-29 18:37 | P13-02 | 完成 | Storage 限界上下文基础设施层 - OssProperties(OSS配置类: endpoint/bucket/region/accessKey/sts/callback)/StsTokenService(STS凭证获取服务: AssumeRole API)/AliOssStorageServiceImpl(OSS实现: generateStsCredentials/verifyCallbackSignature/buildObjectUrl) - 添加阿里云OSS SDK和STS SDK依赖 - 添加Storage错误码(6001-6003)/INFRA_CONFIG_ERROR - 修复.gitignore忽略Java storage包问题 - 验证通过 (mvn clean compile) |
 | 2026-03-29 18:27 | P13-01 | 完成 | Storage 限界上下文领域层 - StorageProvider(OSS/LOCAL/S3枚举)/StsCredentials(STS临时凭证值对象)/OssStorageService(OSS服务接口)/UploadCallback(回调数据对象)/StorageUrl(存储URL值对象) - 修复.gitignore忽略storage源码包问题 - 验证通过 (mvn clean compile) |
 | 2026-03-29 14:00 | P12-01 | 完成 | VideoUploadPage UI 修复以匹配原型设计 - 页面标题改为"发布您的佳作"/DropZone添加"选择文件"按钮(add_circle图标)/添加upload-dashed-border CSS类/已完成项根据状态显示不同文本(statusTextMap)/历史记录项显示平台图标(YT/FB/IG)/验证通过 (npm run lint && npx tsc --noEmit) |
 | 2026-03-29 13:37 | P11-10 | 完成 | Phase 11 全部完成 - 多模态元数据生成功能完整实现，10个任务全部完成，123个测试通过 |
