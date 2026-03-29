@@ -18,9 +18,9 @@ target/
 logs/
 *.log
 
-# Storage
-storage/
-data/
+# Storage (root level only)
+/storage/
+/data/
 
 # OS
 .DS_Store
