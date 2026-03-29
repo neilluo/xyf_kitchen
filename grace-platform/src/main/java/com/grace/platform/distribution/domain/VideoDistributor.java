@@ -30,12 +30,15 @@ public interface VideoDistributor {
      * 执行实际的视频上传操作，返回发布结果。实现类应处理平台特定的
      * 上传协议、认证和错误处理。
      * </p>
+     * <p>
+     * 视频从存储 URL 读取，支持本地文件路径或 OSS URL。
+     * </p>
      *
-     * @param videoFile 视频文件信息
-     * @param metadata  视频元数据（标题、描述、标签等）
+     * @param storageUrl 视频存储 URL（本地路径或 OSS URL）
+     * @param metadata   视频元数据（标题、描述、标签等）
      * @return 发布结果，包含任务ID和状态
      */
-    PublishResult publish(VideoFile videoFile, VideoMetadata metadata);
+    PublishResult publish(String storageUrl, VideoMetadata metadata);
 
     /**
      * 查询上传状态

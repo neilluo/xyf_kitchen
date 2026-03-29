@@ -19,8 +19,6 @@ import com.grace.platform.video.domain.VideoStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
 /**
@@ -34,6 +32,11 @@ import java.util.List;
  *   <li>列出可用平台</li>
  *   <li>查询发布记录</li>
  * </ul>
+ * </p>
+ * <p>
+ * <strong>存储适配：</strong>
+ * 支持从本地文件路径或 OSS URL 发布视频。
+ * Video 实体的 storageUrl 字段优先使用，filePath 作为向后兼容。
  * </p>
  *
  * @author Grace Platform Team
@@ -51,17 +54,6 @@ public class DistributionApplicationService {
     private final VideoMetadataRepository videoMetadataRepository;
     private final DomainEventPublisher eventPublisher;
 
-    /**
-     * 构造器注入依赖
-     *
-     * @param distributorRegistry      视频分发器注册表
-     * @param oAuthService             OAuth 服务
-     * @param publishRecordRepository  发布记录仓储
-     * @param oAuthTokenRepository     OAuth Token 仓储
-     * @param videoRepository          视频仓储
-     * @param videoMetadataRepository  元数据仓储
-     * @param eventPublisher           领域事件发布器
-     */
     public DistributionApplicationService(
             VideoDistributorRegistry distributorRegistry,
             OAuthService oAuthService,
@@ -79,28 +71,7 @@ public class DistributionApplicationService {
         this.eventPublisher = eventPublisher;
     }
 
-    // ==================== D1: 发布视频 ====================
-
-    /**
-     * 发布视频到指定平台
-     * <p>
-     * 流程：
-     * 1. 校验视频状态为 READY_TO_PUBLISH
-     * 2. 查询元数据
-     * 3. 通过 Registry 获取对应平台的 Distributor
-     * 4. 创建 PublishRecord（状态 PENDING）
-     * 5. 更新视频状态为 PUBLISHING
-     * 6. 调用 distributor.publish() 开始上传
-     * 7. 更新 PublishRecord 状态为 UPLOADING
-     * </p>
-     *
-     * @param command 发布命令
-     * @return 发布结果 DTO
-     * @throws EntityNotFoundException        当视频或元数据不存在时
-     * @throws BusinessRuleViolationException 当视频状态非 READY_TO_PUBLISH 或平台未授权时
-     */
     public PublishResultDTO publish(PublishCommand command) {
-        // 1. 查询视频
         Video video = videoRepository.findById(command.videoId())
                 .orElseThrow(() -> new EntityNotFoundException(
                         ErrorCode.VIDEO_NOT_FOUND,
@@ -108,7 +79,6 @@ public class DistributionApplicationService {
                         command.videoId().value()
                 ));
 
-        // 2. 校验视频状态
         if (video.getStatus() != VideoStatus.READY_TO_PUBLISH) {
             throw new BusinessRuleViolationException(
                     ErrorCode.VIDEO_NOT_READY,
@@ -116,7 +86,6 @@ public class DistributionApplicationService {
             );
         }
 
-        // 3. 查询元数据
         var metadata = videoMetadataRepository.findById(command.metadataId())
                 .orElseThrow(() -> new EntityNotFoundException(
                         ErrorCode.METADATA_NOT_FOUND,
@@ -124,17 +93,14 @@ public class DistributionApplicationService {
                         command.metadataId().value()
                 ));
 
-        // 4. 获取分发器
         VideoDistributor distributor = distributorRegistry.getDistributor(command.platform());
 
-        // 5. 检查平台是否已授权
         OAuthToken token = oAuthTokenRepository.findByPlatform(command.platform())
                 .orElseThrow(() -> new BusinessRuleViolationException(
                         ErrorCode.PLATFORM_NOT_AUTHORIZED,
                         "Platform not authorized: " + command.platform()
                 ));
 
-        // 6. 创建发布记录
         PublishRecord record = PublishRecord.create(
                 command.videoId(),
                 command.metadataId(),
@@ -142,17 +108,10 @@ public class DistributionApplicationService {
         );
         record = publishRecordRepository.save(record);
 
-        // 7. 更新视频状态为 PUBLISHING
         video.transitionTo(VideoStatus.PUBLISHING);
         videoRepository.save(video);
 
-        // 8. 构建视频文件和元数据值对象
-        Path videoFilePath = Paths.get(video.getFilePath());
-        VideoFile videoFile = new VideoFile(
-                videoFilePath,
-                video.getFileName(),
-                video.getFileSize()
-        );
+        String storageUrl = getStorageUrl(video);
 
         VideoMetadata metadataVo = new VideoMetadata(
                 metadata.getTitle(),
@@ -160,10 +119,8 @@ public class DistributionApplicationService {
                 metadata.getTags()
         );
 
-        // 9. 调用分发器发布
-        PublishResult result = distributor.publish(videoFile, metadataVo);
+        PublishResult result = distributor.publish(storageUrl, metadataVo);
 
-        // 10. 更新发布记录状态
         record.markAsUploading(result.taskId());
         record = publishRecordRepository.save(record);
 
@@ -174,6 +131,21 @@ public class DistributionApplicationService {
                 result.taskId(),
                 result.status(),
                 record.getCreatedAt()
+        );
+    }
+
+    private String getStorageUrl(Video video) {
+        String storageUrl = video.getStorageUrl();
+        if (storageUrl != null && !storageUrl.isBlank()) {
+            return storageUrl;
+        }
+        String filePath = video.getFilePath();
+        if (filePath != null && !filePath.isBlank()) {
+            return filePath;
+        }
+        throw new BusinessRuleViolationException(
+                ErrorCode.INTERNAL_SERVER_ERROR,
+                "Video has no valid storage URL or file path"
         );
     }
 

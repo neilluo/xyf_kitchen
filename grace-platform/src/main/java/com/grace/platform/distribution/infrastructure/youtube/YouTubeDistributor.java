@@ -14,6 +14,14 @@ import org.springframework.stereotype.Component;
  * 支持断点续传、OAuth 认证、配额管理。
  * </p>
  * <p>
+ * <strong>存储 URL 支持：</strong>
+ * <ul>
+ *   <li>本地文件路径：如 "/path/to/video.mp4"</li>
+ *   <li>OSS URL：如 "https://bucket.oss.aliyuncs.com/video.mp4"</li>
+ * </ul>
+ * YouTube API 支持从 URL 流式上传视频。
+ * </p>
+ * <p>
  * <strong>YouTube API 配额：</strong>每日 10,000 units，单次上传消耗 1,600 units。
  * </p>
  *
@@ -39,47 +47,37 @@ public class YouTubeDistributor implements ResumableVideoDistributor {
         return "youtube";
     }
 
-    /**
-     * 获取显示名称（用于平台列表展示）
-     */
     public String displayName() {
         return "YouTube";
     }
 
-    /**
-     * 检查平台是否可用
-     */
     public boolean isEnabled() {
         return true;
     }
 
     @Override
-    public PublishResult publish(VideoFile videoFile, VideoMetadata metadata) {
-        logger.info("Publishing video to YouTube: file={}, title={}",
-            videoFile.fileName(), metadata.title());
+    public PublishResult publish(String storageUrl, VideoMetadata metadata) {
+        logger.info("Publishing video to YouTube: storageUrl={}, title={}",
+            storageUrl, metadata.title());
 
         try {
-            // 1. 获取有效 Token（自动刷新过期 Token）
             OAuthToken token = oAuthService.getValidToken(platform());
             String accessToken = token.getAccessToken();
 
             logger.debug("Using OAuth token for platform: {}, expired={}",
                 platform(), token.isExpired());
 
-            // 2. 调用 YouTube API 上传视频
-            // 默认隐私状态为 public
             String privacyStatus = "public";
 
             YouTubeUploadResult uploadResult = youTubeApiAdapter.uploadVideo(
                 accessToken,
-                videoFile.filePath(),
+                storageUrl,
                 metadata.title(),
                 metadata.description(),
                 metadata.tags(),
                 privacyStatus
             );
 
-            // 3. 根据上传结果构建 PublishResult
             PublishStatus status = mapYouTubeStatus(uploadResult.getUploadStatus());
             String videoUrl = uploadResult.getVideoUrl();
 
@@ -112,12 +110,9 @@ public class YouTubeDistributor implements ResumableVideoDistributor {
         logger.info("Querying YouTube upload status: taskId={}", taskId);
 
         try {
-            // 获取有效 Token
             OAuthToken token = oAuthService.getValidToken(platform());
             String accessToken = token.getAccessToken();
 
-            // 注意：taskId 在 YouTube 中通常是 uploadUri
-            // 这里简化处理，假设 taskId 就是 uploadUri
             YouTubeUploadProgress progress = youTubeApiAdapter.getUploadProgress(accessToken, taskId);
 
             PublishStatus status = mapYouTubeStatus(progress.status());
@@ -147,23 +142,20 @@ public class YouTubeDistributor implements ResumableVideoDistributor {
     }
 
     @Override
-    public PublishResult resumeUpload(String taskId) {
-        logger.info("Resuming YouTube upload: taskId={}", taskId);
+    public PublishResult resumeUpload(String taskId, String storageUrl) {
+        logger.info("Resuming YouTube upload: taskId={}, storageUrl={}", taskId, storageUrl);
 
         try {
-            // 获取有效 Token
             OAuthToken token = oAuthService.getValidToken(platform());
             String accessToken = token.getAccessToken();
 
-            // taskId 实际上是 uploadUri
-            // 需要获取原视频文件路径 - 这需要从 PublishRecord 中获取
-            // 这里简化处理，实际实现中需要从 Repository 查询
+            PublishResult result = youTubeApiAdapter.resumeUpload(accessToken, taskId, storageUrl)
+                .toPublishResult();
 
-            // 注意：这里缺少 videoFile 参数，实际实现需要调整
-            // 暂时返回模拟结果
-            logger.warn("Resume upload requires video file path, returning mock result");
+            logger.info("YouTube upload resumed: taskId={}, status={}",
+                taskId, result.status());
 
-            return new PublishResult(taskId, PublishStatus.UPLOADING);
+            return result;
 
         } catch (Exception e) {
             logger.error("Failed to resume YouTube upload: {}", e.getMessage(), e);
@@ -175,9 +167,6 @@ public class YouTubeDistributor implements ResumableVideoDistributor {
         }
     }
 
-    /**
-     * 将 YouTube 上传状态映射为领域 PublishStatus
-     */
     private PublishStatus mapYouTubeStatus(YouTubeUploadStatus youtubeStatus) {
         if (youtubeStatus == null) {
             return PublishStatus.PENDING;
@@ -190,9 +179,6 @@ public class YouTubeDistributor implements ResumableVideoDistributor {
         };
     }
     
-    /**
-     * 将字符串状态映射为领域 PublishStatus
-     */
     private PublishStatus mapYouTubeStatus(String status) {
         if (status == null) {
             return PublishStatus.PENDING;

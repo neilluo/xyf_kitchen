@@ -1,6 +1,5 @@
 package com.grace.platform.distribution.infrastructure.youtube;
 
-import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -8,6 +7,9 @@ import java.util.List;
  * <p>
  * 封装 YouTube Data API v3 的上传操作，提供断点续传支持。
  * 每日配额：10,000 units；单次上传消耗：1,600 units。
+ * </p>
+ * <p>
+ * 支持从存储 URL（本地路径或 OSS URL）上传视频。
  * </p>
  *
  * @author Grace Platform Team
@@ -21,16 +23,23 @@ public interface YouTubeApiAdapter {
      * 发起可恢复上传会话，返回上传结果包含任务ID和上传URI。
      * 若上传过程中断，可使用 {@link #resumeUpload} 方法恢复。
      * </p>
+     * <p>
+     * 支持从存储 URL 上传视频：
+     * <ul>
+     *   <li>本地文件路径：如 "file:///path/to/video.mp4"</li>
+     *   <li>OSS URL：如 "https://bucket.oss.aliyuncs.com/video.mp4"</li>
+     * </ul>
+     * </p>
      *
      * @param accessToken  OAuth 访问令牌
-     * @param videoFile    视频文件路径
+     * @param storageUrl   视频存储 URL（本地路径或 OSS URL）
      * @param title        视频标题
      * @param description  视频描述
      * @param tags         标签列表
      * @param privacyStatus 隐私状态（public/unlisted/private）
      * @return 上传结果，包含上传URI和任务信息
      */
-    YouTubeUploadResult uploadVideo(String accessToken, Path videoFile,
+    YouTubeUploadResult uploadVideo(String accessToken, String storageUrl,
                                      String title, String description,
                                      List<String> tags, String privacyStatus);
 
@@ -55,8 +64,8 @@ public interface YouTubeApiAdapter {
      *
      * @param accessToken OAuth 访问令牌
      * @param uploadUri   上传会话URI
-     * @param videoFile   视频文件路径
+     * @param storageUrl  视频存储 URL（本地路径或 OSS URL）
      * @return 恢复后的上传结果
      */
-    YouTubeUploadResult resumeUpload(String accessToken, String uploadUri, Path videoFile);
+    YouTubeUploadResult resumeUpload(String accessToken, String uploadUri, String storageUrl);
 }

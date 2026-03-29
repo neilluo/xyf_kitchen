@@ -19,8 +19,9 @@ public interface ResumableVideoDistributor extends VideoDistributor {
      * 实现类应维护上传状态，从中断位置继续传输，避免重新上传整个文件。
      * </p>
      *
-     * @param taskId 上传任务ID
+     * @param taskId     上传任务ID
+     * @param storageUrl 视频存储 URL（本地路径或 OSS URL）
      * @return 发布结果，包含恢复后的任务状态
      */
-    PublishResult resumeUpload(String taskId);
+    PublishResult resumeUpload(String taskId, String storageUrl);
 }
