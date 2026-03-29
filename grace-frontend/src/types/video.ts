@@ -68,3 +68,35 @@ export interface VideoListParams {
   sort?: string
   order?: 'asc' | 'desc'
 }
+
+export type UploadMode = 'DIRECT_OSS' | 'SERVER_UPLOAD'
+
+export interface ServerUploadSession {
+  uploadId: string
+  totalChunks: number
+  chunkSize: number
+  expiresAt: string
+}
+
+export interface ServerUploadInitRequest {
+  fileName: string
+  fileSize: number
+  format: VideoFormat
+}
+
+export interface ServerChunkUploadRequest {
+  uploadId: string
+  chunkIndex: number
+  chunk: Blob
+}
+
+export interface ServerChunkUploadResponse {
+  uploadedChunks: number
+  totalChunks: number
+}
+
+export interface ServerUploadCompleteResponse {
+  videoId: string
+  fileName: string
+  status: VideoStatus
+}

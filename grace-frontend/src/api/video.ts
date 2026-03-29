@@ -5,6 +5,10 @@ import type {
   VideoListParams,
   InitUploadRequest,
   UploadSession,
+  ServerUploadSession,
+  ServerUploadInitRequest,
+  ServerChunkUploadResponse,
+  ServerUploadCompleteResponse,
 } from '@/types/video'
 import type { PaginatedData, ApiResponse } from '@/types/common'
 
@@ -31,5 +35,37 @@ export async function getVideos(params: VideoListParams): Promise<PaginatedData<
 
 export async function getVideoDetail(videoId: string): Promise<VideoDetail> {
   const response = await apiClient.get<ApiResponse<VideoDetail>>(`/videos/${videoId}`)
+  return response.data.data
+}
+
+export async function serverUploadInit(request: ServerUploadInitRequest): Promise<ServerUploadSession> {
+  const response = await apiClient.post<ApiResponse<ServerUploadSession>>('/videos/upload/server/init', request)
+  return response.data.data
+}
+
+export async function serverUploadChunk(
+  uploadId: string,
+  chunkIndex: number,
+  chunk: Blob
+): Promise<ServerChunkUploadResponse> {
+  const formData = new FormData()
+  formData.append('chunkIndex', String(chunkIndex))
+  formData.append('chunk', chunk)
+  const response = await apiClient.post<ApiResponse<ServerChunkUploadResponse>>(
+    `/videos/upload/server/${uploadId}/chunk`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  )
+  return response.data.data
+}
+
+export async function serverUploadComplete(uploadId: string): Promise<ServerUploadCompleteResponse> {
+  const response = await apiClient.post<ApiResponse<ServerUploadCompleteResponse>>(
+    `/videos/upload/server/${uploadId}/complete`
+  )
   return response.data.data
 }

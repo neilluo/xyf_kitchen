@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { Icon } from '@/components/ui/Icon'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { useOssUpload } from '@/hooks/useOssUpload'
+import { useServerUpload } from '@/hooks/useServerUpload'
 import { useVideoList } from '@/hooks/useVideos'
 import { useAppStore } from '@/store/useAppStore'
 import { formatFileSize } from '@/utils/format'
 import { ROUTES } from '@/utils/constants'
-import type { VideoStatus, Video } from '@/types/video'
+import type { VideoStatus, Video, UploadMode } from '@/types/video'
 
 const SUPPORTED_FORMATS = ['mp4', 'mov', 'avi', 'mkv']
 const MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024
@@ -54,6 +55,51 @@ const statusTextMap: Record<VideoStatus, string> = {
   PUBLISHED: '已发布',
   PUBLISH_FAILED: '发布失败',
   PROMOTION_DONE: '推广完成',
+}
+
+interface UploadModeSelectorProps {
+  uploadMode: UploadMode
+  onChange: (mode: UploadMode) => void
+  disabled?: boolean
+}
+
+function UploadModeSelector({ uploadMode, onChange, disabled }: UploadModeSelectorProps) {
+  return (
+    <div className="flex items-center gap-4 mb-4">
+      <span className="text-sm text-on-surface-variant font-body">上传方式：</span>
+      <div className="flex gap-2">
+        <button
+          onClick={() => onChange('DIRECT_OSS')}
+          disabled={disabled}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+            uploadMode === 'DIRECT_OSS'
+              ? 'bg-primary text-on-primary'
+              : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container'
+          } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+        >
+          <Icon name="cloud_upload" size={18} />
+          直传 OSS（推荐）
+        </button>
+        <button
+          onClick={() => onChange('SERVER_UPLOAD')}
+          disabled={disabled}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+            uploadMode === 'SERVER_UPLOAD'
+              ? 'bg-primary text-on-primary'
+              : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container'
+          } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+        >
+          <Icon name="storage" size={18} />
+          服务端上传
+        </button>
+      </div>
+      <span className="text-xs text-on-surface-variant/60 ml-2">
+        {uploadMode === 'DIRECT_OSS' 
+          ? '直接上传到云存储，速度更快'
+          : '适合外部服务或特殊网络环境'}
+      </span>
+    </div>
+  )
 }
 
 interface DropZoneProps {
@@ -406,10 +452,17 @@ export function VideoUploadPage() {
   const [validationError, setValidationError] = useState<ValidationError | null>(null)
   const [completedUploads, setCompletedUploads] = useState<CompletedUpload[]>([])
   const [isUploading, setIsUploading] = useState(false)
+  const [uploadMode, setUploadMode] = useState<UploadMode>('DIRECT_OSS')
 
   const { addToast } = useAppStore()
-  const { uploadState, uploadFile, cancelUpload, resetState } = useOssUpload()
+  const ossUpload = useOssUpload()
+  const serverUpload = useServerUpload()
   const { data: videoListData } = useVideoList({ pageSize: 5, sort: 'createdAt', order: 'desc' })
+
+  const uploadState = uploadMode === 'DIRECT_OSS' ? ossUpload.uploadState : serverUpload.uploadState
+  const uploadFile = uploadMode === 'DIRECT_OSS' ? ossUpload.uploadFile : serverUpload.uploadFile
+  const cancelUpload = uploadMode === 'DIRECT_OSS' ? ossUpload.cancelUpload : serverUpload.cancelUpload
+  const resetState = uploadMode === 'DIRECT_OSS' ? ossUpload.resetState : serverUpload.resetState
 
   const handleUpload = useCallback(
     async (file: File) => {
@@ -505,6 +558,11 @@ export function VideoUploadPage() {
       </div>
 
       <section className="bg-surface-container-lowest rounded-xl p-4 mb-8">
+        <UploadModeSelector
+          uploadMode={uploadMode}
+          onChange={setUploadMode}
+          disabled={isUploading}
+        />
         <DropZone
           onFileSelect={handleFileSelect}
           onValidationError={handleValidationError}
