@@ -24,6 +24,8 @@
 |------|------|
 | 后端框架 | Java 21 + Spring Boot 3.x |
 | 架构风格 | DDD（领域驱动设计） |
+| 视频存储 | 阿里云 OSS（前端直传） |
+| 临时凭证 | 阿里云 STS |
 | LLM 服务 | 阿里云通义千问 API |
 | 视频分发 | YouTube Data API v3（MVP，可扩展其他平台） |
 | 推广执行 | OpenCrawl Agentic API |
@@ -35,13 +37,18 @@
 
 ### DDD 限界上下文划分
 
-系统划分为 4 个限界上下文（Bounded Context），每个上下文拥有独立的领域模型和职责边界：
+系统划分为 5 个限界上下文（Bounded Context），每个上下文拥有独立的领域模型和职责边界：
 
 ```mermaid
 graph TB
+    subgraph "Storage Context<br/>存储上下文"
+        OSS[OSS_Storage_Service]
+        STS[STS_Token_Service]
+    end
+
     subgraph "Video Context<br/>视频上下文"
         VM[Video_Manager]
-        VS[Video Storage]
+        VS[Video_Metadata]
     end
 
     subgraph "Metadata Context<br/>元数据上下文"
@@ -73,6 +80,8 @@ graph TB
         AK[ApiKey_Manager]
     end
 
+    VM -.->|RequestStsToken| OSS
+    OSS -->|StsCredentials| VM
     VM -.->|VideoUploadedEvent| MG
     MG -->|VideoMetadata| RC
     RC -.->|MetadataConfirmedEvent| DS
@@ -86,6 +95,9 @@ graph TB
     PEImpl -->|调用| OC
     CM -->|ChannelConfig| PA
     CM -->|ChannelConfig| PER
+    
+    style OSS fill:#e1f5fe
+    style STS fill:#e1f5fe
 ```
 
 ### 分层架构
@@ -143,6 +155,33 @@ public class VideoPublishedEvent extends DomainEvent {
 
 MVP 阶段使用 Spring `ApplicationEventPublisher` 发布事件，`@EventListener` 订阅事件。
 
+## Storage Architecture（存储架构）
+
+### 阿里云 OSS 直传方案
+
+系统采用阿里云 OSS 作为视频存储，前端直传 OSS，后端通过回调接收上传完成通知。
+
+#### 架构优势
+
+| 优势 | 说明 |
+|------|------|
+| **降低服务器带宽** | 视频上传不走服务器，直接到 OSS |
+| **多平台分发优化** | YouTube 等平台可直接从 OSS URL 拉取视频 |
+| **高可用存储** | OSS 提供 99.995% 可用性 SLA |
+| **成本优化** | 按量付费，无需预留大量磁盘 |
+
+#### 上传流程
+
+```
+用户 → 获取 STS 凭证 → 直传 OSS → OSS 回调后端 → 保存 URL → 触发元数据生成
+```
+
+#### 安全设计
+
+- **STS 临时凭证**：前端使用临时凭证上传，有效期 1 小时
+- **最小权限原则**：STS 角色仅允许 PutObject/GetObject
+- **回调签名验证**：OSS 回调请求验证签名防篡改
+
 ## Components and Interfaces
 
 ### 1. Video Context（视频上下文）
@@ -153,22 +192,18 @@ MVP 阶段使用 Spring `ApplicationEventPublisher` 发布事件，`@EventListen
 @RestController
 @RequestMapping("/api/videos")
 public class VideoUploadController {
-// POST /api/videos/upload/init - 初始化分片上传（校验格式和大小，返回 uploadId）
+// POST /api/videos/upload/init - 初始化上传（校验格式和大小，返回 STS 凭证和 OSS 配置）
     @PostMapping("/upload/init")
 ResponseEntity<UploadInitResponse> initUpload(@RequestBody UploadInitRequest request);
-// UploadInitRequest 包含 fileName, fileSize, format
+// UploadInitResponse 包含 uploadId, stsCredentials, storageKey, ossBucket
 
-// POST /api/videos/upload/{uploadId}/chunk - 上传分片
-    @PostMapping("/upload/{uploadId}/chunk")
-ResponseEntity<ChunkUploadResponse> uploadChunk(@PathVariable String uploadId, @RequestParam int chunkIndex, @RequestParam MultipartFile chunk);
+// POST /api/videos/upload/{uploadId}/callback - OSS 上传完成回调（原 complete 改为回调）
+    @PostMapping("/upload/{uploadId}/callback")
+ResponseEntity<VideoInfoResponse> handleOssCallback(@PathVariable String uploadId, @RequestBody OssCallbackRequest callback);
 
-// POST /api/videos/upload/{uploadId}/complete - 完成上传（合并分片，持久化视频信息）
-    @PostMapping("/upload/{uploadId}/complete")
-ResponseEntity<VideoInfoResponse> completeUpload(@PathVariable String uploadId);
-
-// GET /api/videos/upload/{uploadId}/progress - 查询上传进度
-    @GetMapping("/upload/{uploadId}/progress")
-ResponseEntity<UploadProgressResponse> getUploadProgress(@PathVariable String uploadId);
+// GET /api/videos/upload/{uploadId}/status - 查询上传状态
+    @GetMapping("/upload/{uploadId}/status")
+ResponseEntity<UploadStatusResponse> getUploadStatus(@PathVariable String uploadId);
 
 // GET /api/videos - 分页查询视频列表（支持关键词搜索、状态筛选、日期范围）
     @GetMapping
@@ -190,14 +225,12 @@ ResponseEntity<VideoDetailResponse> getVideoDetail(@PathVariable String videoId)
 
 ```java
 public class VideoApplicationService {
-// 初始化分片上传：校验格式和大小，创建上传会话，返回 uploadId
+// 初始化上传：校验格式和大小，创建上传会话，返回 STS 凭证
 UploadInitDTO initUpload(UploadInitCommand command);
-// 接收并存储单个分片
-ChunkUploadDTO uploadChunk(String uploadId, int chunkIndex, MultipartFile chunk);
-// 完成上传：合并分片，提取文件信息，持久化视频记录
-VideoInfoDTO completeUpload(String uploadId);
-// 查询上传进度（已上传分片数 / 总分片数）
-UploadProgressDTO getUploadProgress(String uploadId);
+// OSS 上传完成回调：验证回调，保存视频记录，触发元数据生成
+VideoInfoDTO handleOssCallback(String uploadId, OssCallbackRequest callback);
+// 查询上传状态
+UploadStatusDTO getUploadStatus(String uploadId);
 // 查询视频信息
 VideoInfoDTO getVideo(VideoId videoId);
 // 分页查询视频列表
@@ -210,9 +243,9 @@ VideoDetailDTO getVideoDetail(VideoId videoId);
 #### 领域层核心接口
 
 ```java
-// 视频文件信息提取
+// 视频文件信息提取（从 OSS URL 或本地路径）
 public interface VideoFileInspector {
-VideoFileInfo inspect(Path filePath);
+VideoFileInfo inspect(String storageUrl);
 }
 
 // 视频仓储
