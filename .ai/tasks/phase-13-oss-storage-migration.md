@@ -6,7 +6,7 @@
 
 ## 进度统计
 
-- [x] 共 8 个任务，已完成 4/8
+- [x] 共 8 个任务，已完成 6/8
 
 ---
 
@@ -129,7 +129,7 @@
   - 删除 `video.application.dto.ChunkUploadDTO`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P13-04
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 删除 ChunkMergeService 依赖
 
 ---
@@ -144,7 +144,7 @@
     - 支持从 OSS URL 提取视频信息（下载到临时文件）
 - **验证命令**: `mvn clean compile`
 - **依赖**: P13-05
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 
   - VideoFileInspector 改为从 OSS 下载到临时文件后提取
   - 提取完成后删除临时文件
