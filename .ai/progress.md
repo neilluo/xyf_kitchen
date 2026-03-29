@@ -2,6 +2,7 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-29 19:57 | P14-04 | 完成 | 修改 UploadSession 支持双模式 - UploadMode枚举(DIRECT_OSS/SERVER_UPLOAD)/UploadSession添加uploadMode字段/getter/setter/更新Mapper XML添加upload_mode列 - 验证通过 (mvn clean compile) |
 | 2026-03-29 20:05 | P14-02 | 完成 | 创建服务端上传应用服务 - ServerUploadApplicationService(initUpload/uploadChunk/completeUpload)/ServerUploadInitDTO/ServerChunkUploadDTO/ServerUploadCompleteDTO/ServerUploadInitCommand - 验证通过 (mvn clean compile) |
 | 2026-03-29 20:55 | P14-03 | 完成 | 创建服务端上传控制器 - ServerUploadController(3端点)/ServerUploadInitRequest/ServerUploadInitResponse/ServerChunkUploadRequest/ServerChunkUploadResponse/ServerUploadCompleteResponse - API路径/api/videos/upload/server/* - 验证通过 (mvn clean compile) |
 | 2026-03-29 20:00 | P13-10 | 完成 | 前端OSS直传上传 - storage.ts(STS凭证API)/useOssUpload.ts(ali-oss SDK分片上传+STS刷新+视频状态轮询)/VideoUploadPage.tsx重写/useUpload.ts删除/video.ts类型更新(StsCredentials+UploadSession)/安装ali-oss依赖 - 验证通过 (npm run lint + npx tsc --noEmit) |
