@@ -130,18 +130,17 @@ npm run lint
 
 ### ❌ 无 Critical/Major 问题
 
-### ⚠️ 次要问题 (已记录)
+### ⚠️ 次要问题 (已提 Issue)
 
-1. **Docker 环境缺失** - 集成测试无法运行
-   - 影响：无法验证 Repository/数据库集成
-   - 建议：在 CI/CD 环境中配置 Docker
-   - 临时方案：本地开发跳过集成测试
+| Issue # | 标题 | 严重性 | 标签 |
+|---------|------|--------|------|
+| [#31](https://github.com/neilluo/xyf_kitchen/issues/31) | SettingsPage.tsx 应使用 nullish coalescing 运算符 | Minor | bug, frontend |
+| [#32](https://github.com/neilluo/xyf_kitchen/issues/32) | ESLint e2e 测试文件 parser 配置错误 | Minor | bug, frontend, configuration |
+| [#33](https://github.com/neilluo/xyf_kitchen/issues/33) | 集成测试因 Docker 不可用被跳过 | Enhancement | testing, infrastructure |
 
-2. **ESLint e2e 配置错误** - `e2e/dashboard.spec.ts` parser 问题
-   - 影响：仅 e2e 测试文件，不影响源代码
-   - 建议：更新 eslint.config.js 排除 e2e 文件或配置独立 project
+### 备注
 
-3. **console.warn 警告** - MetadataReviewPage.tsx 调试日志
+1. **console.warn 警告** - MetadataReviewPage.tsx 调试日志
    - 影响：无功能影响
    - 建议：保留为合理错误日志，或替换为 toast 通知
 
