@@ -2,6 +2,8 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-29 20:00 | P13-10 | 完成 | 前端OSS直传上传 - storage.ts(STS凭证API)/useOssUpload.ts(ali-oss SDK分片上传+STS刷新+视频状态轮询)/VideoUploadPage.tsx重写/useUpload.ts删除/video.ts类型更新(StsCredentials+UploadSession)/安装ali-oss依赖 - 验证通过 (npm run lint + npx tsc --noEmit) |
+| 2026-03-29 19:28 | P13-09 | 完成 | 数据库迁移脚本 - V7 migration: video表添加storage_url/storage_provider/upload_session表添加storage_key/oss_bucket/向后兼容保留file_path/temp_directory字段/修复测试文件编译错误(VideoIntegrationTest/DistributionPropertyTest/DistributionUnitTest/DistributionIntegrationTest) - 验证通过 (mvn clean compile + 123 tests) |
 | 2026-03-29 19:15 | P13-08 | 完成 | Distribution 上下文 YouTube 分发适配 - VideoDistributor.publish()接口改为storageUrl参数/ResumableVideoDistributor.resumeUpload()添加storageUrl参数/YouTubeApiAdapter使用storageUrl替代Path/YouTubeUploadResult添加toPublishResult()方法/DistributionApplicationService使用Video.storageUrl优先filePath回退/QuotaRetryScheduler传递storageUrl参数 - 验证通过 (mvn clean compile) |
 | 2026-03-29 19:08 | P13-07 | 完成 | Metadata 上下文多模态输入适配 - VideoFrameExtractor接口添加extractFramesFromUrl方法/VideoFrameExtractorImpl实现URL下载临时文件提取帧/QwenLlmServiceAdapter无需修改(使用base64 data URI)/验证通过 (mvn clean compile) |
 | 2026-03-29 19:03 | P13-06 | 完成 | Video 上下文基础设施层清理 - 删除ChunkMergeService接口/删除ChunkMergeServiceImpl实现/更新package-info.java移除引用/VideoFileInspectorImpl已有inspectFromUrl支持OSS URL下载临时文件提取 - 验证通过 (mvn clean compile) |
