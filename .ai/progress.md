@@ -2,6 +2,8 @@
 
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
+| 2026-03-29 19:03 | P13-06 | 完成 | Video 上下文基础设施层清理 - 删除ChunkMergeService接口/删除ChunkMergeServiceImpl实现/更新package-info.java移除引用/VideoFileInspectorImpl已有inspectFromUrl支持OSS URL下载临时文件提取 - 验证通过 (mvn clean compile) |
+| 2026-03-29 19:00 | P13-05 | 完成 | Video 上下文应用层变更 - initUpload返回STS凭证/completeUpload接收OSS回调/getUploadProgress查询状态/删除uploadChunk方法/删除ChunkUploadDTO/移除ChunkMergeService依赖/添加VideoFileInspector.inspectFromUrl/添加UploadSession.markAsCompletedByOssCallback/更新VideoUploadController为OSS回调端点 - 验证通过 (mvn clean compile) |
 | 2026-03-29 18:50 | P13-04 | 完成 | Video 上下文领域层变更 - Video: storageUrl/storageProvider新增(deprecated filePath-based create)/UploadSession: storageKey/ossBucket新增(deprecated tempDirectory-based create)/StorageProviderTypeHandler(MyBatis枚举映射)/Mapper XML更新(storage_url/storage_provider/storage_key/oss_bucket)/向后兼容deprecated工厂方法 - 验证通过 (mvn clean compile) |
 | 2026-03-29 18:37 | P13-02 | 完成 | Storage 限界上下文基础设施层 - OssProperties(OSS配置类: endpoint/bucket/region/accessKey/sts/callback)/StsTokenService(STS凭证获取服务: AssumeRole API)/AliOssStorageServiceImpl(OSS实现: generateStsCredentials/verifyCallbackSignature/buildObjectUrl) - 添加阿里云OSS SDK和STS SDK依赖 - 添加Storage错误码(6001-6003)/INFRA_CONFIG_ERROR - 修复.gitignore忽略Java storage包问题 - 验证通过 (mvn clean compile) |
 | 2026-03-29 18:27 | P13-01 | 完成 | Storage 限界上下文领域层 - StorageProvider(OSS/LOCAL/S3枚举)/StsCredentials(STS临时凭证值对象)/OssStorageService(OSS服务接口)/UploadCallback(回调数据对象)/StorageUrl(存储URL值对象) - 修复.gitignore忽略storage源码包问题 - 验证通过 (mvn clean compile) |
