@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { Icon } from '@/components/ui/Icon'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { useInitUpload, useUploadChunk, useCompleteUpload, calculateUploadSpeed, estimateRemainingTime, getVideoFormat } from '@/hooks/useUpload'
+import { useVideoList } from '@/hooks/useVideos'
 import { useAppStore } from '@/store/useAppStore'
 import { formatFileSize } from '@/utils/format'
 import { ROUTES } from '@/utils/constants'
+import type { VideoStatus, Video } from '@/types/video'
 
 // Supported video formats
 const SUPPORTED_FORMATS = ['mp4', 'mov', 'avi', 'mkv']
@@ -56,6 +58,19 @@ interface CompletedUpload {
   fileName: string
   fileSize: number
   completedAt: Date
+  status: VideoStatus
+  thumbnailUrl?: string
+  publishRecords?: { platform: string; status: string }[]
+}
+
+const statusTextMap: Record<VideoStatus, string> = {
+  UPLOADED: '上传完成，正在生成元数据...',
+  METADATA_GENERATED: '元数据已生成，等待审核',
+  READY_TO_PUBLISH: '准备就绪，等待发布',
+  PUBLISHING: '正在发布...',
+  PUBLISHED: '已发布',
+  PUBLISH_FAILED: '发布失败',
+  PROMOTION_DONE: '推广完成',
 }
 
 interface DropZoneProps {
@@ -128,9 +143,14 @@ function DropZone({ onFileSelect, onValidationError, disabled }: DropZoneProps) 
     [onFileSelect, onValidationError]
   )
 
+  const handleButtonClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!disabled) fileInputRef.current?.click()
+  }, [disabled])
+
   return (
     <div
-      className={`relative rounded-xl p-12 text-center cursor-pointer overflow-hidden ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+      className={`upload-dashed-border p-16 flex flex-col items-center justify-center text-center ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
       style={{
         backgroundColor: isDragging ? 'rgba(0, 87, 194, 0.1)' : 'rgba(240, 245, 255, 0.5)',
       }}
@@ -140,44 +160,29 @@ function DropZone({ onFileSelect, onValidationError, disabled }: DropZoneProps) 
       onDrop={handleDrop}
       onClick={handleClick}
     >
-      <svg
-        className="absolute inset-0 w-full h-full pointer-events-none"
-        style={{ borderRadius: '0.75rem' }}
-      >
-        <rect
-          rx="12"
-          ry="12"
-          stroke="#0057c2"
-          strokeOpacity={isDragging ? 0.6 : 0.3}
-          strokeWidth="2"
-          strokeDasharray="8 4"
-          fill="none"
-          width="100%"
-          height="100%"
+      <div className="w-20 h-20 bg-primary-fixed rounded-full flex items-center justify-center mb-6">
+        <Icon
+          name="cloud_upload"
+          size={48}
+          className="text-primary"
         />
-      </svg>
-
-      <div className="relative z-10 flex flex-col items-center">
-        <div className="w-20 h-20 bg-primary-fixed rounded-full flex items-center justify-center mb-6">
-          <Icon
-            name="cloud_upload"
-            size={48}
-            className="text-primary"
-          />
-        </div>
-
-        <h2 className="font-headline text-lg font-bold text-on-surface">
-          拖拽视频文件到此处
-        </h2>
-
-        <p className="font-body text-sm text-on-surface-variant mt-2">
-          或点击选择文件
-        </p>
-
-        <p className="font-body text-xs text-on-surface-variant/60 mt-4">
-          支持 MP4、MOV、AVI、MKV，最大 5GB
-        </p>
       </div>
+
+      <h2 className="text-xl font-headline font-bold mb-2 text-on-surface">
+        拖拽视频文件到此处，或点击选择文件
+      </h2>
+
+      <p className="text-slate-500 mb-8 max-w-sm">
+        支持 MP4、MOV、AVI、MKV，不超过 5GB。建议使用 1080p 或更高分辨率以获得最佳展示效果。
+      </p>
+
+      <button
+        onClick={handleButtonClick}
+        className="px-8 py-3 rounded-lg border-2 border-primary text-primary font-semibold hover:bg-primary/5 transition-all flex items-center gap-2"
+      >
+        <Icon name="add_circle" size={20} />
+        选择文件
+      </button>
 
       <input
         ref={fileInputRef}
@@ -283,6 +288,9 @@ interface CompletedUploadItemProps {
 }
 
 function CompletedUploadItem({ upload, onReviewMetadata }: CompletedUploadItemProps) {
+  const statusText = statusTextMap[upload.status]
+  const isMetadataPending = upload.status === 'UPLOADED'
+
   return (
     <div className="bg-surface-container-lowest p-5 rounded-xl flex items-center gap-4 group hover:bg-surface-bright transition-all">
       <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600">
@@ -291,8 +299,8 @@ function CompletedUploadItem({ upload, onReviewMetadata }: CompletedUploadItemPr
       <div className="flex-1 flex items-center justify-between">
         <div>
           <h4 className="font-medium text-sm text-on-surface">{upload.fileName}</h4>
-          <p className="text-xs text-green-600 mt-0.5 font-medium flex items-center gap-1">
-            上传完成
+          <p className={`text-xs mt-0.5 font-medium flex items-center gap-1 ${isMetadataPending ? 'text-green-600' : 'text-slate-500'}`}>
+            {isMetadataPending ? statusText : `已于 ${formatCompletedTime(upload.completedAt)} 上传`}
           </p>
         </div>
         <div className="flex items-center gap-6">
@@ -301,8 +309,63 @@ function CompletedUploadItem({ upload, onReviewMetadata }: CompletedUploadItemPr
             onClick={onReviewMetadata}
             className="text-primary text-sm font-semibold hover:underline px-3 py-1 bg-primary/5 rounded transition-colors"
           >
-            审核元数据
+            编辑元数据
           </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function formatCompletedTime(date: Date): string {
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 0) {
+    const hours = Math.floor(diffMs / (1000 * 60 * 60))
+    if (hours === 0) {
+      return '刚刚'
+    }
+    return `今天 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+  } else if (diffDays === 1) {
+    return `昨天 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+  } else if (diffDays < 7) {
+    return `${diffDays} 天前`
+  }
+  return `${date.getMonth() + 1}/${date.getDate()}`
+}
+
+interface HistoryRecordItemProps {
+  video: Video
+}
+
+function HistoryRecordItem({ video }: HistoryRecordItemProps) {
+  const isPublished = video.status === 'PUBLISHED' || video.status === 'PROMOTION_DONE'
+  
+  return (
+    <div className="bg-surface-container-lowest p-5 rounded-xl flex items-center gap-4 group hover:bg-surface-bright transition-all opacity-80">
+      <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500">
+        <Icon name="description" size={20} />
+      </div>
+      <div className="flex-1 flex items-center justify-between">
+        <div>
+          <h4 className="font-medium text-sm text-on-surface">{video.fileName}</h4>
+          <p className="text-xs text-slate-500 mt-0.5">
+            已于 {formatCompletedTime(new Date(video.createdAt))} 上传
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          {isPublished && (
+            <>
+              <div className="flex -space-x-2">
+                <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center text-[10px] text-white ring-2 ring-white">YT</div>
+                <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-[10px] text-white ring-2 ring-white">FB</div>
+                <div className="w-6 h-6 rounded-full bg-pink-500 flex items-center justify-center text-[10px] text-white ring-2 ring-white">IG</div>
+              </div>
+              <span className="text-xs text-slate-400">已发布</span>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -358,6 +421,8 @@ export function VideoUploadPage() {
   const initUploadMutation = useInitUpload()
   const uploadChunkMutation = useUploadChunk()
   const completeUploadMutation = useCompleteUpload()
+
+  const { data: videoListData } = useVideoList({ pageSize: 5, sort: 'createdAt', order: 'desc' })
 
   const uploadChunkWithRetry = useCallback(
     async (uploadId: string, chunkIndex: number, chunk: Blob): Promise<void> => {
@@ -489,6 +554,7 @@ export function VideoUploadPage() {
             fileName: completeResponse.fileName,
             fileSize: completeResponse.fileSize,
             completedAt: new Date(),
+            status: completeResponse.status,
           },
           ...prev,
         ])
@@ -571,7 +637,7 @@ export function VideoUploadPage() {
       {/* Page Header */}
       <div className="mb-12">
         <h1 className="font-headline text-[2.75rem] font-bold text-on-surface tracking-tight">
-          上传视频
+          发布您的佳作
         </h1>
         <p className="text-slate-500 mt-2 font-body">
           将您的烹饪灵感分享给世界，支持多平台一键分发。
@@ -592,7 +658,7 @@ export function VideoUploadPage() {
         <section className="mb-12">
           <h3 className="font-headline text-lg font-bold mb-4 flex items-center gap-2">
             <span className="w-2 h-2 bg-primary rounded-full" />
-            正在上传
+            正在上传 (1)
           </h3>
           <UploadProgressCard
             upload={uploadingFile}
@@ -602,7 +668,7 @@ export function VideoUploadPage() {
       )}
 
       {/* Completed Uploads Section */}
-      {completedUploads.length > 0 && (
+      {(completedUploads.length > 0 || (videoListData?.items && videoListData.items.length > 0)) && (
         <section className="mb-12">
           <h3 className="font-headline text-lg font-bold mb-4 flex items-center gap-2">
             <span className="w-2 h-2 bg-green-500 rounded-full" />
@@ -616,6 +682,12 @@ export function VideoUploadPage() {
                 onReviewMetadata={() => handleReviewMetadata(upload.videoId)}
               />
             ))}
+            {videoListData?.items
+              ?.filter((video) => !completedUploads.some((u) => u.videoId === video.videoId))
+              .slice(0, 3)
+              .map((video) => (
+                <HistoryRecordItem key={video.videoId} video={video} />
+              ))}
           </div>
         </section>
       )}
