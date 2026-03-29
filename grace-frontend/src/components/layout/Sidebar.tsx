@@ -10,6 +10,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { icon: 'dashboard', label: '仪表盘', path: '/' },
   { icon: 'video_library', label: '视频管理', path: '/videos' },
+  { icon: 'upload', label: '上传视频', path: '/upload' },
   { icon: 'history', label: '推广历史', path: '/promotions' },
   { icon: 'settings', label: '设置', path: '/settings' },
 ]
