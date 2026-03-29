@@ -69,14 +69,14 @@ public class ServerUploadController {
     @PostMapping(value = "/{uploadId}/chunk", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<ServerChunkUploadResponse>> uploadChunk(
             @PathVariable String uploadId,
-            @Valid @RequestPart ServerChunkUploadRequest request,
+            @RequestParam("chunkIndex") int chunkIndex,
             @RequestPart("chunk") MultipartFile chunk) throws IOException {
         
         InputStream chunkStream = chunk.getInputStream();
         
         ServerChunkUploadDTO dto = serverUploadApplicationService.uploadChunk(
             uploadId, 
-            request.chunkIndex(), 
+            chunkIndex, 
             chunkStream
         );
 

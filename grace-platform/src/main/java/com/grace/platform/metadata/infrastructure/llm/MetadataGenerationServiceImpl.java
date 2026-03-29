@@ -112,7 +112,7 @@ public class MetadataGenerationServiceImpl implements MetadataGenerationService 
     }
 
     @Override
-    public VideoMetadata generate(VideoFileInfo videoInfo, List<VideoMetadata> historicalMetadata) {
+    public VideoMetadata generate(com.grace.platform.shared.domain.id.VideoId videoId, VideoFileInfo videoInfo, List<VideoMetadata> historicalMetadata) {
         log.info("Generating metadata for video file (text-only mode): {}", videoInfo.fileName());
 
         String userPrompt = buildUserPrompt(videoInfo, historicalMetadata, false);
@@ -134,7 +134,7 @@ public class MetadataGenerationServiceImpl implements MetadataGenerationService 
             generated.title(), generated.tags().size());
 
         VideoMetadata metadata = VideoMetadata.create(
-            null,
+            videoId,
             generated.title(),
             generated.description(),
             generated.tags(),
@@ -147,7 +147,7 @@ public class MetadataGenerationServiceImpl implements MetadataGenerationService 
     }
 
     @Override
-    public VideoMetadata generate(VideoFileInfo videoInfo, List<VideoMetadata> historicalMetadata, Path videoPath) {
+    public VideoMetadata generate(com.grace.platform.shared.domain.id.VideoId videoId, VideoFileInfo videoInfo, List<VideoMetadata> historicalMetadata, Path videoPath) {
         log.info("Generating metadata for video file (multimodal mode): {}", videoInfo.fileName());
 
         List<ImageFrame> imageFrames = extractVideoFrames(videoPath);
@@ -173,7 +173,7 @@ public class MetadataGenerationServiceImpl implements MetadataGenerationService 
             generated.title(), generated.tags().size());
 
         VideoMetadata metadata = VideoMetadata.create(
-            null,
+            videoId,
             generated.title(),
             generated.description(),
             generated.tags(),
