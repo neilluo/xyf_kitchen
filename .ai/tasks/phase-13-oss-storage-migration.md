@@ -6,7 +6,7 @@
 
 ## 进度统计
 
-- [x] 共 8 个任务，已完成 1/8
+- [x] 共 8 个任务，已完成 3/8
 
 ---
 
@@ -71,7 +71,7 @@
   - `storage.infrastructure.ali.StsTokenService`（STS 凭证获取服务）
 - **验证命令**: `mvn clean compile`
 - **依赖**: P13-01
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 
   - 使用阿里云 Java SDK
   - STS 角色 ARN 从配置注入
@@ -89,9 +89,9 @@
   - `storage.interfaces.dto.response.StsTokenResponse`
   - `storage.interfaces.dto.request.OssCallbackRequest`
 - **验证命令**: `mvn clean compile`
-- **依赖**: P13-02
-- **状态**: [ ]
-- **注意**: 
+- **依赖**: P13-01
+- **状态**: [x]
+- **注意**:
   - API: `POST /api/storage/oss/sts-token`
   - API: `POST /api/storage/oss/callback`
   - 回调需要验证签名防篡改
