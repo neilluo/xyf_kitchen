@@ -3,6 +3,7 @@ package com.grace.platform.video.domain;
 import com.grace.platform.shared.ErrorCode;
 import com.grace.platform.shared.domain.id.VideoId;
 import com.grace.platform.shared.infrastructure.exception.BusinessRuleViolationException;
+import com.grace.platform.storage.domain.StorageProvider;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -55,6 +56,8 @@ public class Video {
     private VideoFormat format;
     private Duration duration;
     private String filePath;
+    private String storageUrl;
+    private StorageProvider storageProvider;
     private VideoStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -66,7 +69,7 @@ public class Video {
     }
 
     /**
-     * 创建新的 Video 实例
+     * 创建新的 Video 实例（本地存储）
      *
      * @param fileName  原始文件名
      * @param fileSize  文件字节数
@@ -75,9 +78,37 @@ public class Video {
      * @param filePath  服务器存储路径
      * @return 新建的 Video 实例（状态为 UPLOADED）
      * @throws BusinessRuleViolationException 当验证失败时抛出
+     * @deprecated 使用 {@link #createWithStorageUrl} 替代，支持 OSS 存储
      */
+    @Deprecated
     public static Video create(String fileName, long fileSize, VideoFormat format,
                                Duration duration, String filePath) {
+        return createInternal(fileName, fileSize, format, duration, filePath, null, StorageProvider.LOCAL);
+    }
+
+    /**
+     * 创建新的 Video 实例（OSS 存储）
+     *
+     * @param fileName        原始文件名
+     * @param fileSize        文件字节数
+     * @param format          视频格式
+     * @param duration        视频时长
+     * @param storageUrl      OSS 存储 URL
+     * @param storageProvider 存储提供者
+     * @return 新建的 Video 实例（状态为 UPLOADED）
+     * @throws BusinessRuleViolationException 当验证失败时抛出
+     */
+    public static Video createWithStorageUrl(String fileName, long fileSize, VideoFormat format,
+                                              Duration duration, String storageUrl, StorageProvider storageProvider) {
+        return createInternal(fileName, fileSize, format, duration, null, storageUrl, storageProvider);
+    }
+
+    /**
+     * 内部创建方法，支持本地和 OSS 存储
+     */
+    private static Video createInternal(String fileName, long fileSize, VideoFormat format,
+                                        Duration duration, String filePath, String storageUrl,
+                                        StorageProvider storageProvider) {
         // 验证文件名
         if (fileName == null || fileName.isBlank()) {
             throw new BusinessRuleViolationException(
@@ -114,12 +145,19 @@ public class Video {
             );
         }
 
-        // 验证文件路径
-        if (filePath == null || filePath.isBlank()) {
+        // 验证存储路径/URL（本地或 OSS）
+        boolean hasLocalPath = filePath != null && !filePath.isBlank();
+        boolean hasStorageUrl = storageUrl != null && !storageUrl.isBlank();
+        if (!hasLocalPath && !hasStorageUrl) {
             throw new BusinessRuleViolationException(
                 ErrorCode.INTERNAL_SERVER_ERROR,
-                "File path must not be blank"
+                "Either filePath or storageUrl must be provided"
             );
+        }
+
+        // 验证存储提供者
+        if (storageProvider == null) {
+            storageProvider = StorageProvider.LOCAL;
         }
 
         // 验证时长
@@ -137,6 +175,8 @@ public class Video {
         video.format = format;
         video.duration = duration;
         video.filePath = filePath;
+        video.storageUrl = storageUrl;
+        video.storageProvider = storageProvider;
         video.status = VideoStatus.UPLOADED;
         video.createdAt = LocalDateTime.now();
         video.updatedAt = video.createdAt;
@@ -216,6 +256,14 @@ public class Video {
         return filePath;
     }
 
+    public String getStorageUrl() {
+        return storageUrl;
+    }
+
+    public StorageProvider getStorageProvider() {
+        return storageProvider;
+    }
+
     public VideoStatus getStatus() {
         return status;
     }
@@ -253,6 +301,14 @@ public class Video {
         this.filePath = filePath;
     }
 
+    void setStorageUrl(String storageUrl) {
+        this.storageUrl = storageUrl;
+    }
+
+    void setStorageProvider(StorageProvider storageProvider) {
+        this.storageProvider = storageProvider;
+    }
+
     void setStatus(VideoStatus status) {
         this.status = status;
     }
@@ -267,7 +323,7 @@ public class Video {
 
     @Override
     public String toString() {
-        return String.format("Video[id=%s, fileName=%s, format=%s, status=%s, size=%d]",
-            id != null ? id.value() : "null", fileName, format, status, fileSize);
+        return String.format("Video[id=%s, fileName=%s, format=%s, status=%s, size=%d, provider=%s]",
+            id != null ? id.value() : "null", fileName, format, status, fileSize, storageProvider);
     }
 }
