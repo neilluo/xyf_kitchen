@@ -100,7 +100,7 @@ public class MetadataApplicationService {
         );
 
         // 4. 调用 LLM 生成元数据
-        VideoMetadata metadata = metadataGenerationService.generate(videoFileInfo, historicalMetadata);
+        VideoMetadata metadata = metadataGenerationService.generate(videoId, videoFileInfo, historicalMetadata);
 
         // 5. 保存元数据
         metadata = videoMetadataRepository.save(metadata);
@@ -178,18 +178,9 @@ public class MetadataApplicationService {
         );
 
         // 5. 调用 LLM 重新生成
-        VideoMetadata newMetadata = metadataGenerationService.generate(videoFileInfo, historicalMetadata);
+        VideoMetadata regeneratedMetadata = metadataGenerationService.generate(videoId, videoFileInfo, historicalMetadata);
 
-        // 6. 创建新的元数据实体（替换原有）
-        VideoMetadata regeneratedMetadata = VideoMetadata.create(
-                videoId,
-                newMetadata.getTitle(),
-                newMetadata.getDescription(),
-                newMetadata.getTags(),
-                MetadataSource.AI_GENERATED
-        );
-
-        // 7. 保存新元数据
+        // 6. 保存新元数据
         regeneratedMetadata = videoMetadataRepository.save(regeneratedMetadata);
 
         return toDto(regeneratedMetadata);
