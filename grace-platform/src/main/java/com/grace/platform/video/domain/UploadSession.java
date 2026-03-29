@@ -7,51 +7,29 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
-/**
- * 上传会话实体
- * <p>
- * 管理视频分片上传的会话状态，包括分片计数、过期检查等。
- * </p>
- */
 public class UploadSession {
 
-    // 默认分片大小：5MB
-    public static final long DEFAULT_CHUNK_SIZE = 5L * 1024 * 1024; // 5MB in bytes
-    // 默认会话过期时间：24小时
+    public static final long DEFAULT_CHUNK_SIZE = 5L * 1024 * 1024;
     public static final int DEFAULT_SESSION_TTL_HOURS = 24;
 
-    // 实体字段
     private String uploadId;
     private String fileName;
     private long fileSize;
     private VideoFormat format;
     private int totalChunks;
     private int uploadedChunks;
+    private String storageKey;
+    private String ossBucket;
     private String tempDirectory;
     private UploadSessionStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime expiresAt;
 
-    /**
-     * 私有构造器，通过工厂方法创建
-     */
     private UploadSession() {
     }
 
-    /**
-     * 创建新的上传会话
-     *
-     * @param fileName      文件名
-     * @param fileSize      文件字节数
-     * @param format        视频格式
-     * @param tempDirectory 临时存储目录路径
-     * @param chunkSize     分片大小（字节），如果为null则使用默认值
-     * @return 新建的 UploadSession 实例
-     * @throws BusinessRuleViolationException 当验证失败时抛出
-     */
     public static UploadSession create(String fileName, long fileSize, VideoFormat format,
-                                       String tempDirectory, Long chunkSize) {
-        // 验证文件名
+                                       String storageKey, String ossBucket, Long chunkSize) {
         if (fileName == null || fileName.isBlank()) {
             throw new BusinessRuleViolationException(
                 ErrorCode.INTERNAL_SERVER_ERROR,
@@ -59,7 +37,6 @@ public class UploadSession {
             );
         }
 
-        // 验证文件大小
         if (fileSize <= 0) {
             throw new BusinessRuleViolationException(
                 ErrorCode.VIDEO_FILE_SIZE_EXCEEDED,
@@ -67,7 +44,6 @@ public class UploadSession {
             );
         }
 
-        // 验证格式
         if (format == null) {
             throw new BusinessRuleViolationException(
                 ErrorCode.UNSUPPORTED_VIDEO_FORMAT,
@@ -75,18 +51,21 @@ public class UploadSession {
             );
         }
 
-        // 验证临时目录
-        if (tempDirectory == null || tempDirectory.isBlank()) {
+        if (storageKey == null || storageKey.isBlank()) {
             throw new BusinessRuleViolationException(
                 ErrorCode.INTERNAL_SERVER_ERROR,
-                "Temp directory must not be blank"
+                "Storage key must not be blank"
             );
         }
 
-        // 使用默认分片大小
-        long actualChunkSize = chunkSize != null && chunkSize > 0 ? chunkSize : DEFAULT_CHUNK_SIZE;
+        if (ossBucket == null || ossBucket.isBlank()) {
+            throw new BusinessRuleViolationException(
+                ErrorCode.INTERNAL_SERVER_ERROR,
+                "OSS bucket must not be blank"
+            );
+        }
 
-        // 计算总分片数：ceil(fileSize / chunkSize)
+        long actualChunkSize = chunkSize != null && chunkSize > 0 ? chunkSize : DEFAULT_CHUNK_SIZE;
         int totalChunks = calculateTotalChunks(fileSize, actualChunkSize);
 
         UploadSession session = new UploadSession();
@@ -96,6 +75,59 @@ public class UploadSession {
         session.format = format;
         session.totalChunks = totalChunks;
         session.uploadedChunks = 0;
+        session.storageKey = storageKey;
+        session.ossBucket = ossBucket;
+        session.tempDirectory = null;
+        session.status = UploadSessionStatus.ACTIVE;
+        session.createdAt = LocalDateTime.now();
+        session.expiresAt = session.createdAt.plus(DEFAULT_SESSION_TTL_HOURS, ChronoUnit.HOURS);
+
+        return session;
+    }
+
+    @Deprecated
+    public static UploadSession create(String fileName, long fileSize, VideoFormat format,
+                                       String tempDirectory, Long chunkSize) {
+        if (fileName == null || fileName.isBlank()) {
+            throw new BusinessRuleViolationException(
+                ErrorCode.INTERNAL_SERVER_ERROR,
+                "File name must not be blank"
+            );
+        }
+
+        if (fileSize <= 0) {
+            throw new BusinessRuleViolationException(
+                ErrorCode.VIDEO_FILE_SIZE_EXCEEDED,
+                "File size must be greater than 0"
+            );
+        }
+
+        if (format == null) {
+            throw new BusinessRuleViolationException(
+                ErrorCode.UNSUPPORTED_VIDEO_FORMAT,
+                "Video format must not be null"
+            );
+        }
+
+        if (tempDirectory == null || tempDirectory.isBlank()) {
+            throw new BusinessRuleViolationException(
+                ErrorCode.INTERNAL_SERVER_ERROR,
+                "Temp directory must not be blank"
+            );
+        }
+
+        long actualChunkSize = chunkSize != null && chunkSize > 0 ? chunkSize : DEFAULT_CHUNK_SIZE;
+        int totalChunks = calculateTotalChunks(fileSize, actualChunkSize);
+
+        UploadSession session = new UploadSession();
+        session.uploadId = generateUploadId();
+        session.fileName = fileName;
+        session.fileSize = fileSize;
+        session.format = format;
+        session.totalChunks = totalChunks;
+        session.uploadedChunks = 0;
+        session.storageKey = "local/" + session.uploadId;
+        session.ossBucket = "local";
         session.tempDirectory = tempDirectory;
         session.status = UploadSessionStatus.ACTIVE;
         session.createdAt = LocalDateTime.now();
@@ -104,23 +136,8 @@ public class UploadSession {
         return session;
     }
 
-    /**
-     * 创建新的上传会话（指定 uploadId）。
-     * <p>
-     * 用于应用层控制 uploadId 的生成。
-     *
-     * @param uploadId      指定的上传会话 ID
-     * @param fileName      文件名
-     * @param fileSize      文件字节数
-     * @param format        视频格式
-     * @param tempDirectory 临时存储目录路径
-     * @param chunkSize     分片大小（字节），如果为null则使用默认值
-     * @return 新建的 UploadSession 实例
-     * @throws BusinessRuleViolationException 当验证失败时抛出
-     */
-    public static UploadSession createWithId(String uploadId, String fileName, long fileSize, 
-                                              VideoFormat format, String tempDirectory, Long chunkSize) {
-        // 验证 uploadId
+    public static UploadSession createWithId(String uploadId, String fileName, long fileSize,
+                                              VideoFormat format, String storageKey, String ossBucket, Long chunkSize) {
         if (uploadId == null || uploadId.isBlank()) {
             throw new BusinessRuleViolationException(
                 ErrorCode.INTERNAL_SERVER_ERROR,
@@ -128,72 +145,92 @@ public class UploadSession {
             );
         }
 
-        // 使用默认创建流程
-        UploadSession session = create(fileName, fileSize, format, tempDirectory, chunkSize);
-        
-        // 替换 uploadId
+        UploadSession session = create(fileName, fileSize, format, storageKey, ossBucket, chunkSize);
         session.uploadId = uploadId;
-        
         return session;
     }
 
-    /**
-     * 计算总分片数
-     *
-     * @param fileSize  文件总大小
-     * @param chunkSize 每个分片的大小
-     * @return 总分片数（向上取整）
-     */
+    @Deprecated
+    public static UploadSession createWithId(String uploadId, String fileName, long fileSize,
+                                              VideoFormat format, String tempDirectory, Long chunkSize) {
+        if (uploadId == null || uploadId.isBlank()) {
+            throw new BusinessRuleViolationException(
+                ErrorCode.INTERNAL_SERVER_ERROR,
+                "Upload ID must not be blank"
+            );
+        }
+
+        if (fileName == null || fileName.isBlank()) {
+            throw new BusinessRuleViolationException(
+                ErrorCode.INTERNAL_SERVER_ERROR,
+                "File name must not be blank"
+            );
+        }
+
+        if (fileSize <= 0) {
+            throw new BusinessRuleViolationException(
+                ErrorCode.VIDEO_FILE_SIZE_EXCEEDED,
+                "File size must be greater than 0"
+            );
+        }
+
+        if (format == null) {
+            throw new BusinessRuleViolationException(
+                ErrorCode.UNSUPPORTED_VIDEO_FORMAT,
+                "Video format must not be null"
+            );
+        }
+
+        if (tempDirectory == null || tempDirectory.isBlank()) {
+            throw new BusinessRuleViolationException(
+                ErrorCode.INTERNAL_SERVER_ERROR,
+                "Temp directory must not be blank"
+            );
+        }
+
+        long actualChunkSize = chunkSize != null && chunkSize > 0 ? chunkSize : DEFAULT_CHUNK_SIZE;
+        int totalChunks = calculateTotalChunks(fileSize, actualChunkSize);
+
+        UploadSession session = new UploadSession();
+        session.uploadId = uploadId;
+        session.fileName = fileName;
+        session.fileSize = fileSize;
+        session.format = format;
+        session.totalChunks = totalChunks;
+        session.uploadedChunks = 0;
+        session.storageKey = "local/" + uploadId;
+        session.ossBucket = "local";
+        session.tempDirectory = tempDirectory;
+        session.status = UploadSessionStatus.ACTIVE;
+        session.createdAt = LocalDateTime.now();
+        session.expiresAt = session.createdAt.plus(DEFAULT_SESSION_TTL_HOURS, ChronoUnit.HOURS);
+
+        return session;
+    }
+
     public static int calculateTotalChunks(long fileSize, long chunkSize) {
         if (chunkSize <= 0) {
             throw new IllegalArgumentException("Chunk size must be greater than 0");
         }
-        // 使用整数除法向上取整：ceil(a/b) = (a + b - 1) / b
         return (int) ((fileSize + chunkSize - 1) / chunkSize);
     }
 
-    /**
-     * 生成上传会话 ID（upl_ 前缀 + UUID）
-     *
-     * @return 上传会话 ID
-     */
     private static String generateUploadId() {
         return "upl_" + UUID.randomUUID().toString().replace("-", "");
     }
 
-    /**
-     * 检查会话是否已过期
-     *
-     * @return true 如果会话已过期
-     */
     public boolean isExpired() {
         return LocalDateTime.now().isAfter(expiresAt);
     }
 
-    /**
-     * 检查分片索引是否有效
-     *
-     * @param chunkIndex 分片索引
-     * @return true 如果索引在有效范围内
-     */
     public boolean isValidChunkIndex(int chunkIndex) {
         return chunkIndex >= 0 && chunkIndex < totalChunks;
     }
 
-    /**
-     * 检查上传是否已完成（所有分片已上传）
-     *
-     * @return true 如果所有分片已上传
-     */
     public boolean isUploadComplete() {
         return uploadedChunks >= totalChunks;
     }
 
-    /**
-     * 递增已上传分片数
-     *
-     * @throws BusinessRuleViolationException 当会话状态不是 ACTIVE 或分片已全部上传时抛出
-     */
     public void incrementUploadedChunks() {
         if (status != UploadSessionStatus.ACTIVE) {
             throw new BusinessRuleViolationException(
@@ -219,11 +256,6 @@ public class UploadSession {
         this.uploadedChunks++;
     }
 
-    /**
-     * 标记会话为已完成
-     *
-     * @throws BusinessRuleViolationException 当会话未全部上传完成时抛出
-     */
     public void markAsCompleted() {
         if (status != UploadSessionStatus.ACTIVE) {
             throw new BusinessRuleViolationException(
@@ -249,18 +281,10 @@ public class UploadSession {
         this.status = UploadSessionStatus.COMPLETED;
     }
 
-    /**
-     * 标记会话为已过期
-     */
     public void markAsExpired() {
         this.status = UploadSessionStatus.EXPIRED;
     }
 
-    /**
-     * 获取上传进度百分比
-     *
-     * @return 进度百分比（0-100）
-     */
     public int getProgressPercentage() {
         if (totalChunks == 0) {
             return 0;
@@ -268,7 +292,6 @@ public class UploadSession {
         return (int) ((uploadedChunks * 100L) / totalChunks);
     }
 
-    // Getters
     public String getUploadId() {
         return uploadId;
     }
@@ -293,6 +316,15 @@ public class UploadSession {
         return uploadedChunks;
     }
 
+    public String getStorageKey() {
+        return storageKey;
+    }
+
+    public String getOssBucket() {
+        return ossBucket;
+    }
+
+    @Deprecated
     public String getTempDirectory() {
         return tempDirectory;
     }
@@ -309,7 +341,6 @@ public class UploadSession {
         return expiresAt;
     }
 
-    // Setters for persistence layer (package-private)
     void setUploadId(String uploadId) {
         this.uploadId = uploadId;
     }
@@ -334,6 +365,15 @@ public class UploadSession {
         this.uploadedChunks = uploadedChunks;
     }
 
+    void setStorageKey(String storageKey) {
+        this.storageKey = storageKey;
+    }
+
+    void setOssBucket(String ossBucket) {
+        this.ossBucket = ossBucket;
+    }
+
+    @Deprecated
     void setTempDirectory(String tempDirectory) {
         this.tempDirectory = tempDirectory;
     }
@@ -352,7 +392,7 @@ public class UploadSession {
 
     @Override
     public String toString() {
-        return String.format("UploadSession[id=%s, file=%s, chunks=%d/%d, status=%s, progress=%d%%]",
-            uploadId, fileName, uploadedChunks, totalChunks, status, getProgressPercentage());
+        return String.format("UploadSession[id=%s, file=%s, chunks=%d/%d, status=%s, progress=%d%%, bucket=%s]",
+            uploadId, fileName, uploadedChunks, totalChunks, status, getProgressPercentage(), ossBucket);
     }
 }
