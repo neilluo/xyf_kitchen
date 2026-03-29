@@ -3,6 +3,7 @@ package com.grace.platform.storage.infrastructure.ali;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
 import com.aliyun.oss.common.utils.BinaryUtil;
+import com.aliyun.oss.model.PutObjectRequest;
 import com.grace.platform.storage.domain.OssStorageService;
 import com.grace.platform.storage.domain.StsCredentials;
 import com.grace.platform.shared.ErrorCode;
@@ -14,10 +15,12 @@ import org.springframework.stereotype.Component;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.Signature;
@@ -65,6 +68,50 @@ public class AliOssStorageServiceImpl implements OssStorageService {
                 ErrorCode.INFRA_CONFIG_ERROR,
                 "OSS",
                 "Failed to initialize OSS client: " + e.getMessage()
+            );
+        }
+    }
+
+    @Override
+    public String uploadFile(Path localFile, String objectKey) {
+        logger.info("Uploading file to OSS: {} -> {}", localFile, objectKey);
+
+        if (localFile == null || !localFile.toFile().exists()) {
+            logger.error("Local file does not exist: {}", localFile);
+            throw new ExternalServiceException(
+                ErrorCode.FILE_OPERATION_ERROR,
+                "OSS",
+                "Local file does not exist: " + localFile
+            );
+        }
+
+        if (objectKey == null || objectKey.isBlank()) {
+            logger.error("Object key is blank");
+            throw new ExternalServiceException(
+                ErrorCode.INTERNAL_SERVER_ERROR,
+                "OSS",
+                "Object key must not be blank"
+            );
+        }
+
+        try {
+            File file = localFile.toFile();
+            PutObjectRequest putRequest = new PutObjectRequest(
+                ossProperties.getBucket(),
+                objectKey,
+                file
+            );
+            ossClient.putObject(putRequest);
+
+            logger.info("File uploaded successfully to OSS: {} (size: {} bytes)", objectKey, file.length());
+            return objectKey;
+
+        } catch (Exception e) {
+            logger.error("Failed to upload file to OSS: {} -> {}", localFile, objectKey, e);
+            throw new ExternalServiceException(
+                ErrorCode.PLATFORM_API_ERROR,
+                "OSS",
+                "Failed to upload file: " + e.getMessage()
             );
         }
     }

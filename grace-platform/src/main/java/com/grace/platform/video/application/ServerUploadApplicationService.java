@@ -5,6 +5,7 @@ import com.grace.platform.shared.domain.DomainEventPublisher;
 import com.grace.platform.shared.domain.id.VideoId;
 import com.grace.platform.shared.infrastructure.exception.BusinessRuleViolationException;
 import com.grace.platform.shared.infrastructure.exception.EntityNotFoundException;
+import com.grace.platform.storage.domain.OssStorageService;
 import com.grace.platform.storage.domain.StorageProvider;
 import com.grace.platform.video.application.command.ServerUploadInitCommand;
 import com.grace.platform.video.application.dto.ServerChunkUploadDTO;
@@ -25,6 +26,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 @Service
@@ -33,10 +35,13 @@ public class ServerUploadApplicationService {
 
     private static final Logger logger = LoggerFactory.getLogger(ServerUploadApplicationService.class);
 
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
+
     private final VideoRepository videoRepository;
     private final UploadSessionRepository uploadSessionRepository;
     private final ChunkMergeService chunkMergeService;
     private final VideoFileInspector videoFileInspector;
+    private final OssStorageService ossStorageService;
     private final DomainEventPublisher eventPublisher;
 
     private final long defaultChunkSize;
@@ -47,6 +52,7 @@ public class ServerUploadApplicationService {
             UploadSessionRepository uploadSessionRepository,
             ChunkMergeService chunkMergeService,
             VideoFileInspector videoFileInspector,
+            OssStorageService ossStorageService,
             DomainEventPublisher eventPublisher,
             @Value("${grace.upload.chunk-size:16777216}") long defaultChunkSize,
             @Value("${grace.upload.temp-dir:./data/temp}") String tempBaseDir) {
@@ -54,6 +60,7 @@ public class ServerUploadApplicationService {
         this.uploadSessionRepository = uploadSessionRepository;
         this.chunkMergeService = chunkMergeService;
         this.videoFileInspector = videoFileInspector;
+        this.ossStorageService = ossStorageService;
         this.eventPublisher = eventPublisher;
         this.defaultChunkSize = defaultChunkSize;
         this.tempBaseDir = tempBaseDir;
@@ -204,13 +211,17 @@ public class ServerUploadApplicationService {
 
         VideoFileInfo fileInfo = videoFileInspector.inspect(mergedFile);
 
+        String storageKey = generateStorageKey(session);
+        ossStorageService.uploadFile(mergedFile, storageKey);
+        String storageUrl = ossStorageService.buildObjectUrl(storageKey);
+
         Video video = Video.createWithStorageUrl(
             session.getFileName(),
             session.getFileSize(),
             session.getFormat(),
             fileInfo.duration(),
-            null,
-            StorageProvider.LOCAL
+            storageUrl,
+            StorageProvider.OSS
         );
 
         videoRepository.save(video);
@@ -228,7 +239,7 @@ public class ServerUploadApplicationService {
         );
         eventPublisher.publish(event);
 
-        logger.info("Server upload completed for video: {}", video.getId());
+        logger.info("Server upload completed for video: {} (OSS: {})", video.getId(), storageUrl);
 
         return new ServerUploadCompleteDTO(
             video.getId().value(),
@@ -240,6 +251,24 @@ public class ServerUploadApplicationService {
             video.getStorageUrl(),
             video.getCreatedAt()
         );
+    }
+
+    private String generateStorageKey(UploadSession session) {
+        String datePrefix = LocalDateTime.now().format(DATE_FORMATTER);
+        String uuid = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        String extension = getFileExtension(session.getFileName());
+        return String.format("videos/%s/%s_%s.%s", datePrefix, session.getUploadId(), uuid, extension);
+    }
+
+    private String getFileExtension(String fileName) {
+        if (fileName == null || fileName.isBlank()) {
+            return "mp4";
+        }
+        int lastDot = fileName.lastIndexOf('.');
+        if (lastDot > 0 && lastDot < fileName.length() - 1) {
+            return fileName.substring(lastDot + 1).toLowerCase();
+        }
+        return "mp4";
     }
 
     private String generateUploadId() {
