@@ -15,7 +15,7 @@
     <!-- 根据 uploadId 查询上传会话 -->
     <select id="findById" resultMap="uploadSessionResultMap">
         SELECT upload_id, file_name, file_size, format, total_chunks, uploaded_chunks,
-               temp_directory, status, created_at, expires_at
+               temp_directory, storage_key, oss_bucket, status, created_at, expires_at
         FROM upload_session
         WHERE upload_id = #{uploadId}
     </select>
@@ -23,7 +23,7 @@
     <!-- 插入新上传会话 -->
     <insert id="insert">
         INSERT INTO upload_session (upload_id, file_name, file_size, format, total_chunks, uploaded_chunks,
-                                    temp_directory, status, created_at, expires_at)
+                                    temp_directory, storage_key, oss_bucket, status, created_at, expires_at)
         VALUES (
             #{uploadId},
             #{fileName},
@@ -32,6 +32,8 @@
             #{totalChunks},
             #{uploadedChunks},
             #{tempDirectory},
+            #{storageKey},
+            #{ossBucket},
             #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
             #{createdAt},
             #{expiresAt}
@@ -47,6 +49,8 @@
             total_chunks = #{totalChunks},
             uploaded_chunks = #{uploadedChunks},
             temp_directory = #{tempDirectory},
+            storage_key = #{storageKey},
+            oss_bucket = #{ossBucket},
             status = #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
             created_at = #{createdAt},
             expires_at = #{expiresAt}

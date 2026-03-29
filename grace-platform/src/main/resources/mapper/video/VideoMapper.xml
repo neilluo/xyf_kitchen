@@ -12,18 +12,19 @@
         <result property="status" column="status" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
         <!-- duration_seconds 映射为 Duration，使用 DurationTypeHandler 转换 -->
         <result property="duration" column="duration_seconds" typeHandler="com.grace.platform.shared.infrastructure.persistence.typehandler.DurationTypeHandler"/>
+        <result property="storageProvider" column="storage_provider" typeHandler="com.grace.platform.shared.infrastructure.persistence.typehandler.StorageProviderTypeHandler"/>
     </resultMap>
 
     <!-- 根据 ID 查询视频 -->
     <select id="findById" resultMap="videoResultMap">
-        SELECT id, file_name, file_size, format, duration_seconds, file_path, status, created_at, updated_at
+        SELECT id, file_name, file_size, format, duration_seconds, file_path, storage_url, storage_provider, status, created_at, updated_at
         FROM video
         WHERE id = #{id}
     </select>
 
     <!-- 条件分页查询 -->
     <select id="findByCondition" resultMap="videoResultMap">
-        SELECT id, file_name, file_size, format, duration_seconds, file_path, status, created_at, updated_at
+        SELECT id, file_name, file_size, format, duration_seconds, file_path, storage_url, storage_provider, status, created_at, updated_at
         FROM video
         <where>
             <if test="status != null and status != ''">
@@ -88,7 +89,7 @@
 
     <!-- 查询最近创建的 5 条视频 -->
     <select id="findTop5ByCreatedAtDesc" resultMap="videoResultMap">
-        SELECT id, file_name, file_size, format, duration_seconds, file_path, status, created_at, updated_at
+        SELECT id, file_name, file_size, format, duration_seconds, file_path, storage_url, storage_provider, status, created_at, updated_at
         FROM video
         ORDER BY created_at DESC
         LIMIT 5
@@ -96,7 +97,7 @@
 
     <!-- 插入新视频 -->
     <insert id="insert" useGeneratedKeys="false" keyProperty="id">
-        INSERT INTO video (id, file_name, file_size, format, duration_seconds, file_path, status, created_at, updated_at)
+        INSERT INTO video (id, file_name, file_size, format, duration_seconds, file_path, storage_url, storage_provider, status, created_at, updated_at)
         VALUES (
             #{id, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.VideoIdTypeHandler},
             #{fileName},
@@ -104,6 +105,8 @@
             #{format, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
             #{duration, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.DurationTypeHandler},
             #{filePath},
+            #{storageUrl},
+            #{storageProvider, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.StorageProviderTypeHandler},
             #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
             #{createdAt},
             #{updatedAt}
@@ -118,6 +121,8 @@
             format = #{format, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
             duration_seconds = #{duration, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.DurationTypeHandler},
             file_path = #{filePath},
+            storage_url = #{storageUrl},
+            storage_provider = #{storageProvider, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.StorageProviderTypeHandler},
             status = #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
             updated_at = #{updatedAt}
         WHERE id = #{id, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.VideoIdTypeHandler}
