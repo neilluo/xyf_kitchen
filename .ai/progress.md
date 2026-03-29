@@ -3,6 +3,7 @@
 | 时间 | 任务 ID | 状态 | 备注 |
 |------|---------|------|------|
 | 2026-03-29 20:05 | P14-02 | 完成 | 创建服务端上传应用服务 - ServerUploadApplicationService(initUpload/uploadChunk/completeUpload)/ServerUploadInitDTO/ServerChunkUploadDTO/ServerUploadCompleteDTO/ServerUploadInitCommand - 验证通过 (mvn clean compile) |
+| 2026-03-29 20:55 | P14-03 | 完成 | 创建服务端上传控制器 - ServerUploadController(3端点)/ServerUploadInitRequest/ServerUploadInitResponse/ServerChunkUploadRequest/ServerChunkUploadResponse/ServerUploadCompleteResponse - API路径/api/videos/upload/server/* - 验证通过 (mvn clean compile) |
 | 2026-03-29 20:00 | P13-10 | 完成 | 前端OSS直传上传 - storage.ts(STS凭证API)/useOssUpload.ts(ali-oss SDK分片上传+STS刷新+视频状态轮询)/VideoUploadPage.tsx重写/useUpload.ts删除/video.ts类型更新(StsCredentials+UploadSession)/安装ali-oss依赖 - 验证通过 (npm run lint + npx tsc --noEmit) |
 | 2026-03-29 19:50 | P14-01 | 完成 | 恢复 ChunkMergeService 及相关代码 - 从 Git 历史 d648f10 提交恢复 ChunkMergeService 接口/ChunkMergeServiceImpl 实现/ChunkUploadDTO DTO - 验证通过 (mvn clean compile) |
 | 2026-03-29 19:28 | P13-09 | 完成 | 数据库迁移脚本 - V7 migration: video表添加storage_url/storage_provider/upload_session表添加storage_key/oss_bucket/向后兼容保留file_path/temp_directory字段/修复测试文件编译错误(VideoIntegrationTest/DistributionPropertyTest/DistributionUnitTest/DistributionIntegrationTest) - 验证通过 (mvn clean compile + 123 tests) |
