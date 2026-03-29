@@ -8,6 +8,7 @@
 
 ## 踩坑记录
 
+- **【最关键】每次会话必须强制读取项目 AGENTS.md** — 不同项目有不同流程规范，必须遵守项目定义的规则，不能依赖默认行为
 - domain 层不能引入 Spring 注解 — `@Service`/`@Autowired` 放 infrastructure 或 application 层
 - 组件不能直接调用 axios — 必须走 `src/api/` → `src/hooks/` → 组件链路
 - 禁止第三方 UI 库 — 所有 UI 组件自建于 `src/components/ui/`
