@@ -1,5 +1,7 @@
 package com.grace.platform.video.infrastructure.file;
 
+import com.grace.platform.shared.ErrorCode;
+import com.grace.platform.shared.infrastructure.exception.BusinessRuleViolationException;
 import com.grace.platform.video.domain.VideoFileInfo;
 import com.grace.platform.video.domain.VideoFileInspector;
 import com.grace.platform.video.domain.VideoFormat;
@@ -75,8 +77,7 @@ public class VideoFileInspectorImpl implements VideoFileInspector {
         try {
             return VideoFormat.valueOf(extension);
         } catch (IllegalArgumentException e) {
-            logger.warn("Unknown video format extension: {}, defaulting to MP4", extension);
-            return VideoFormat.MP4;
+            throw new BusinessRuleViolationException(ErrorCode.UNSUPPORTED_VIDEO_FORMAT, extension);
         }
     }
 

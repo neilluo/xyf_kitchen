@@ -46,5 +46,6 @@ public final class ErrorCode {
     public static final int LLM_SERVICE_UNAVAILABLE        = 9001;
     public static final int OPENCRAWL_EXECUTION_FAILED     = 9002;
     public static final int ENCRYPTION_ERROR               = 9003;
+    public static final int FILE_OPERATION_ERROR           = 9004;
     public static final int INTERNAL_SERVER_ERROR          = 9999;
 }

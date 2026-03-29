@@ -1,5 +1,6 @@
 package com.grace.platform.video.infrastructure.file;
 
+import com.grace.platform.shared.infrastructure.exception.FileOperationException;
 import com.grace.platform.video.domain.ChunkMergeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +62,7 @@ public class ChunkMergeServiceImpl implements ChunkMergeService {
 
             if (!Files.exists(chunkFile)) {
                 logger.error("Chunk file not found: {}", chunkFile);
-                throw new RuntimeException("Chunk file not found: " + chunkFile);
+                throw new FileOperationException("Chunk file not found: " + chunkFile);
             }
 
                 appendChunk(targetChannel, chunkFile, buffer);
@@ -80,7 +81,7 @@ public class ChunkMergeServiceImpl implements ChunkMergeService {
 
         } catch (IOException e) {
             logger.error("Failed to merge chunks to: {}", targetFile, e);
-            throw new RuntimeException("Failed to merge chunks: " + e.getMessage(), e);
+            throw new FileOperationException("Failed to merge chunks: " + e.getMessage(), e);
         }
     }
 
@@ -93,11 +94,11 @@ public class ChunkMergeServiceImpl implements ChunkMergeService {
     private void validateTempDirectory(Path tempDirectory) {
         if (!Files.exists(tempDirectory)) {
             logger.error("Temp directory does not exist: {}", tempDirectory);
-            throw new RuntimeException("Temp directory does not exist: " + tempDirectory);
+            throw new FileOperationException("Temp directory does not exist: " + tempDirectory);
         }
         if (!Files.isDirectory(tempDirectory)) {
             logger.error("Path is not a directory: {}", tempDirectory);
-            throw new RuntimeException("Path is not a directory: " + tempDirectory);
+            throw new FileOperationException("Path is not a directory: " + tempDirectory);
         }
     }
 
@@ -113,7 +114,7 @@ public class ChunkMergeServiceImpl implements ChunkMergeService {
             Path chunkFile = tempDirectory.resolve("chunk_" + i);
             if (!Files.exists(chunkFile)) {
                 logger.error("Missing chunk file: {}", chunkFile);
-                throw new RuntimeException("Missing chunk file: " + chunkFile);
+                throw new FileOperationException("Missing chunk file: " + chunkFile);
             }
         }
         logger.debug("All {} chunks validated in {}", totalChunks, tempDirectory);
