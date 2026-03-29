@@ -31,3 +31,4 @@
 
 - 当前环境使用 Java 17，项目需 Java 21 — 临时降级 POM 到 Java 17 验证编译，后续需升级回 Java 21
 - 2026-03-27: 尝试升级 POM 到 Java 21 失败，环境仅支持 Java 17 — 保持 Java 17 配置，Record Patterns 等 preview features 暂不可用
+- **orchestrator 位置** — `~/Desktop/xyf_kitchen/orchestrator/` 是自动化任务编排工具，用于自动运行 Phase 任务并更新 progress.md，使用 `python3 -m orchestrator --help` 查看用法
