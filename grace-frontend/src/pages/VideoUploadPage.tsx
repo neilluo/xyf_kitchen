@@ -2,17 +2,15 @@ import { useState, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '@/components/ui/Icon'
 import { ProgressBar } from '@/components/ui/ProgressBar'
-import { useInitUpload, useUploadChunk, useCompleteUpload, calculateUploadSpeed, estimateRemainingTime, getVideoFormat } from '@/hooks/useUpload'
+import { useOssUpload } from '@/hooks/useOssUpload'
 import { useVideoList } from '@/hooks/useVideos'
 import { useAppStore } from '@/store/useAppStore'
 import { formatFileSize } from '@/utils/format'
 import { ROUTES } from '@/utils/constants'
 import type { VideoStatus, Video } from '@/types/video'
 
-// Supported video formats
 const SUPPORTED_FORMATS = ['mp4', 'mov', 'avi', 'mkv']
-const MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024 // 5GB in bytes
-const MAX_RETRY_ATTEMPTS = 3
+const MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024
 
 interface ValidationError {
   message: string
@@ -39,20 +37,6 @@ function validateFile(file: File): ValidationError | null {
   return null
 }
 
-// Uploading file state
-interface UploadingFile {
-  file: File
-  uploadId: string | null
-  progress: number
-  uploadedChunks: number
-  totalChunks: number
-  speed: number // bytes per second
-  estimatedTime: number // seconds
-  status: 'initializing' | 'uploading' | 'completing' | 'completed' | 'error'
-  error: string | null
-}
-
-// Completed upload state
 interface CompletedUpload {
   videoId: string
   fileName: string
@@ -60,7 +44,6 @@ interface CompletedUpload {
   completedAt: Date
   status: VideoStatus
   thumbnailUrl?: string
-  publishRecords?: { platform: string; status: string }[]
 }
 
 const statusTextMap: Record<VideoStatus, string> = {
@@ -221,11 +204,17 @@ function ValidationErrorToast({ error, onClose }: ValidationErrorToastProps) {
 }
 
 interface UploadProgressCardProps {
-  upload: UploadingFile
+  fileName: string
+  fileSize: number
+  progress: number
+  speed: number
+  estimatedTime: number
+  status: 'initializing' | 'uploading' | 'completing' | 'completed' | 'error'
+  error: Error | null
   onCancel: () => void
 }
 
-function UploadProgressCard({ upload, onCancel }: UploadProgressCardProps) {
+function UploadProgressCard({ fileName, fileSize, progress, speed, estimatedTime, status, error, onCancel }: UploadProgressCardProps) {
   const formatSpeed = (bytesPerSecond: number): string => {
     if (bytesPerSecond < 1024) return `${bytesPerSecond.toFixed(0)} B/s`
     if (bytesPerSecond < 1024 * 1024) return `${(bytesPerSecond / 1024).toFixed(1)} KB/s`
@@ -240,6 +229,14 @@ function UploadProgressCard({ upload, onCancel }: UploadProgressCardProps) {
     return `${hours} 小时 ${mins} 分钟`
   }
 
+  const statusText = status === 'initializing'
+    ? '正在初始化...'
+    : status === 'completing'
+    ? '正在完成上传...'
+    : status === 'error'
+    ? error?.message ?? '上传失败'
+    : `上传速度: ${formatSpeed(speed)} | 约 ${formatTime(estimatedTime)}`
+
   return (
     <div className="bg-surface-container-lowest p-6 rounded-xl transition-all duration-300">
       <div className="flex items-start gap-4">
@@ -249,8 +246,8 @@ function UploadProgressCard({ upload, onCancel }: UploadProgressCardProps) {
         <div className="flex-1">
           <div className="flex justify-between items-start mb-2">
             <div>
-              <h4 className="font-semibold text-on-surface">{upload.file.name}</h4>
-              <p className="text-xs text-slate-500 mt-1">{formatFileSize(upload.file.size)}</p>
+              <h4 className="font-semibold text-on-surface">{fileName}</h4>
+              <p className="text-xs text-slate-500 mt-1">{formatFileSize(fileSize)}</p>
             </div>
             <button
               onClick={onCancel}
@@ -262,19 +259,15 @@ function UploadProgressCard({ upload, onCancel }: UploadProgressCardProps) {
           </div>
 
           <div className="mt-4">
-            <ProgressBar progress={upload.progress} />
+            <ProgressBar progress={progress} />
           </div>
 
           <div className="flex justify-between items-center mt-3">
             <span className="text-xs text-slate-500 flex items-center gap-1">
               <Icon name="speed" size={14} />
-              {upload.status === 'initializing'
-                ? '正在初始化...'
-                : upload.status === 'completing'
-                ? '正在完成上传...'
-                : `上传速度: ${formatSpeed(upload.speed)} | 约 ${formatTime(upload.estimatedTime)}`}
+              {statusText}
             </span>
-            <span className="text-sm font-bold text-primary">{Math.round(upload.progress)}%</span>
+            <span className="text-sm font-bold text-primary">{Math.round(progress)}%</span>
           </div>
         </div>
       </div>
@@ -342,7 +335,7 @@ interface HistoryRecordItemProps {
 
 function HistoryRecordItem({ video }: HistoryRecordItemProps) {
   const isPublished = video.status === 'PUBLISHED' || video.status === 'PROMOTION_DONE'
-  
+
   return (
     <div className="bg-surface-container-lowest p-5 rounded-xl flex items-center gap-4 group hover:bg-surface-bright transition-all opacity-80">
       <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500">
@@ -411,186 +404,51 @@ function EditorialTipCards() {
 export function VideoUploadPage() {
   const navigate = useNavigate()
   const [validationError, setValidationError] = useState<ValidationError | null>(null)
-  const [uploadingFile, setUploadingFile] = useState<UploadingFile | null>(null)
   const [completedUploads, setCompletedUploads] = useState<CompletedUpload[]>([])
-  const uploadAbortRef = useRef<boolean>(false)
-  const startTimeRef = useRef<number>(0)
+  const [isUploading, setIsUploading] = useState(false)
 
   const { addToast } = useAppStore()
-
-  const initUploadMutation = useInitUpload()
-  const uploadChunkMutation = useUploadChunk()
-  const completeUploadMutation = useCompleteUpload()
-
+  const { uploadState, uploadFile, cancelUpload, resetState } = useOssUpload()
   const { data: videoListData } = useVideoList({ pageSize: 5, sort: 'createdAt', order: 'desc' })
-
-  const uploadChunkWithRetry = useCallback(
-    async (uploadId: string, chunkIndex: number, chunk: Blob): Promise<void> => {
-      let attempts = 0
-
-      while (attempts < MAX_RETRY_ATTEMPTS) {
-        if (uploadAbortRef.current) {
-          throw new Error('Upload cancelled')
-        }
-
-        try {
-          await uploadChunkMutation.mutateAsync({ uploadId, chunkIndex, chunk })
-          return
-        } catch (error) {
-          attempts++
-          if (attempts >= MAX_RETRY_ATTEMPTS) {
-            throw error
-          }
-          await new Promise((resolve) => setTimeout(resolve, 1000 * attempts))
-        }
-      }
-    },
-    [uploadChunkMutation]
-  )
 
   const handleUpload = useCallback(
     async (file: File) => {
-      uploadAbortRef.current = false
-      startTimeRef.current = Date.now()
-
+      setIsUploading(true)
       try {
-        const format = getVideoFormat(file.name)
-
-        setUploadingFile({
-          file,
-          uploadId: null,
-          progress: 0,
-          uploadedChunks: 0,
-          totalChunks: 0,
-          speed: 0,
-          estimatedTime: 0,
-          status: 'initializing',
-          error: null,
-        })
-
-        // Step 1: Initialize upload
-        const initResponse = await initUploadMutation.mutateAsync({
-          fileName: file.name,
-          fileSize: file.size,
-          format,
-        })
-
-        if (uploadAbortRef.current) return
-
-        const { uploadId, totalChunks, chunkSize } = initResponse
-
-        setUploadingFile((prev) =>
-          prev
-            ? {
-                ...prev,
-                uploadId,
-                totalChunks,
-                status: 'uploading',
-              }
-            : null
-        )
-
-        // Step 2: Upload chunks
-        for (let i = 0; i < totalChunks; i++) {
-          if (uploadAbortRef.current) {
-            throw new Error('Upload cancelled')
-          }
-
-          const start = i * chunkSize
-          const end = Math.min(start + chunkSize, file.size)
-          const chunk = file.slice(start, end)
-
-          await uploadChunkWithRetry(uploadId, i, chunk)
-
-          const uploadedChunks = i + 1
-          const progress = (uploadedChunks / totalChunks) * 100
-          const elapsedMs = Date.now() - startTimeRef.current
-          const uploadedBytes = uploadedChunks * chunkSize
-          const speed = calculateUploadSpeed(uploadedBytes, elapsedMs)
-          const remainingBytes = file.size - uploadedBytes
-          const estimatedTime = estimateRemainingTime(remainingBytes, speed)
-
-          setUploadingFile((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  uploadedChunks,
-                  progress,
-                  speed,
-                  estimatedTime,
-                }
-              : null
-          )
-        }
-
-        if (uploadAbortRef.current) return
-
-        // Step 3: Complete upload
-        setUploadingFile((prev) =>
-          prev
-            ? {
-                ...prev,
-                status: 'completing',
-              }
-            : null
-        )
-
-        const completeResponse = await completeUploadMutation.mutateAsync(uploadId)
-
-        setUploadingFile((prev) =>
-          prev
-            ? {
-                ...prev,
-                progress: 100,
-                status: 'completed',
-              }
-            : null
-        )
-
-        // Add to completed uploads
+        const result = await uploadFile(file)
         setCompletedUploads((prev) => [
           {
-            videoId: completeResponse.videoId,
-            fileName: completeResponse.fileName,
-            fileSize: completeResponse.fileSize,
+            videoId: result.videoId,
+            fileName: result.fileName,
+            fileSize: file.size,
             completedAt: new Date(),
-            status: completeResponse.status,
+            status: uploadState.videoStatus ?? 'UPLOADED',
           },
           ...prev,
         ])
-
         addToast({
           type: 'success',
-          message: `「${completeResponse.fileName}」上传成功`,
+          message: `「${result.fileName}」上传成功`,
         })
-
-        // Clear uploading file after a delay
         setTimeout(() => {
-          setUploadingFile(null)
+          resetState()
+          setIsUploading(false)
         }, 2000)
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : '上传失败'
-        setUploadingFile((prev) =>
-          prev
-            ? {
-                ...prev,
-                status: 'error',
-                error: errorMessage,
-              }
-            : null
-        )
         addToast({
           type: 'error',
           message: errorMessage,
         })
+        setIsUploading(false)
       }
     },
-    [initUploadMutation, uploadChunkWithRetry, completeUploadMutation, addToast]
+    [uploadFile, uploadState.videoStatus, addToast, resetState]
   )
 
   const handleFileSelect = useCallback(
     (file: File) => {
-      if (uploadingFile && uploadingFile.status !== 'completed' && uploadingFile.status !== 'error') {
+      if (isUploading) {
         addToast({
           type: 'info',
           message: '请等待当前上传完成',
@@ -599,7 +457,7 @@ export function VideoUploadPage() {
       }
       handleUpload(file)
     },
-    [handleUpload, uploadingFile, addToast]
+    [handleUpload, isUploading, addToast]
   )
 
   const handleValidationError = useCallback(
@@ -615,13 +473,13 @@ export function VideoUploadPage() {
   }, [])
 
   const handleCancelUpload = useCallback(() => {
-    uploadAbortRef.current = true
-    setUploadingFile(null)
+    cancelUpload()
+    setIsUploading(false)
     addToast({
       type: 'info',
       message: '上传已取消',
     })
-  }, [addToast])
+  }, [cancelUpload, addToast])
 
   const handleReviewMetadata = useCallback(
     (videoId: string) => {
@@ -630,11 +488,13 @@ export function VideoUploadPage() {
     [navigate]
   )
 
-  const isUploading = uploadingFile && uploadingFile.status !== 'completed' && uploadingFile.status !== 'error'
+  const showProgress =
+    uploadState.status !== 'idle' &&
+    uploadState.status !== 'completed' &&
+    uploadState.status !== 'error'
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
-      {/* Page Header */}
       <div className="mb-12">
         <h1 className="font-headline text-[2.75rem] font-bold text-on-surface tracking-tight">
           发布您的佳作
@@ -644,30 +504,33 @@ export function VideoUploadPage() {
         </p>
       </div>
 
-      {/* Upload Area Section */}
       <section className="bg-surface-container-lowest rounded-xl p-4 mb-8">
         <DropZone
           onFileSelect={handleFileSelect}
           onValidationError={handleValidationError}
-          disabled={!!isUploading}
+          disabled={isUploading}
         />
       </section>
 
-      {/* Upload Progress Section */}
-      {uploadingFile && (
+      {showProgress && (
         <section className="mb-12">
           <h3 className="font-headline text-lg font-bold mb-4 flex items-center gap-2">
             <span className="w-2 h-2 bg-primary rounded-full" />
             正在上传 (1)
           </h3>
           <UploadProgressCard
-            upload={uploadingFile}
+            fileName={uploadState.fileName}
+            fileSize={uploadState.fileSize}
+            progress={uploadState.progress}
+            speed={uploadState.speed}
+            estimatedTime={uploadState.estimatedTime}
+            status={uploadState.status}
+            error={uploadState.error}
             onCancel={handleCancelUpload}
           />
         </section>
       )}
 
-      {/* Completed Uploads Section */}
       {(completedUploads.length > 0 || (videoListData?.items && videoListData.items.length > 0)) && (
         <section className="mb-12">
           <h3 className="font-headline text-lg font-bold mb-4 flex items-center gap-2">
@@ -692,10 +555,8 @@ export function VideoUploadPage() {
         </section>
       )}
 
-      {/* Editorial Tip Cards */}
       <EditorialTipCards />
 
-      {/* Validation Error Toast */}
       <ValidationErrorToast error={validationError} onClose={handleCloseError} />
     </div>
   )
