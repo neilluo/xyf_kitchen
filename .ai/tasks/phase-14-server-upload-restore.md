@@ -6,7 +6,7 @@
 
 ## 进度统计
 
-- [x] 共 6 个任务，已完成 2/6
+- [x] 共 6 个任务，已完成 3/6
 
 ---
 
@@ -97,7 +97,7 @@
   - `video.interfaces.dto.response.ServerUploadCompleteResponse`
 - **验证命令**: `mvn clean compile`
 - **依赖**: P14-02
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**:
   - API 路径：`/api/videos/upload/server/*`
   - 与原有前端上传 API 区分
