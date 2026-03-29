@@ -10,10 +10,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { icon: 'dashboard', label: '仪表盘', path: '/' },
   { icon: 'video_library', label: '视频管理', path: '/videos' },
-  { icon: 'fact_check', label: '元数据审核', path: '/videos/metadata' },
-  { icon: 'publish', label: '视频发布', path: '/videos/distribute' },
-  { icon: 'alt_route', label: '推广渠道', path: '/promotions' },
-  { icon: 'task', label: '推广任务', path: '/promotions/tasks' },
+  { icon: 'history', label: '推广历史', path: '/promotions' },
   { icon: 'settings', label: '设置', path: '/settings' },
 ]
 
@@ -55,21 +52,6 @@ export function Sidebar() {
           )
         })}
       </nav>
-
-      {/* Bottom Settings */}
-      <div className="py-4 px-6 border-t border-white/10">
-        <NavLink
-          to="/settings"
-          className={`flex items-center gap-3 text-sm font-body transition-colors ${
-            isActive('/settings')
-              ? 'text-blue-400'
-              : 'text-slate-400 hover:text-white'
-          }`}
-        >
-          <Icon name="settings" size={20} />
-          <span>设置</span>
-        </NavLink>
-      </div>
     </aside>
   )
 }
