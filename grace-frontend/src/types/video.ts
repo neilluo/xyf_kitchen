@@ -14,10 +14,6 @@ export type VideoStatus =
   | 'PUBLISH_FAILED'
   | 'PROMOTION_DONE'
 
-// 上传会话状态
-export type UploadSessionStatus = 'ACTIVE' | 'COMPLETED' | 'EXPIRED'
-
-// 视频列表
 export interface Video {
   videoId: string
   fileName: string
@@ -38,50 +34,30 @@ export interface VideoDetail extends Video {
   publishRecords: PublishRecord[]
 }
 
-// 上传会话
+// STS 临时凭证
+export interface StsCredentials {
+  accessKeyId: string
+  accessKeySecret: string
+  securityToken: string
+  region: string
+  expiration: string
+}
+
+// 上传会话（OSS 直传）
 export interface UploadSession {
   uploadId: string
-  totalChunks: number
-  chunkSize: number
+  storageKey: string
+  ossBucket: string
+  stsCredentials: StsCredentials
   expiresAt: string
 }
 
-// 上传进度
-export interface UploadProgress {
-  uploadId: string
-  uploadedChunks: number
-  totalChunks: number
-  progressPercent: number
-  status: UploadSessionStatus
-}
-
-// 初始化上传请求
 export interface InitUploadRequest {
   fileName: string
   fileSize: number
   format: VideoFormat
 }
 
-// 上传分片响应
-export interface UploadChunkResponse {
-  uploadId: string
-  chunkIndex: number
-  uploadedChunks: number
-  totalChunks: number
-}
-
-// 完成上传响应
-export interface CompleteUploadResponse {
-  videoId: string
-  fileName: string
-  fileSize: number
-  format: VideoFormat
-  duration: string
-  status: VideoStatus
-  createdAt: string
-}
-
-// 视频列表查询参数
 export interface VideoListParams {
   page?: number
   pageSize?: number
