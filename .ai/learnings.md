@@ -18,6 +18,10 @@
 - **文档先行但必须基于现有代码** — 外部教程仅供参考，接口定义以项目代码为准
 - **禁止重复造轮子** — 添加新类前检查是否已有类似功能，避免代码库膨胀（如 YouTubeConfig vs YouTubeProperties）
 - **保持架构一致性** — 新功能必须遵循现有设计模式，不能另起炉灶（如 OAuthService 已有接口，不要创建新的）
+- **Repository save 方法避免数据库查询判断** — 使用领域对象状态（如 createdAt.equals(updatedAt)）判断新旧，减少数据库往返
+- **禁止 RuntimeException** — 所有异常必须使用领域异常体系（BusinessException/InfrastructureException/EntityNotFoundException）
+- **预生成 ID 的实体不能通过 id == null 判断新旧** — 需要在领域层设计判断逻辑（如时间戳比较）
+- **异常类要内聚到 shared 模块** — FileOperationException/EncryptionException 等复用异常统一放在 shared.infrastructure.exception
 
 ## 文档澄清
 
