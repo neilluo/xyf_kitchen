@@ -6,7 +6,7 @@
 
 ## 进度统计
 
-- [x] 共 8 个任务，已完成 8/8
+- [x] 共 10 个任务，已完成 10/10
 
 ---
 
@@ -190,7 +190,7 @@
   - `src/main/resources/db/migration/V7__migrate_to_oss_storage.sql`
 - **验证命令**: `mvn flyway:migrate`
 - **依赖**: P13-04
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 
   - 存量数据：file_path → storage_url（手动迁移或保持兼容）
   - 新增字段：storage_provider, storage_key, oss_bucket
@@ -207,7 +207,7 @@
   - 删除 `src/hooks/useUpload.ts`（旧分片上传 hook）
 - **验证命令**: `cd grace-frontend && npm run lint && npx tsc --noEmit`
 - **依赖**: P13-03
-- **状态**: [ ]
+- **状态**: [x]
 - **注意**: 
   - 安装依赖：`npm install ali-oss`
   - 支持断点续传
