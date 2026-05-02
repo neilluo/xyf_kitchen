@@ -29,6 +29,7 @@ Thumbs.db
 # Storage (runtime data - root level only)
 /storage/
 logs/
+.pids/
 
 # OpenCode
 OpenCode.md
