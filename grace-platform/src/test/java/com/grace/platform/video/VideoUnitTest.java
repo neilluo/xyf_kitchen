@@ -418,4 +418,37 @@ class VideoUnitTest {
         ))
                 .isInstanceOf(BusinessRuleViolationException.class);
     }
+
+    // ========== METADATA_FAILED State Transitions ==========
+
+    @Test
+    @DisplayName("UPLOADED 应能转换到 METADATA_FAILED")
+    void uploaded_can_transit_to_metadata_failed() {
+        Video v = Video.createWithStorageUrl(
+                "test.mp4",
+                1000L,
+                VideoFormat.MP4,
+                Duration.ofSeconds(60),
+                "https://oss.example.com/test.mp4",
+                com.grace.platform.storage.domain.StorageProvider.OSS
+        );
+        v.transitionTo(com.grace.platform.video.domain.VideoStatus.METADATA_FAILED);
+        assertThat(v.getStatus()).isEqualTo(com.grace.platform.video.domain.VideoStatus.METADATA_FAILED);
+    }
+
+    @Test
+    @DisplayName("METADATA_FAILED 应能重试到 METADATA_GENERATED")
+    void metadata_failed_can_retry_to_metadata_generated() {
+        Video v = Video.createWithStorageUrl(
+                "test.mp4",
+                1000L,
+                VideoFormat.MP4,
+                Duration.ofSeconds(60),
+                "https://oss.example.com/test.mp4",
+                com.grace.platform.storage.domain.StorageProvider.OSS
+        );
+        v.transitionTo(com.grace.platform.video.domain.VideoStatus.METADATA_FAILED);
+        v.transitionTo(com.grace.platform.video.domain.VideoStatus.METADATA_GENERATED);
+        assertThat(v.getStatus()).isEqualTo(com.grace.platform.video.domain.VideoStatus.METADATA_GENERATED);
+    }
 }

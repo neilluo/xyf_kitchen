@@ -33,8 +33,10 @@ public class Video {
 
     static {
         Map<VideoStatus, Set<VideoStatus>> transitions = new HashMap<>();
-        // UPLOADED 可以转移到 METADATA_GENERATED
-        transitions.put(VideoStatus.UPLOADED, Set.of(VideoStatus.METADATA_GENERATED));
+        // UPLOADED 可以转移到 METADATA_GENERATED 或 METADATA_FAILED
+        transitions.put(VideoStatus.UPLOADED, Set.of(VideoStatus.METADATA_GENERATED, VideoStatus.METADATA_FAILED));
+        // METADATA_FAILED 可以转移到 METADATA_GENERATED（重试）
+        transitions.put(VideoStatus.METADATA_FAILED, Set.of(VideoStatus.METADATA_GENERATED));
         // METADATA_GENERATED 可以转移到 READY_TO_PUBLISH
         transitions.put(VideoStatus.METADATA_GENERATED, Set.of(VideoStatus.READY_TO_PUBLISH));
         // READY_TO_PUBLISH 可以转移到 PUBLISHING

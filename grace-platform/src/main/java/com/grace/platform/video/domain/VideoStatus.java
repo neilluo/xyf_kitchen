@@ -10,6 +10,7 @@ package com.grace.platform.video.domain;
  */
 public enum VideoStatus {
     UPLOADED,
+    METADATA_FAILED,
     METADATA_GENERATED,
     READY_TO_PUBLISH,
     PUBLISHING,
