@@ -1,5 +1,7 @@
 package com.grace.platform.distribution.infrastructure.youtube;
 
+import com.grace.platform.shared.infrastructure.log.DigestLogger;
+import com.grace.platform.shared.infrastructure.log.TraceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -20,6 +22,12 @@ public class YouTubeApiAdapterImpl implements YouTubeApiAdapter {
         logger.info("Starting YouTube video upload: title={}, storageUrl={}, privacy={}",
             title, storageUrl, privacyStatus);
 
+        String parentRpc = TraceContext.pushSpan();
+        long start = System.currentTimeMillis();
+        String status = "OK";
+        String errCode = "-";
+        String videoId = null;
+
         try {
             String metadataJson = buildVideoMetadataJson(title, description, tags, privacyStatus);
             logger.debug("Video metadata prepared: {}", metadataJson);
@@ -28,33 +36,55 @@ public class YouTubeApiAdapterImpl implements YouTubeApiAdapter {
             logger.info("Resumable upload session initiated: uploadUri={}", uploadUri);
 
             YouTubeUploadResult result = uploadVideoContentFromUrl(accessToken, uploadUri, storageUrl);
+            videoId = result.getVideoId();
 
             logger.info("YouTube video upload completed: videoId={}, status={}",
                 result.getVideoId(), result.getUploadStatus());
 
+            DigestLogger.youtube("uploadVideo", videoId,
+                System.currentTimeMillis() - start, status, errCode, null);
+
             return result;
 
         } catch (Exception e) {
-            logger.error("YouTube video upload failed: {}", e.getMessage(), e);
+            status = "FAIL";
+            errCode = e.getClass().getSimpleName();
+            DigestLogger.youtube("uploadVideo", videoId,
+                System.currentTimeMillis() - start, status, errCode, null);
             throw e;
+        } finally {
+            TraceContext.popSpan(parentRpc);
         }
     }
 
     @Override
     public YouTubeUploadProgress getUploadProgress(String accessToken, String uploadUri) {
         logger.info("Querying YouTube upload progress: uploadUri={}", uploadUri);
-
+    
+        String parentRpc = TraceContext.pushSpan();
+        long start = System.currentTimeMillis();
+        String status = "OK";
+        String errCode = "-";
+    
         try {
             YouTubeUploadProgress progress = queryUploadProgress(accessToken, uploadUri);
-
-            logger.debug("Upload progress: bytes={}/{}, percent={}%",
+    
+            logger.debug("Upload progress: bytes={}/{}, percent={}%%",
                 progress.bytesUploaded(), progress.totalBytes(), progress.getProgressPercent());
-
+    
+            DigestLogger.youtube("getUploadProgress", null,
+                System.currentTimeMillis() - start, status, errCode, null);
+    
             return progress;
-
+    
         } catch (Exception e) {
-            logger.error("Failed to query upload progress: {}", e.getMessage(), e);
+            status = "FAIL";
+            errCode = e.getClass().getSimpleName();
+            DigestLogger.youtube("getUploadProgress", null,
+                System.currentTimeMillis() - start, status, errCode, null);
             throw e;
+        } finally {
+            TraceContext.popSpan(parentRpc);
         }
     }
 
@@ -62,6 +92,12 @@ public class YouTubeApiAdapterImpl implements YouTubeApiAdapter {
     public YouTubeUploadResult resumeUpload(String accessToken, String uploadUri, String storageUrl) {
         logger.info("Resuming YouTube upload: uploadUri={}, storageUrl={}",
             uploadUri, storageUrl);
+
+        String parentRpc = TraceContext.pushSpan();
+        long start = System.currentTimeMillis();
+        String status = "OK";
+        String errCode = "-";
+        String videoId = null;
 
         try {
             YouTubeUploadProgress progress = getUploadProgress(accessToken, uploadUri);
@@ -75,15 +111,24 @@ public class YouTubeApiAdapterImpl implements YouTubeApiAdapter {
             logger.info("Resuming upload from byte position: {}", resumeFrom);
 
             YouTubeUploadResult result = resumeVideoUploadFromUrl(accessToken, uploadUri, storageUrl, resumeFrom);
+            videoId = result.getVideoId();
 
             logger.info("YouTube upload resumed successfully: videoId={}, status={}",
                 result.getVideoId(), result.getUploadStatus());
 
+            DigestLogger.youtube("resumeUpload", videoId,
+                System.currentTimeMillis() - start, status, errCode, null);
+
             return result;
 
         } catch (Exception e) {
-            logger.error("Failed to resume upload: {}", e.getMessage(), e);
+            status = "FAIL";
+            errCode = e.getClass().getSimpleName();
+            DigestLogger.youtube("resumeUpload", videoId,
+                System.currentTimeMillis() - start, status, errCode, null);
             throw e;
+        } finally {
+            TraceContext.popSpan(parentRpc);
         }
     }
 

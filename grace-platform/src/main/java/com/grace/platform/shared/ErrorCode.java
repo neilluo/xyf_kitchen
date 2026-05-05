@@ -43,8 +43,6 @@ public final class ErrorCode {
     public static final int API_KEY_NOT_FOUND              = 5002;
 
     // ===== 6001-6099: Storage Context =====
-    public static final int STS_TOKEN_GENERATION_FAILED    = 6001;
-    public static final int OSS_CALLBACK_INVALID           = 6002;
     public static final int OSS_OBJECT_NOT_FOUND           = 6003;
 
     // ===== 9001-9099: Infrastructure =====

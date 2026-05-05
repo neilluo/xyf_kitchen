@@ -155,7 +155,7 @@ grace-frontend/
 
 ```env
 # .env
-VITE_API_BASE_URL=http://localhost:8080/api
+VITE_API_BASE_URL=http://localhost:8000/api
 ```
 
 在代码中通过 `import.meta.env.VITE_API_BASE_URL` 访问。
@@ -173,7 +173,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:8000',
         changeOrigin: true,
       },
     },

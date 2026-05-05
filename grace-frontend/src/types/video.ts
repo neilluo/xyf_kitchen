@@ -34,30 +34,6 @@ export interface VideoDetail extends Video {
   publishRecords: PublishRecord[]
 }
 
-// STS 临时凭证
-export interface StsCredentials {
-  accessKeyId: string
-  accessKeySecret: string
-  securityToken: string
-  region: string
-  expiration: string
-}
-
-// 上传会话（OSS 直传）
-export interface UploadSession {
-  uploadId: string
-  storageKey: string
-  ossBucket: string
-  stsCredentials: StsCredentials
-  expiresAt: string
-}
-
-export interface InitUploadRequest {
-  fileName: string
-  fileSize: number
-  format: VideoFormat
-}
-
 export interface VideoListParams {
   page?: number
   pageSize?: number
@@ -68,8 +44,6 @@ export interface VideoListParams {
   sort?: string
   order?: 'asc' | 'desc'
 }
-
-export type UploadMode = 'DIRECT_OSS' | 'SERVER_UPLOAD'
 
 export interface ServerUploadSession {
   uploadId: string

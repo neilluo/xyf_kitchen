@@ -14,6 +14,8 @@ import com.grace.platform.promotion.domain.vo.PromotionCopy;
 import com.grace.platform.shared.ErrorCode;
 import com.grace.platform.shared.domain.id.ChannelId;
 import com.grace.platform.shared.infrastructure.exception.ExternalServiceException;
+import com.grace.platform.shared.infrastructure.log.DigestLogger;
+import com.grace.platform.shared.infrastructure.log.TraceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -133,41 +135,64 @@ public class PromotionCopyGenerationServiceImpl implements PromotionCopyGenerati
         log.debug("Generating promotion copy for channel: {}, video: {}",
             channel.getName(), metadata.getVideoId());
 
-        // 1. 根据 ChannelType 选择 Prompt 模板
-        String userPrompt = buildPrompt(channel.getType(), metadata, videoUrl);
+        String parentRpc = TraceContext.pushSpan();
+        long start = System.currentTimeMillis();
+        String status = "OK";
+        String errCode = "-";
+        String bizId = channel.getId().value();
 
-        // 2. 构建 LLM 请求
-        LlmRequest llmRequest = LlmRequest.textOnly(
-            model,
-            SYSTEM_PROMPT_TEMPLATE,
-            userPrompt,
-            temperature,
-            maxTokens
-        );
+        try {
+            // 1. 根据 ChannelType 选择 Prompt 模板
+            String userPrompt = buildPrompt(channel.getType(), metadata, videoUrl);
 
-        // 3. 调用 LLM
-        LlmResponse llmResponse = llmService.complete(llmRequest);
-        log.debug("LLM response received, tokens used: prompt={}, completion={}",
-            llmResponse.promptTokens(), llmResponse.completionTokens());
+            // 2. 构建 LLM 请求
+            LlmRequest llmRequest = LlmRequest.textOnly(
+                model,
+                SYSTEM_PROMPT_TEMPLATE,
+                userPrompt,
+                temperature,
+                maxTokens
+            );
 
-        // 4. 解析返回的 JSON
-        ParsedResult result = parseResponse(llmResponse.content());
+            // 3. 调用 LLM
+            LlmResponse llmResponse = llmService.complete(llmRequest);
+            log.debug("LLM response received, tokens used: prompt={}, completion={}",
+                llmResponse.promptTokens(), llmResponse.completionTokens());
 
-        // 5. 构建 PromotionCopy
-        PromotionCopy promotionCopy = new PromotionCopy(
-            channel.getId(),
-            channel.getName(),
-            channel.getType().name(),
-            result.title,
-            result.body,
-            result.method,
-            result.reason
-        );
+            // 4. 解析返回的 JSON
+            ParsedResult result = parseResponse(llmResponse.content());
 
-        log.info("Promotion copy generated successfully for channel: {}, method: {}",
-            channel.getName(), result.method);
+            // 5. 构建 PromotionCopy
+            PromotionCopy promotionCopy = new PromotionCopy(
+                channel.getId(),
+                channel.getName(),
+                channel.getType().name(),
+                result.title,
+                result.body,
+                result.method,
+                result.reason
+            );
 
-        return promotionCopy;
+            log.info("Promotion copy generated successfully for channel: {}, method: {}",
+                channel.getName(), result.method);
+
+            // LLM digest
+            DigestLogger.llm("generatePromotionCopy", model,
+                llmResponse.promptTokens() + llmResponse.completionTokens(),
+                System.currentTimeMillis() - start,
+                status, errCode, bizId);
+
+            return promotionCopy;
+        } catch (Exception e) {
+            status = "FAIL";
+            errCode = e.getClass().getSimpleName();
+            DigestLogger.llm("generatePromotionCopy", model,
+                0, System.currentTimeMillis() - start,
+                status, errCode, bizId);
+            throw e;
+        } finally {
+            TraceContext.popSpan(parentRpc);
+        }
     }
 
     /**

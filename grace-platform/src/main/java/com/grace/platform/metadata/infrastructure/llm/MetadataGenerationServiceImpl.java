@@ -8,6 +8,8 @@ import com.grace.platform.metadata.domain.MetadataSource;
 import com.grace.platform.metadata.domain.VideoMetadata;
 import com.grace.platform.shared.ErrorCode;
 import com.grace.platform.shared.infrastructure.exception.ExternalServiceException;
+import com.grace.platform.shared.infrastructure.log.DigestLogger;
+import com.grace.platform.shared.infrastructure.log.TraceContext;
 import com.grace.platform.video.domain.ImageFrame;
 import com.grace.platform.video.domain.VideoFileInfo;
 import com.grace.platform.video.domain.VideoFrameExtractor;
@@ -112,77 +114,121 @@ public class MetadataGenerationServiceImpl implements MetadataGenerationService 
     }
 
     @Override
-    public VideoMetadata generate(com.grace.platform.shared.domain.id.VideoId videoId, VideoFileInfo videoInfo, List<VideoMetadata> historicalMetadata) {
+    public VideoMetadata generate(VideoFileInfo videoInfo, List<VideoMetadata> historicalMetadata) {
         log.info("Generating metadata for video file (text-only mode): {}", videoInfo.fileName());
 
-        String userPrompt = buildUserPrompt(videoInfo, historicalMetadata, false);
+        String parentRpc = TraceContext.pushSpan();
+        long start = System.currentTimeMillis();
+        String status = "OK";
+        String errCode = "-";
+        String bizId = videoInfo.fileName();
 
-        LlmRequest request = LlmRequest.textOnly(
-            model,
-            SYSTEM_PROMPT_TEXT_ONLY,
-            userPrompt,
-            temperature,
-            maxTokens
-        );
+        try {
+            String userPrompt = buildUserPrompt(videoInfo, historicalMetadata, false);
 
-        LlmResponse response = llmService.complete(request);
-        log.debug("LLM response received, promptTokens={}, completionTokens={}",
-            response.promptTokens(), response.completionTokens());
+            LlmRequest request = LlmRequest.textOnly(
+                model,
+                SYSTEM_PROMPT_TEXT_ONLY,
+                userPrompt,
+                temperature,
+                maxTokens
+            );
 
-        GeneratedMetadata generated = parseLlmResponse(response.content());
-        log.info("Successfully parsed metadata: title={}, tagsCount={}",
-            generated.title(), generated.tags().size());
+            LlmResponse response = llmService.complete(request);
+            log.debug("LLM response received, promptTokens={}, completionTokens={}",
+                response.promptTokens(), response.completionTokens());
 
-        VideoMetadata metadata = VideoMetadata.create(
-            videoId,
-            generated.title(),
-            generated.description(),
-            generated.tags(),
-            MetadataSource.AI_GENERATED
-        );
+            GeneratedMetadata generated = parseLlmResponse(response.content());
+            log.info("Successfully parsed metadata: title={}, tagsCount={}",
+                generated.title(), generated.tags().size());
 
-        metadata.validate();
+            VideoMetadata metadata = VideoMetadata.create(
+                null,
+                generated.title(),
+                generated.description(),
+                generated.tags(),
+                MetadataSource.AI_GENERATED
+            );
 
-        return metadata;
+            metadata.validate();
+
+            DigestLogger.llm("generateMetadata_textOnly", model,
+                response.promptTokens() + response.completionTokens(),
+                System.currentTimeMillis() - start,
+                status, errCode, bizId);
+
+            return metadata;
+        } catch (Exception e) {
+            status = "FAIL";
+            errCode = e.getClass().getSimpleName();
+            DigestLogger.llm("generateMetadata_textOnly", model,
+                0, System.currentTimeMillis() - start,
+                status, errCode, bizId);
+            throw e;
+        } finally {
+            TraceContext.popSpan(parentRpc);
+        }
     }
 
     @Override
-    public VideoMetadata generate(com.grace.platform.shared.domain.id.VideoId videoId, VideoFileInfo videoInfo, List<VideoMetadata> historicalMetadata, Path videoPath) {
+    public VideoMetadata generate(VideoFileInfo videoInfo, List<VideoMetadata> historicalMetadata, Path videoPath) {
         log.info("Generating metadata for video file (multimodal mode): {}", videoInfo.fileName());
 
-        List<ImageFrame> imageFrames = extractVideoFrames(videoPath);
-        log.debug("Extracted {} frames from video", imageFrames.size());
+        String parentRpc = TraceContext.pushSpan();
+        long start = System.currentTimeMillis();
+        String status = "OK";
+        String errCode = "-";
+        String bizId = videoInfo.fileName();
 
-        String userPrompt = buildUserPrompt(videoInfo, historicalMetadata, true);
+        try {
+            List<ImageFrame> imageFrames = extractVideoFrames(videoPath);
+            log.debug("Extracted {} frames from video", imageFrames.size());
 
-        LlmRequest request = LlmRequest.multimodal(
-            model,
-            SYSTEM_PROMPT_MULTIMODAL,
-            userPrompt,
-            temperature,
-            maxTokens,
-            imageFrames
-        );
+            String userPrompt = buildUserPrompt(videoInfo, historicalMetadata, true);
 
-        LlmResponse response = llmService.complete(request);
-        log.debug("LLM response received, promptTokens={}, completionTokens={}",
-            response.promptTokens(), response.completionTokens());
+            LlmRequest request = LlmRequest.multimodal(
+                model,
+                SYSTEM_PROMPT_MULTIMODAL,
+                userPrompt,
+                temperature,
+                maxTokens,
+                imageFrames
+            );
 
-        GeneratedMetadata generated = parseLlmResponse(response.content());
-        log.info("Successfully parsed metadata: title={}, tagsCount={}",
-            generated.title(), generated.tags().size());
+            LlmResponse response = llmService.complete(request);
+            log.debug("LLM response received, promptTokens={}, completionTokens={}",
+                response.promptTokens(), response.completionTokens());
 
-        VideoMetadata metadata = VideoMetadata.create(
-            videoId,
-            generated.title(),
-            generated.description(),
-            generated.tags(),
-            MetadataSource.AI_GENERATED
-        );
+            GeneratedMetadata generated = parseLlmResponse(response.content());
+            log.info("Successfully parsed metadata: title={}, tagsCount={}",
+                generated.title(), generated.tags().size());
 
-        metadata.validate();
+            VideoMetadata metadata = VideoMetadata.create(
+                null,
+                generated.title(),
+                generated.description(),
+                generated.tags(),
+                MetadataSource.AI_GENERATED
+            );
 
-        return metadata;
+            metadata.validate();
+
+            DigestLogger.llm("generateMetadata_multimodal", model,
+                response.promptTokens() + response.completionTokens(),
+                System.currentTimeMillis() - start,
+                status, errCode, bizId);
+
+            return metadata;
+        } catch (Exception e) {
+            status = "FAIL";
+            errCode = e.getClass().getSimpleName();
+            DigestLogger.llm("generateMetadata_multimodal", model,
+                0, System.currentTimeMillis() - start,
+                status, errCode, bizId);
+            throw e;
+        } finally {
+            TraceContext.popSpan(parentRpc);
+        }
     }
 
     private List<ImageFrame> extractVideoFrames(Path videoPath) {

@@ -2,14 +2,14 @@ const { test, expect } = require('@playwright/test');
 
 test.describe('视频上传功能验证', () => {
   test('视频上传初始化 API 正常工作', async ({ page }) => {
-    const response = await page.request.post('http://localhost:8080/api/videos/upload/init', {
+    const response = await page.request.post('http://localhost:8000/api/videos/upload/init', {
       data: {
         fileName: 'test-video.mp4',
         fileSize: 1048576,
         format: 'MP4'
       }
     });
-    
+
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
     expect(data.code).toBe(0);

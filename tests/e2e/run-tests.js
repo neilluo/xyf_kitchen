@@ -2,7 +2,7 @@
 
 /**
  * Playwright 测试运行脚本
- * 
+ *
  * 用法:
  *   node run-tests.js          # 运行所有测试
  *   node run-tests.js --ui     # 运行 UI 模式
@@ -51,16 +51,16 @@ if (isHelp) {
 // 检查服务是否运行
 function checkServices() {
   console.log('🔍 检查服务状态...');
-  
+
   try {
     // 检查后端
-    execSync('curl -s http://localhost:8080/api/dashboard/overview > /dev/null', { stdio: 'ignore' });
-    console.log('✅ 后端服务运行正常 (http://localhost:8080)');
+    execSync('curl -s http://localhost:8000/api/dashboard/overview > /dev/null', { stdio: 'ignore' });
+    console.log('✅ 后端服务运行正常 (http://localhost:8000)');
   } catch {
     console.log('⚠️  后端服务未启动，请先启动后端服务');
     console.log('   运行: cd grace-platform && java -jar target/grace-platform-0.1.0-SNAPSHOT.jar');
   }
-  
+
   try {
     // 检查前端
     execSync('curl -s http://localhost:3001 > /dev/null', { stdio: 'ignore' });
@@ -74,9 +74,9 @@ function checkServices() {
 // 运行测试
 function runTests() {
   console.log('🚀 启动 Playwright 测试...\n');
-  
+
   let command = 'npx playwright test';
-  
+
   if (isUiMode) {
     command = 'npx playwright test --ui';
   } else if (isDebug) {
@@ -84,7 +84,7 @@ function runTests() {
   } else if (isReport) {
     command = 'npx playwright show-report';
   }
-  
+
   try {
     execSync(command, {
       cwd: path.join(__dirname, '../..'),
@@ -94,7 +94,7 @@ function runTests() {
         PW_TEST_HTML_REPORT_OPEN: 'never',
       }
     });
-    
+
     if (!isReport) {
       console.log('\n✅ 测试完成！');
       console.log(`📊 查看报告: npx playwright show-report`);
@@ -110,15 +110,15 @@ function runTests() {
 // 生成 GitHub Issues
 function generateIssues() {
   console.log('\n📝 生成 GitHub Issues...');
-  
+
   const { GitHubIssuesReporter } = require('./github-issues-reporter');
   const reporter = new GitHubIssuesReporter();
-  
+
   // 从测试结果中读取问题
   const resultsPath = path.join(__dirname, '../../test-results/results.json');
   if (fs.existsSync(resultsPath)) {
     const results = JSON.parse(fs.readFileSync(resultsPath, 'utf8'));
-    
+
     results.suites?.forEach(suite => {
       suite.specs?.forEach(spec => {
         spec.tests?.forEach(test => {
@@ -143,7 +143,7 @@ function generateIssues() {
       });
     });
   }
-  
+
   // 添加已知问题
   reporter.addIssue({
     title: 'POST /api/videos/upload/init 返回 500 错误',
@@ -161,7 +161,7 @@ function generateIssues() {
     expectedBehavior: 'API 应该返回 200 并创建上传会话',
     actualBehavior: 'API 返回 500 错误'
   });
-  
+
   reporter.saveIssues();
   console.log('✅ GitHub Issues 已生成到 github-issues/ 目录');
 }

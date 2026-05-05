@@ -1,13 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Alibaba EagleEye 风格 logback 配置（grace-platform）
+
+  产物目录（由 application.yml 中 grace-platform.log.path 控制，默认 ./logs/grace-platform/）：
+    application.log         - 主日志（INFO+，不含 digest）
+    error.log               - WARN/ERROR（零丢弃）
+    access.log              - 每次 HTTP 出入口摘要
+    llm-digest.log          - LLM 调用摘要（Qwen / DashScope）
+    youtube-digest.log      - YouTube API 调用摘要
+    oss-digest.log          - Aliyun OSS / STS 调用摘要
+    opencrawl-digest.log    - OpenCrawl API 调用摘要
+    task-digest.log         - 异步任务 / 调度器状态变更摘要
+
+  行格式：
+    主格式：   时间 level [traceId,rpcId] [thread] logger - msg
+    Digest：  时间|traceId|rpcId|pipe 分隔业务字段
+-->
 <configuration scan="true" scanPeriod="30 seconds">
 
-    <!-- ==================== 属性定义 ==================== -->
-    <property name="LOG_DIR" value="${LOG_DIR:-./logs}" />
-    <property name="APP_NAME" value="grace-platform" />
-    <property name="LOG_PATTERN" 
-              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-NO_TRACE}] %logger{40} - %msg%n" />
+    <!-- 从 application.yml 读取，避免硬编码 -->
+    <springProperty scope="context" name="LOG_HOME"      source="grace-platform.log.path"             defaultValue="./logs/grace-platform"/>
+    <springProperty scope="context" name="MAX_FILE_SIZE" source="grace-platform.log.max-file-size"    defaultValue="100MB"/>
+    <springProperty scope="context" name="MAX_HISTORY"   source="grace-platform.log.max-history-days" defaultValue="7"/>
+    <springProperty scope="context" name="TOTAL_CAP"     source="grace-platform.log.total-size-cap"   defaultValue="2GB"/>
 
-    <!-- ==================== 控制台输出 ==================== -->
+    <!-- 统一主格式 -->
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{traceId:-},%X{rpcId:-}] [%thread] %logger{36} - %msg%n"/>
+
+    <!-- Digest 格式（pipe 分隔，消息内容由 DigestLogger 拼好） -->
+    <property name="DIGEST_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS}|%X{traceId:-}|%X{rpcId:-}|%msg%n"/>
+
+    <!-- ========== 控制台（开发用） ========== -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>${LOG_PATTERN}</pattern>
@@ -15,16 +40,14 @@
         </encoder>
     </appender>
 
-    <!-- ==================== 全量日志文件（按天滚动） ==================== -->
-    <appender name="FILE_ALL" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_DIR}/${APP_NAME}.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- 按天滚动，文件名包含日期 -->
-            <fileNamePattern>${LOG_DIR}/${APP_NAME}.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <!-- 保留 30 天 -->
-            <maxHistory>30</maxHistory>
-            <!-- 总大小上限 10GB -->
-            <totalSizeCap>10GB</totalSizeCap>
+    <!-- ========== application.log ========== -->
+    <appender name="APPLICATION_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/application.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/%d{yyyy-MM-dd}/application.%i.log</fileNamePattern>
+            <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+            <totalSizeCap>${TOTAL_CAP}</totalSizeCap>
         </rollingPolicy>
         <encoder>
             <pattern>${LOG_PATTERN}</pattern>
@@ -32,18 +55,26 @@
         </encoder>
     </appender>
 
-    <!-- ==================== ERROR 级别单独文件（按天滚动） ==================== -->
-    <appender name="FILE_ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_DIR}/${APP_NAME}-error.log</file>
-        <filter class="ch.qos.logback.classic.filter.LevelFilter">
-            <level>ERROR</level>
-            <onMatch>ACCEPT</onMatch>
-            <onMismatch>DENY</onMismatch>
+    <appender name="APPLICATION" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="APPLICATION_FILE"/>
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <neverBlock>false</neverBlock>
+        <maxFlushTime>1000</maxFlushTime>
+        <includeCallerData>false</includeCallerData>
+    </appender>
+
+    <!-- ========== error.log (WARN+，零丢弃) ========== -->
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/error.log</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>WARN</level>
         </filter>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_DIR}/${APP_NAME}-error.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>60</maxHistory>
-            <totalSizeCap>5GB</totalSizeCap>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/%d{yyyy-MM-dd}/error.%i.log</fileNamePattern>
+            <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+            <totalSizeCap>${TOTAL_CAP}</totalSizeCap>
         </rollingPolicy>
         <encoder>
             <pattern>${LOG_PATTERN}</pattern>
@@ -51,45 +82,206 @@
         </encoder>
     </appender>
 
-    <!-- ==================== 请求出入参专用文件（按天滚动） ==================== -->
-    <appender name="FILE_ACCESS" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_DIR}/${APP_NAME}-access.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_DIR}/${APP_NAME}-access.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>15</maxHistory>
-            <totalSizeCap>5GB</totalSizeCap>
+    <appender name="ERROR" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="ERROR_FILE"/>
+        <queueSize>256</queueSize>
+        <discardingThreshold>-1</discardingThreshold>
+        <neverBlock>false</neverBlock>
+        <maxFlushTime>1000</maxFlushTime>
+        <includeCallerData>true</includeCallerData>
+    </appender>
+
+    <!-- ========== access.log ========== -->
+    <appender name="ACCESS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/access.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/%d{yyyy-MM-dd}/access.%i.log</fileNamePattern>
+            <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+            <totalSizeCap>${TOTAL_CAP}</totalSizeCap>
         </rollingPolicy>
         <encoder>
-            <pattern>${LOG_PATTERN}</pattern>
+            <pattern>${DIGEST_PATTERN}</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
 
-    <!-- ==================== Logger 配置 ==================== -->
+    <appender name="ACCESS" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="ACCESS_FILE"/>
+        <queueSize>1024</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <neverBlock>false</neverBlock>
+        <maxFlushTime>1000</maxFlushTime>
+        <includeCallerData>false</includeCallerData>
+    </appender>
 
-    <!-- 请求出入参日志 → 同时写入 access 文件 -->
-    <logger name="com.grace.platform.shared.infrastructure.web.RequestResponseLoggingInterceptor"
-            level="INFO" additivity="true">
-        <appender-ref ref="FILE_ACCESS" />
+    <!-- ========== llm-digest.log ========== -->
+    <appender name="LLM_DIGEST_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/llm-digest.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/%d{yyyy-MM-dd}/llm-digest.%i.log</fileNamePattern>
+            <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+            <totalSizeCap>${TOTAL_CAP}</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${DIGEST_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    <appender name="LLM_DIGEST" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="LLM_DIGEST_FILE"/>
+        <queueSize>256</queueSize>
+        <discardingThreshold>-1</discardingThreshold>
+        <neverBlock>false</neverBlock>
+        <maxFlushTime>1000</maxFlushTime>
+        <includeCallerData>false</includeCallerData>
+    </appender>
+
+    <!-- ========== youtube-digest.log ========== -->
+    <appender name="YOUTUBE_DIGEST_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/youtube-digest.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/%d{yyyy-MM-dd}/youtube-digest.%i.log</fileNamePattern>
+            <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+            <totalSizeCap>${TOTAL_CAP}</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${DIGEST_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    <appender name="YOUTUBE_DIGEST" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="YOUTUBE_DIGEST_FILE"/>
+        <queueSize>256</queueSize>
+        <discardingThreshold>-1</discardingThreshold>
+        <neverBlock>false</neverBlock>
+        <maxFlushTime>1000</maxFlushTime>
+        <includeCallerData>false</includeCallerData>
+    </appender>
+
+    <!-- ========== oss-digest.log ========== -->
+    <appender name="OSS_DIGEST_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/oss-digest.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/%d{yyyy-MM-dd}/oss-digest.%i.log</fileNamePattern>
+            <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+            <totalSizeCap>${TOTAL_CAP}</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${DIGEST_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    <appender name="OSS_DIGEST" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="OSS_DIGEST_FILE"/>
+        <queueSize>256</queueSize>
+        <discardingThreshold>-1</discardingThreshold>
+        <neverBlock>false</neverBlock>
+        <maxFlushTime>1000</maxFlushTime>
+        <includeCallerData>false</includeCallerData>
+    </appender>
+
+    <!-- ========== opencrawl-digest.log ========== -->
+    <appender name="OPENCRAWL_DIGEST_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/opencrawl-digest.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/%d{yyyy-MM-dd}/opencrawl-digest.%i.log</fileNamePattern>
+            <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+            <totalSizeCap>${TOTAL_CAP}</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${DIGEST_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    <appender name="OPENCRAWL_DIGEST" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="OPENCRAWL_DIGEST_FILE"/>
+        <queueSize>256</queueSize>
+        <discardingThreshold>-1</discardingThreshold>
+        <neverBlock>false</neverBlock>
+        <maxFlushTime>1000</maxFlushTime>
+        <includeCallerData>false</includeCallerData>
+    </appender>
+
+    <!-- ========== task-digest.log（异步任务 / 调度器状态变更） ========== -->
+    <appender name="TASK_DIGEST_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/task-digest.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/%d{yyyy-MM-dd}/task-digest.%i.log</fileNamePattern>
+            <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+            <totalSizeCap>${TOTAL_CAP}</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${DIGEST_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    <appender name="TASK_DIGEST" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="TASK_DIGEST_FILE"/>
+        <queueSize>256</queueSize>
+        <discardingThreshold>-1</discardingThreshold>
+        <neverBlock>false</neverBlock>
+        <maxFlushTime>1000</maxFlushTime>
+        <includeCallerData>false</includeCallerData>
+    </appender>
+
+    <!-- ========== Loggers ========== -->
+
+    <!-- Digest loggers：additivity=false，避免重复落 application.log -->
+    <logger name="ACCESS_LOG" level="INFO" additivity="false">
+        <appender-ref ref="ACCESS"/>
     </logger>
 
-    <!-- MyBatis SQL 日志（开发环境 DEBUG，生产 INFO） -->
+    <logger name="LLM_DIGEST" level="INFO" additivity="false">
+        <appender-ref ref="LLM_DIGEST"/>
+    </logger>
+
+    <logger name="YOUTUBE_DIGEST" level="INFO" additivity="false">
+        <appender-ref ref="YOUTUBE_DIGEST"/>
+    </logger>
+
+    <logger name="OSS_DIGEST" level="INFO" additivity="false">
+        <appender-ref ref="OSS_DIGEST"/>
+    </logger>
+
+    <logger name="OPENCRAWL_DIGEST" level="INFO" additivity="false">
+        <appender-ref ref="OPENCRAWL_DIGEST"/>
+    </logger>
+
+    <logger name="TASK_DIGEST" level="INFO" additivity="false">
+        <appender-ref ref="TASK_DIGEST"/>
+    </logger>
+
+    <!-- 业务包日志级别 -->
     <springProfile name="dev">
-        <logger name="com.grace.platform" level="DEBUG" />
-        <!-- 开发环境输出 MyBatis SQL -->
-        <logger name="org.apache.ibatis" level="DEBUG" />
+        <logger name="com.grace.platform" level="DEBUG"/>
+        <logger name="org.apache.ibatis" level="DEBUG"/>
+    </springProfile>
+    <springProfile name="prod">
+        <logger name="com.grace.platform" level="INFO"/>
+        <logger name="org.apache.ibatis" level="WARN"/>
+    </springProfile>
+    <logger name="org.springframework" level="WARN"/>
+
+    <!-- Root -->
+    <springProfile name="dev | default">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="APPLICATION"/>
+            <appender-ref ref="ERROR"/>
+        </root>
     </springProfile>
 
     <springProfile name="prod">
-        <logger name="com.grace.platform" level="INFO" />
-        <logger name="org.apache.ibatis" level="WARN" />
+        <root level="INFO">
+            <appender-ref ref="APPLICATION"/>
+            <appender-ref ref="ERROR"/>
+        </root>
     </springProfile>
-
-    <!-- ==================== Root Logger ==================== -->
-    <root level="INFO">
-        <appender-ref ref="CONSOLE" />
-        <appender-ref ref="FILE_ALL" />
-        <appender-ref ref="FILE_ERROR" />
-    </root>
 
 </configuration>

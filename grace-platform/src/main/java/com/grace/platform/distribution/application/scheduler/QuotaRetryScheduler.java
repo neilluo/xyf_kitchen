@@ -3,6 +3,7 @@ package com.grace.platform.distribution.application.scheduler;
 import com.grace.platform.distribution.domain.*;
 import com.grace.platform.shared.ErrorCode;
 import com.grace.platform.shared.infrastructure.exception.ExternalServiceException;
+import com.grace.platform.shared.infrastructure.log.DigestLogger;
 import com.grace.platform.video.domain.Video;
 import com.grace.platform.video.domain.VideoRepository;
 import org.slf4j.Logger;
@@ -69,8 +70,11 @@ public class QuotaRetryScheduler {
         if (record.getRetryCount() >= maxRetries) {
             logger.warn("Record {} has exceeded max retry attempts ({}), marking as FAILED",
                     record.getId().value(), maxRetries);
+            String oldStatus = record.getStatus().name();
             record.markAsFailed("Exceeded maximum retry attempts for quota recovery");
             publishRecordRepository.save(record);
+            DigestLogger.task(record.getId().value(), "quotaRetry",
+                oldStatus, "FAILED", record.getRetryCount());
             return;
         }
 
@@ -79,16 +83,22 @@ public class QuotaRetryScheduler {
 
         if (taskId == null || taskId.isBlank()) {
             logger.error("Record {} has no upload task ID, marking as FAILED", record.getId().value());
+            String oldStatus = record.getStatus().name();
             record.markAsFailed("Missing upload task ID");
             publishRecordRepository.save(record);
+            DigestLogger.task(record.getId().value(), "quotaRetry",
+                oldStatus, "FAILED", record.getRetryCount());
             return;
         }
 
         Video video = videoRepository.findById(record.getVideoId()).orElse(null);
         if (video == null) {
             logger.error("Video not found for record {}, marking as FAILED", record.getId().value());
+            String oldStatus = record.getStatus().name();
             record.markAsFailed("Video not found");
             publishRecordRepository.save(record);
+            DigestLogger.task(record.getId().value(), "quotaRetry",
+                oldStatus, "FAILED", record.getRetryCount());
             return;
         }
 
@@ -96,8 +106,11 @@ public class QuotaRetryScheduler {
         if (storageUrl == null || storageUrl.isBlank()) {
             logger.error("No storage URL for video {}, marking record {} as FAILED",
                     video.getId().value(), record.getId().value());
+            String oldStatus = record.getStatus().name();
             record.markAsFailed("No storage URL available");
             publishRecordRepository.save(record);
+            DigestLogger.task(record.getId().value(), "quotaRetry",
+                oldStatus, "FAILED", record.getRetryCount());
             return;
         }
 
@@ -107,8 +120,11 @@ public class QuotaRetryScheduler {
             if (!(distributor instanceof ResumableVideoDistributor resumableDistributor)) {
                 logger.error("Platform {} does not support resumable uploads, marking record {} as FAILED",
                         platform, record.getId().value());
+                String oldStatus = record.getStatus().name();
                 record.markAsFailed("Platform does not support resumable uploads");
                 publishRecordRepository.save(record);
+                DigestLogger.task(record.getId().value(), "quotaRetry",
+                    oldStatus, "FAILED", record.getRetryCount());
                 return;
             }
 
@@ -120,11 +136,17 @@ public class QuotaRetryScheduler {
             if (result.status() == PublishStatus.COMPLETED) {
                 logger.info("Upload resumed successfully for record {}, video URL: {}",
                         record.getId().value(), result.videoUrl());
+                String oldStatus = record.getStatus().name();
                 record.markAsCompleted(result.videoUrl());
+                DigestLogger.task(record.getId().value(), "quotaRetry",
+                    oldStatus, "COMPLETED", record.getRetryCount());
             } else {
                 logger.info("Upload resumed for record {}, new status: {}",
                         record.getId().value(), result.status());
+                String oldStatus = record.getStatus().name();
                 record.resumeFromQuotaExceeded();
+                DigestLogger.task(record.getId().value(), "quotaRetry",
+                    oldStatus, record.getStatus().name(), record.getRetryCount());
             }
 
             publishRecordRepository.save(record);

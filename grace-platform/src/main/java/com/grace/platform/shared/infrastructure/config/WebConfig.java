@@ -20,6 +20,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedOrigins("http://localhost:5173")  // Vite 开发服务器
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
+                .exposedHeaders("X-EagleEye-TraceId", "X-EagleEye-RpcId")
                 .allowCredentials(true)
                 .maxAge(3600);
     }

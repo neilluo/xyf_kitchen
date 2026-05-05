@@ -1,6 +1,8 @@
 package com.grace.platform.promotion.infrastructure.opencrawl;
 
 import com.grace.platform.promotion.infrastructure.config.OpenCrawlProperties;
+import com.grace.platform.shared.infrastructure.log.DigestLogger;
+import com.grace.platform.shared.infrastructure.log.TraceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
@@ -33,22 +35,28 @@ public class OpenCrawlAdapterImpl implements OpenCrawlAdapter {
     @Override
     public OpenCrawlResponse execute(OpenCrawlRequest request) {
         String url = properties.getBaseUrl() + "/promotions/execute";
-        
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("X-API-Key", request.getApiKey());
 
-        Map<String, Object> body = new HashMap<>();
-        body.put("channel_url", request.getChannelUrl());
-        body.put("title", request.getPromotionTitle());
-        body.put("content", request.getPromotionBody());
-        body.put("method", request.getMethod().name().toLowerCase());
-
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+        String parentRpc = TraceContext.pushSpan();
+        long start = System.currentTimeMillis();
+        String status = "OK";
+        String errCode = "-";
+        String resultUrl = null;
 
         try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("X-API-Key", request.getApiKey());
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("channel_url", request.getChannelUrl());
+            body.put("title", request.getPromotionTitle());
+            body.put("content", request.getPromotionBody());
+            body.put("method", request.getMethod().name().toLowerCase());
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+
             logger.debug("Calling OpenCrawl API: {}, channelUrl: {}", url, request.getChannelUrl());
-            
+
             ResponseEntity<Map> response = restTemplate.exchange(
                 url,
                 HttpMethod.POST,
@@ -62,23 +70,48 @@ public class OpenCrawlAdapterImpl implements OpenCrawlAdapter {
             if (response.getStatusCode().is2xxSuccessful() && responseBody != null) {
                 Boolean success = (Boolean) responseBody.get("success");
                 if (Boolean.TRUE.equals(success)) {
-                    String resultUrl = (String) responseBody.get("result_url");
+                    resultUrl = (String) responseBody.get("result_url");
                     logger.info("OpenCrawl promotion succeeded, resultUrl: {}", resultUrl);
+
+                    DigestLogger.opencrawl("execute", request.getChannelUrl(),
+                        request.getMethod().name().toLowerCase(),
+                        System.currentTimeMillis() - start, status, errCode, resultUrl);
+
                     return OpenCrawlResponse.success(resultUrl, rawResponse);
                 } else {
                     String errorMessage = (String) responseBody.get("error_message");
                     logger.warn("OpenCrawl promotion failed: {}", errorMessage);
+
+                    DigestLogger.opencrawl("execute", request.getChannelUrl(),
+                        request.getMethod().name().toLowerCase(),
+                        System.currentTimeMillis() - start, "BIZ_FAIL",
+                        errorMessage, null);
+
                     return OpenCrawlResponse.failure(errorMessage, rawResponse);
                 }
             } else {
                 String errorMessage = "OpenCrawl API returned non-success status: " + response.getStatusCode();
                 logger.error(errorMessage);
+
+                DigestLogger.opencrawl("execute", request.getChannelUrl(),
+                    request.getMethod().name().toLowerCase(),
+                    System.currentTimeMillis() - start, "BIZ_FAIL",
+                    String.valueOf(response.getStatusCode()), null);
+
                 return OpenCrawlResponse.failure(errorMessage, rawResponse);
             }
         } catch (RestClientException e) {
             String errorMessage = "Failed to call OpenCrawl API: " + e.getMessage();
             logger.error(errorMessage, e);
+
+            DigestLogger.opencrawl("execute", request.getChannelUrl(),
+                request.getMethod().name().toLowerCase(),
+                System.currentTimeMillis() - start, "FAIL",
+                e.getClass().getSimpleName(), null);
+
             return OpenCrawlResponse.failure(errorMessage, e.getMessage());
+        } finally {
+            TraceContext.popSpan(parentRpc);
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.grace.platform.shared.infrastructure.async;
 
+import com.alibaba.ttl.threadpool.TtlExecutors;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
@@ -8,6 +9,11 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.Executor;
 
+/**
+ * Spring {@code @Async} 默认线程池配置。
+ * <p>使用 TTL（Transmittable ThreadLocal）包装线程池，
+ * MDC（含 traceId/rpcId）自动从父线程透传到子线程，线程池复用也不串号。
+ */
 @Configuration
 @EnableAsync
 public class AsyncConfig implements AsyncConfigurer {
@@ -19,10 +25,10 @@ public class AsyncConfig implements AsyncConfigurer {
         executor.setMaxPoolSize(8);
         executor.setQueueCapacity(100);
         executor.setThreadNamePrefix("grace-async-");
-        // 包装：自动传递 MDC 上下文到子线程
-        executor.setTaskDecorator(new MdcTaskDecorator());
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(5);
         executor.initialize();
-        return executor;
+        return TtlExecutors.getTtlExecutor(executor.getThreadPoolExecutor());
     }
 
     @Override

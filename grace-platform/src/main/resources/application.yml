@@ -3,16 +3,18 @@ spring:
     name: grace-platform
 
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:xyfkitchen}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=true
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:}
+    url: jdbc:mysql://rm-2ze54x34bt9597z4ryo.mysql.rds.aliyuncs.com:3306/xyfkitchen?useUnicode=true&characterEncoding=utf-8&useSSL=true&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: neilluo1220
+    password: ${MYSQL_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
-      maximum-pool-size: 20
+      pool-name: GraceHikariPool
+      maximum-pool-size: 10
       minimum-idle: 5
       idle-timeout: 300000
-      connection-timeout: 20000
-      max-lifetime: 1200000
+      max-lifetime: 600000
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
 
   servlet:
     multipart:
@@ -46,6 +48,12 @@ grace:
   encryption:
     master-key: ${GRACE_ENCRYPTION_KEY}
 
+  oss:
+    endpoint: ${OSS_ENDPOINT}
+    bucket: ${OSS_BUCKET}
+    access-key-id: ${OSS_ACCESS_KEY_ID}
+    access-key-secret: ${OSS_ACCESS_KEY_SECRET}
+
   storage:
     video-dir: ${GRACE_VIDEO_DIR:./data/videos}
     temp-dir: ${GRACE_TEMP_DIR:./data/temp}
@@ -59,10 +67,10 @@ grace:
   llm:
     provider: qwen
     api-key: ${QWEN_API_KEY}
-    model: qwen-max
+    model: qwen3.6-plus
     base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
     max-tokens: 2048
-    temperature: 0.7
+    temperature: 0
     retry:
       max-attempts: 3
       backoff-multiplier: 2
@@ -70,7 +78,7 @@ grace:
   youtube:
     client-id: ${YOUTUBE_CLIENT_ID}
     client-secret: ${YOUTUBE_CLIENT_SECRET}
-    redirect-uri: ${YOUTUBE_REDIRECT_URI:http://localhost:8080/api/distribution/auth/youtube/callback}
+    redirect-uri: ${YOUTUBE_REDIRECT_URI:http://localhost:8000/api/distribution/auth/youtube/callback}
     scopes: https://www.googleapis.com/auth/youtube.upload,https://www.googleapis.com/auth/youtube.readonly
 
   opencrawl:
@@ -84,7 +92,15 @@ grace:
       max-retries: 5
 
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${SERVER_PORT:8000}
+
+# EagleEye 风格日志配置（对应 logback-spring.xml 中的 springProperty）
+grace-platform:
+  log:
+    path: ${GRACE_LOG_PATH:./logs/grace-platform}
+    max-file-size: 100MB
+    max-history-days: 7
+    total-size-cap: 2GB
 
 logging:
   level:

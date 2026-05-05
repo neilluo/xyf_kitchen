@@ -3,19 +3,12 @@ import type {
   Video,
   VideoDetail,
   VideoListParams,
-  InitUploadRequest,
-  UploadSession,
   ServerUploadSession,
   ServerUploadInitRequest,
   ServerChunkUploadResponse,
   ServerUploadCompleteResponse,
 } from '@/types/video'
 import type { PaginatedData, ApiResponse } from '@/types/common'
-
-export async function initUpload(request: InitUploadRequest): Promise<UploadSession> {
-  const response = await apiClient.post<ApiResponse<UploadSession>>('/videos/upload/init', request)
-  return response.data.data
-}
 
 export async function getVideos(params: VideoListParams): Promise<PaginatedData<Video>> {
   const response = await apiClient.get<ApiResponse<PaginatedData<Video>>>('/videos', {

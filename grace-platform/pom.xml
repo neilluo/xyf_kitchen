@@ -139,6 +139,12 @@
             <artifactId>tea-util</artifactId>
             <version>0.2.21</version>
         </dependency>
+        <!-- Transmittable ThreadLocal: MDC 子线程透传（EagleEye trace 无丢失） -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>transmittable-thread-local</artifactId>
+            <version>2.14.5</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
