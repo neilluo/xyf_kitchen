@@ -188,6 +188,26 @@ CREATE TABLE promotion_record (
     INDEX idx_promotion_record_status (status),
     INDEX idx_promotion_record_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Video Upload Task Context (异步视频上传任务驱动)
+CREATE TABLE upload_task (
+    id                VARCHAR(36)  NOT NULL PRIMARY KEY,
+    video_id          VARCHAR(36)  NOT NULL,
+    current_step      VARCHAR(30)  NOT NULL DEFAULT 'PENDING_MERGE',
+    status            VARCHAR(20)  NOT NULL DEFAULT 'PENDING',
+    attempts          INT          NOT NULL DEFAULT 0,
+    max_attempts      INT          NOT NULL DEFAULT 5,
+    last_error        TEXT,
+    owner_instance_id VARCHAR(64),
+    heartbeat_at      TIMESTAMP    NULL,
+    payload           TEXT,
+    ext_info          TEXT,
+    created_at        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE INDEX uk_upload_task_video_id (video_id),
+    INDEX idx_upload_task_status_step (status, current_step),
+    INDEX idx_upload_task_heartbeat (status, heartbeat_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 ---
@@ -209,5 +229,8 @@ CREATE TABLE promotion_record (
 | `promotion_record` | `idx_promotion_record_channel_id` | `channel_id` | 普通 |
 | `promotion_record` | `idx_promotion_record_status` | `status` | 普通 |
 | `promotion_record` | `idx_promotion_record_created_at` | `created_at` | 普通 |
+| `upload_task` | `uk_upload_task_video_id` | `video_id` | UNIQUE |
+| `upload_task` | `idx_upload_task_status_step` | `status, current_step` | 普通 |
+| `upload_task` | `idx_upload_task_heartbeat` | `status, heartbeat_at` | 普通 |
 
 
