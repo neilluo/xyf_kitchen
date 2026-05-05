@@ -13,18 +13,20 @@
         <!-- duration_seconds 映射为 Duration，使用 DurationTypeHandler 转换 -->
         <result property="duration" column="duration_seconds" typeHandler="com.grace.platform.shared.infrastructure.persistence.typehandler.DurationTypeHandler"/>
         <result property="storageProvider" column="storage_provider" typeHandler="com.grace.platform.shared.infrastructure.persistence.typehandler.StorageProviderTypeHandler"/>
+        <!-- ext_info 存储 JSON，反序列化为 Map<String,Object> -->
+        <result property="extInfo" column="ext_info" typeHandler="com.grace.platform.shared.infrastructure.persistence.typehandler.JsonMapTypeHandler"/>
     </resultMap>
 
     <!-- 根据 ID 查询视频（findById 不排除 DELETED，删除接口需查询后再标记） -->
     <select id="findById" resultMap="videoResultMap">
-        SELECT id, file_name, file_size, format, duration_seconds, file_path, storage_url, storage_provider, status, created_at, updated_at
+        SELECT id, file_name, file_size, format, duration_seconds, file_path, storage_url, storage_provider, status, created_at, updated_at, ext_info
         FROM video
         WHERE id = #{id}
     </select>
 
     <!-- 条件分页查询（排除已软删除的视频） -->
     <select id="findByCondition" resultMap="videoResultMap">
-        SELECT id, file_name, file_size, format, duration_seconds, file_path, storage_url, storage_provider, status, created_at, updated_at
+        SELECT id, file_name, file_size, format, duration_seconds, file_path, storage_url, storage_provider, status, created_at, updated_at, ext_info
         FROM video
         <where>
             AND status != 'DELETED'
@@ -91,7 +93,7 @@
 
     <!-- 查询最近创建的 5 条视频 -->
     <select id="findTop5ByCreatedAtDesc" resultMap="videoResultMap">
-        SELECT id, file_name, file_size, format, duration_seconds, file_path, storage_url, storage_provider, status, created_at, updated_at
+        SELECT id, file_name, file_size, format, duration_seconds, file_path, storage_url, storage_provider, status, created_at, updated_at, ext_info
         FROM video
         ORDER BY created_at DESC
         LIMIT 5
@@ -99,7 +101,7 @@
 
     <!-- 插入新视频 -->
     <insert id="insert" useGeneratedKeys="false" keyProperty="id">
-        INSERT INTO video (id, file_name, file_size, format, duration_seconds, file_path, storage_url, storage_provider, status, created_at, updated_at)
+        INSERT INTO video (id, file_name, file_size, format, duration_seconds, file_path, storage_url, storage_provider, status, created_at, updated_at, ext_info)
         VALUES (
             #{id, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.VideoIdTypeHandler},
             #{fileName},
@@ -111,7 +113,8 @@
             #{storageProvider, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.StorageProviderTypeHandler},
             #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
             #{createdAt},
-            #{updatedAt}
+            #{updatedAt},
+            #{extInfo, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.JsonMapTypeHandler}
         )
     </insert>
 
@@ -126,7 +129,8 @@
             storage_url = #{storageUrl},
             storage_provider = #{storageProvider, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.StorageProviderTypeHandler},
             status = #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
-            updated_at = #{updatedAt}
+            updated_at = #{updatedAt},
+            ext_info = #{extInfo, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.JsonMapTypeHandler}
         WHERE id = #{id, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.VideoIdTypeHandler}
     </update>
 

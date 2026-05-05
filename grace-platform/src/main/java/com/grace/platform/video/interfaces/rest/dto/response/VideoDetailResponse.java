@@ -2,6 +2,7 @@ package com.grace.platform.video.interfaces.rest.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 视频详情响应 DTO。
@@ -23,7 +24,9 @@ public record VideoDetailResponse(
     LocalDateTime createdAt,
     LocalDateTime updatedAt,
     MetadataResponse metadata,
-    List<PublishRecordResponse> publishRecords
+    List<PublishRecordResponse> publishRecords,
+    /** 只读扩展字段（含 traceId / rpcId / createdTraceId 等），不接受写入 */
+    Map<String, Object> extInfo
 ) {
     /**
      * 元数据响应 DTO（内嵌）。

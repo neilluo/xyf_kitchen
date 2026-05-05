@@ -108,7 +108,8 @@ public class VideoApplicationService {
             video.getCreatedAt(),
             video.getUpdatedAt(),
             metadata,
-            publishRecords
+            publishRecords,
+            video.getExtInfo()
         );
     }
 

@@ -3,12 +3,14 @@ package com.grace.platform.video.domain;
 import com.grace.platform.shared.ErrorCode;
 import com.grace.platform.shared.domain.id.VideoId;
 import com.grace.platform.shared.infrastructure.exception.BusinessRuleViolationException;
+import com.grace.platform.shared.infrastructure.log.TraceContext;
 import com.grace.platform.storage.domain.StorageProvider;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -61,6 +63,17 @@ public class Video {
     private VideoStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    /**
+     * 扩展字段（持久化为 JSON）。
+     * <p>约定字段：{@code traceId}、{@code rpcId}、{@code createdTraceId}（首次创建时的 trace）。
+     * 自由扩展，不强约束 schema。
+     */
+    private Map<String, Object> extInfo;
+
+    // ext_info 约定 key
+    public static final String EXT_TRACE_ID = "traceId";
+    public static final String EXT_RPC_ID = "rpcId";
+    public static final String EXT_CREATED_TRACE_ID = "createdTraceId";
 
     /**
      * 私有构造器，通过工厂方法创建
@@ -180,8 +193,27 @@ public class Video {
         video.status = VideoStatus.UPLOADED;
         video.createdAt = LocalDateTime.now();
         video.updatedAt = video.createdAt;
+        video.extInfo = buildInitialExtInfo();
 
         return video;
+    }
+
+    /**
+     * 从当前 MDC 抓取 traceId/rpcId，构造初始 extInfo。
+     * <p>{@code createdTraceId} 记录创建时的 trace，便于后续状态流转时回溯。
+     */
+    private static Map<String, Object> buildInitialExtInfo() {
+        Map<String, Object> ext = new LinkedHashMap<>();
+        String traceId = TraceContext.currentTraceId();
+        String rpcId = TraceContext.currentRpcId();
+        if (traceId != null && !traceId.isBlank()) {
+            ext.put(EXT_TRACE_ID, traceId);
+            ext.put(EXT_CREATED_TRACE_ID, traceId);
+        }
+        if (rpcId != null && !rpcId.isBlank()) {
+            ext.put(EXT_RPC_ID, rpcId);
+        }
+        return ext;
     }
 
     /**
@@ -298,6 +330,25 @@ public class Video {
         return updatedAt;
     }
 
+    public Map<String, Object> getExtInfo() {
+        return extInfo;
+    }
+
+    /**
+     * 写入/覆盖一个扩展字段。
+     * <p>用于业务方追加自定义 trace 或上下文信息。
+     */
+    public void putExtInfo(String key, Object value) {
+        if (key == null || key.isBlank()) {
+            return;
+        }
+        if (this.extInfo == null) {
+            this.extInfo = new LinkedHashMap<>();
+        }
+        this.extInfo.put(key, value);
+        this.updatedAt = LocalDateTime.now();
+    }
+
     // Setters for persistence layer (package-private)
     void setId(VideoId id) {
         this.id = id;
@@ -341,6 +392,10 @@ public class Video {
 
     void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    void setExtInfo(Map<String, Object> extInfo) {
+        this.extInfo = extInfo;
     }
 
     @Override

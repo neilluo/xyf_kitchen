@@ -62,3 +62,9 @@ For multi-step tasks, state a brief plan:
 ```
 
 Strong success criteria enable independent looping. Weak criteria ("make it work") require constant clarification.
+
+历次任务遗漏 / 踩坑的沉淀，开始任何新任务前必须先扫一遍：
+
+- docs/lessons.md
+
+新发现的遗漏 / 教训请追加到该文件顶部。

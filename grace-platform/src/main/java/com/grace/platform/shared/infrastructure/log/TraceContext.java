@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.MDC;
 import org.springframework.util.StringUtils;
 
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -82,5 +83,35 @@ public final class TraceContext {
 
     public static String currentRpcId() {
         return Optional.ofNullable(MDC.get(MDC_RPC_ID)).orElse("0");
+    }
+
+    /**
+     * 当 MDC 中无 traceId 时，从给定 extInfo（DB 中持久化的 ext_info）中恢复。
+     * <p>用于定时任务、回调等无 HTTP 上游 trace 的入口，避免日志链路断裂。
+     * <p>已有 traceId 时不覆盖。
+     *
+     * @param extInfo 视频/业务对象的扩展字段
+     * @return true 表示发生了回填
+     */
+    public static boolean restoreIfAbsent(Map<String, Object> extInfo) {
+        try {
+            if (extInfo == null || extInfo.isEmpty()) {
+                return false;
+            }
+            String existing = MDC.get(MDC_TRACE_ID);
+            if (existing != null && !existing.isBlank()) {
+                return false;
+            }
+            Object tid = extInfo.get(MDC_TRACE_ID);
+            if (tid == null || !StringUtils.hasText(tid.toString())) {
+                return false;
+            }
+            MDC.put(MDC_TRACE_ID, tid.toString());
+            Object rid = extInfo.get(MDC_RPC_ID);
+            MDC.put(MDC_RPC_ID, rid != null && StringUtils.hasText(rid.toString()) ? rid.toString() : "0");
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

@@ -5,6 +5,7 @@ import com.grace.platform.video.domain.VideoStatus;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 视频详情 DTO。
@@ -26,7 +27,8 @@ public record VideoDetailDTO(
     LocalDateTime createdAt,
     LocalDateTime updatedAt,
     MetadataDTO metadata,
-    List<PublishRecordDTO> publishRecords
+    List<PublishRecordDTO> publishRecords,
+    Map<String, Object> extInfo
 ) {
     /**
      * 元数据 DTO（内嵌）。

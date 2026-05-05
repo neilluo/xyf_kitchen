@@ -4,6 +4,7 @@ import com.grace.platform.distribution.domain.*;
 import com.grace.platform.shared.ErrorCode;
 import com.grace.platform.shared.infrastructure.exception.ExternalServiceException;
 import com.grace.platform.shared.infrastructure.log.DigestLogger;
+import com.grace.platform.shared.infrastructure.log.TraceContext;
 import com.grace.platform.video.domain.Video;
 import com.grace.platform.video.domain.VideoRepository;
 import org.slf4j.Logger;
@@ -101,6 +102,9 @@ public class QuotaRetryScheduler {
                 oldStatus, "FAILED", record.getRetryCount());
             return;
         }
+
+        // 定时任务无 HTTP 上游 trace，从 video.ext_info 中回填 traceId/rpcId，串起完整链路
+        TraceContext.restoreIfAbsent(video.getExtInfo());
 
         String storageUrl = getStorageUrl(video);
         if (storageUrl == null || storageUrl.isBlank()) {

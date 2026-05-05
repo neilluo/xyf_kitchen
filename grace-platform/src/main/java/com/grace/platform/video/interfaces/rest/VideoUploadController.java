@@ -225,7 +225,8 @@ public class VideoUploadController {
             dto.createdAt(),
             dto.updatedAt(),
             metadata,
-            publishRecords
+            publishRecords,
+            dto.extInfo()
         );
     }
 
