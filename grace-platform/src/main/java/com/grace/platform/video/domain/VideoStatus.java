@@ -15,5 +15,6 @@ public enum VideoStatus {
     PUBLISHING,
     PUBLISHED,
     PUBLISH_FAILED,
-    PROMOTION_DONE
+    PROMOTION_DONE,
+    DELETED
 }

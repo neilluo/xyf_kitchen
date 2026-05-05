@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useVideoList } from '@/hooks/useVideos'
+import { useVideoList, useDeleteVideo } from '@/hooks/useVideos'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { StatusBadge } from '@/components/ui/StatusBadge'
@@ -29,6 +29,11 @@ export function VideoManagementPage() {
     order: 'desc',
   })
   const [debouncedKeyword, setDebouncedKeyword] = useState('')
+  // 当前展开的操作菜单（含视频 ID 和定位坐标，使用 fixed 定位避免被表格 overflow-hidden 裁切）
+  const [openMenu, setOpenMenu] = useState<{ videoId: string; top: number; right: number } | null>(null)
+  // 待删除的目标视频（null 表示未触发删除确认）
+  const [deleteTarget, setDeleteTarget] = useState<Video | null>(null)
+  const deleteVideoMutation = useDeleteVideo()
 
   // 防抖搜索 300ms
   useEffect(() => {
@@ -37,6 +42,24 @@ export function VideoManagementPage() {
     }, 300)
     return () => clearTimeout(timer)
   }, [params.keyword])
+
+  // 点击页面其他位置 / 滚动 / 改窗口大小时关闭展开的下拉菜单
+  useEffect(() => {
+    if (!openMenu) return
+    const closeMenu = () => setOpenMenu(null)
+    // 延迟一帧绑定 click，避免与触发按钮的当前点击冲突
+    const timer = setTimeout(() => {
+      document.addEventListener('click', closeMenu)
+    }, 0)
+    window.addEventListener('scroll', closeMenu, true)
+    window.addEventListener('resize', closeMenu)
+    return () => {
+      clearTimeout(timer)
+      document.removeEventListener('click', closeMenu)
+      window.removeEventListener('scroll', closeMenu, true)
+      window.removeEventListener('resize', closeMenu)
+    }
+  }, [openMenu])
 
   const { data, isLoading, error } = useVideoList({
     ...params,
@@ -279,6 +302,19 @@ export function VideoManagementPage() {
                         type="button"
                         className="p-1.5 hover:bg-primary/10 hover:text-primary rounded-md transition-all"
                         title="更多"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          if (openMenu?.videoId === video.videoId) {
+                            setOpenMenu(null)
+                            return
+                          }
+                          const rect = e.currentTarget.getBoundingClientRect()
+                          setOpenMenu({
+                            videoId: video.videoId,
+                            top: rect.bottom + 4,
+                            right: window.innerWidth - rect.right,
+                          })
+                        }}
                       >
                         <Icon name="more_vert" size={18} />
                       </button>
@@ -304,6 +340,80 @@ export function VideoManagementPage() {
           </div>
         )}
       </div>
+
+      {/* Action Dropdown Menu (fixed 定位，避免被表格 overflow-hidden 裁切) */}
+      {openMenu && (
+        <div
+          className="fixed w-36 bg-surface-container-lowest border border-outline-variant/20 rounded-lg shadow-lg z-40 py-1"
+          style={{ top: openMenu.top, right: openMenu.right }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            type="button"
+            className="w-full px-3 py-2 text-left text-sm text-error hover:bg-error/10 flex items-center gap-2 transition-colors"
+            onClick={() => {
+              const target = videos.find(v => v.videoId === openMenu.videoId)
+              setOpenMenu(null)
+              if (target) setDeleteTarget(target)
+            }}
+          >
+            <Icon name="delete" size={16} />
+            <span>删除</span>
+          </button>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteTarget && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          onClick={() => {
+            if (!deleteVideoMutation.isPending) setDeleteTarget(null)
+          }}
+        >
+          <div
+            className="bg-surface-container-lowest rounded-xl shadow-2xl w-[420px] max-w-[90vw] p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-error/10 flex items-center justify-center flex-shrink-0">
+                <Icon name="warning" size={22} className="text-error" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-bold text-on-surface">删除视频</h3>
+                <p className="text-sm text-on-surface-variant mt-1">
+                  确定要删除 <span className="font-semibold text-on-surface">{deleteTarget.fileName}</span> 吗？删除后该视频将不再显示在列表中。
+                </p>
+              </div>
+            </div>
+            {deleteVideoMutation.isError && (
+              <p className="text-xs text-error mb-3">
+                删除失败：{deleteVideoMutation.error instanceof Error ? deleteVideoMutation.error.message : '请稍后重试'}
+              </p>
+            )}
+            <div className="flex justify-end gap-2 mt-2">
+              <Button
+                variant="secondary"
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleteVideoMutation.isPending}
+              >
+                取消
+              </Button>
+              <Button
+                variant="primary"
+                disabled={deleteVideoMutation.isPending}
+                onClick={() => {
+                  deleteVideoMutation.mutate(deleteTarget.videoId, {
+                    onSuccess: () => setDeleteTarget(null),
+                  })
+                }}
+              >
+                {deleteVideoMutation.isPending ? '删除中...' : '确认删除'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

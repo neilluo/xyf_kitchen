@@ -36,6 +36,24 @@ UPLOADED → METADATA_GENERATED → READY_TO_PUBLISH → PUBLISHING → PUBLISHE
 
 ## 模块边界
 
+### 包路径约定
+
+本模块遵循项目统一的 DDD 四层包结构（详见根目录 `architecture.md` 的"分层约定"）：
+
+```
+com.grace.platform.video/
+├── domain/                    # 聚合根、值对象、领域事件、Repository 接口
+├── application/               # ApplicationService、Command、应用层 DTO
+├── infrastructure/            # Repository 实现（MyBatis）、文件 IO、FFprobe 调用
+└── interfaces/
+    └── rest/                  # REST Controller
+        ├── VideoUploadController
+        ├── ServerUploadController
+        └── dto/{request,response}/   # 接口层 DTO（请求 / 响应）
+```
+
+> 注意：表中所有 `XxxController` 均位于 `com.grace.platform.video.interfaces.rest` 包下。
+
 ### 对外暴露的接口
 
 | 接口 | 说明 | 使用方 |

@@ -7,6 +7,7 @@ import com.grace.platform.metadata.domain.MetadataGenerationService;
 import com.grace.platform.metadata.domain.MetadataSource;
 import com.grace.platform.metadata.domain.VideoMetadata;
 import com.grace.platform.shared.ErrorCode;
+import com.grace.platform.shared.domain.id.VideoId;
 import com.grace.platform.shared.infrastructure.exception.ExternalServiceException;
 import com.grace.platform.shared.infrastructure.log.DigestLogger;
 import com.grace.platform.shared.infrastructure.log.TraceContext;
@@ -42,48 +43,48 @@ public class MetadataGenerationServiceImpl implements MetadataGenerationService 
 
     private static final String SYSTEM_PROMPT_TEXT_ONLY = """
         你是一位专业的美食视频内容运营专家。
-        
+
         任务：根据视频文件名信息生成适合 YouTube 发布的元数据。
-        
+
         重要要求（必须遵守）：
         1. 必须返回纯 JSON 格式，不要有任何其他文本
         2. 不要使用 markdown 代码块（```json）包裹
         3. 直接返回 JSON 字符串，不要添加任何解释或说明
         4. 确保 JSON 格式有效，可以被标准 JSON 解析器解析
-        
+
         JSON 字段要求：
         - title: 视频标题，不超过100字符，要吸引人
         - description: 视频描述，不超过5000字符，详细且包含关键词
         - tags: 标签数组，5-15个相关且热门的标签
-        
+
         示例输出格式（严格遵守）：
         {"title":"美食制作教程","description":"详细步骤...","tags":["美食","教程","家常菜","烹饪","食谱"]}
         """;
 
     private static final String SYSTEM_PROMPT_MULTIMODAL = """
         你是一位专业的美食视频内容运营专家。
-        
+
         任务：根据你看到的视频画面内容，生成适合 YouTube 发布的元数据。
-        
+
         你将看到视频的3个关键帧画面（开头、中间、结尾），请仔细观察画面内容：
         - 食材：识别画面中出现的食材种类和新鲜程度
         - 烹饪步骤：分析烹饪过程的关键步骤和技巧
         - 成品效果：观察最终呈现的菜品外观和特点
         - 场景风格：判断视频的拍摄风格（家常厨房、专业厨房、户外等）
         - 人物互动：注意是否有主持人、嘉宾或教学风格
-        
+
         重要要求（必须遵守）：
         1. 必须返回纯 JSON 格式，不要有任何其他文本
         2. 不要使用 markdown 代码块（```json）包裹
         3. 直接返回 JSON 字符串，不要添加任何解释或说明
         4. 确保 JSON 格式有效，可以被标准 JSON 解析器解析
         5. 标题和描述要准确反映你看到的实际内容，不要凭空猜测
-        
+
         JSON 字段要求：
         - title: 视频标题，不超过100字符，要吸引人且准确反映内容
         - description: 视频描述，不超过5000字符，详细描述画面内容和制作过程
         - tags: 标签数组，5-15个基于画面内容的相关标签
-        
+
         示例输出格式（严格遵守）：
         {"title":"红烧肉制作教程","description":"详细步骤...","tags":["红烧肉","猪肉","家常菜","烹饪","食谱"]}
         """;
@@ -114,7 +115,7 @@ public class MetadataGenerationServiceImpl implements MetadataGenerationService 
     }
 
     @Override
-    public VideoMetadata generate(VideoFileInfo videoInfo, List<VideoMetadata> historicalMetadata) {
+    public VideoMetadata generate(VideoId videoId, VideoFileInfo videoInfo, List<VideoMetadata> historicalMetadata) {
         log.info("Generating metadata for video file (text-only mode): {}", videoInfo.fileName());
 
         String parentRpc = TraceContext.pushSpan();
@@ -143,7 +144,7 @@ public class MetadataGenerationServiceImpl implements MetadataGenerationService 
                 generated.title(), generated.tags().size());
 
             VideoMetadata metadata = VideoMetadata.create(
-                null,
+                videoId,
                 generated.title(),
                 generated.description(),
                 generated.tags(),
@@ -171,7 +172,7 @@ public class MetadataGenerationServiceImpl implements MetadataGenerationService 
     }
 
     @Override
-    public VideoMetadata generate(VideoFileInfo videoInfo, List<VideoMetadata> historicalMetadata, Path videoPath) {
+    public VideoMetadata generate(VideoId videoId, VideoFileInfo videoInfo, List<VideoMetadata> historicalMetadata, Path videoPath) {
         log.info("Generating metadata for video file (multimodal mode): {}", videoInfo.fileName());
 
         String parentRpc = TraceContext.pushSpan();
@@ -204,7 +205,7 @@ public class MetadataGenerationServiceImpl implements MetadataGenerationService 
                 generated.title(), generated.tags().size());
 
             VideoMetadata metadata = VideoMetadata.create(
-                null,
+                videoId,
                 generated.title(),
                 generated.description(),
                 generated.tags(),
@@ -277,7 +278,7 @@ public class MetadataGenerationServiceImpl implements MetadataGenerationService 
 
     private GeneratedMetadata parseLlmResponse(String content) {
         String cleaned = cleanLlmResponse(content);
-        
+
         if (cleaned.isEmpty()) {
             log.error("LLM response is empty or blank after cleaning");
             throw new ExternalServiceException(
@@ -286,13 +287,13 @@ public class MetadataGenerationServiceImpl implements MetadataGenerationService 
                 "LLM returned empty response"
             );
         }
-        
+
         try {
             JsonNode root = objectMapper.readTree(cleaned);
             return extractMetadataFromJson(root);
         } catch (JsonProcessingException e) {
             log.debug("Direct JSON parsing failed: {}", e.getMessage());
-            
+
             String jsonFromMarkdown = extractJsonFromMarkdown(cleaned);
             if (jsonFromMarkdown != null) {
                 try {
@@ -302,7 +303,7 @@ public class MetadataGenerationServiceImpl implements MetadataGenerationService 
                     log.debug("Markdown JSON parsing failed: {}", e2.getMessage());
                 }
             }
-            
+
             String jsonFromRegex = extractJsonWithRegex(cleaned);
             if (jsonFromRegex != null) {
                 try {
@@ -312,7 +313,7 @@ public class MetadataGenerationServiceImpl implements MetadataGenerationService 
                     log.debug("Regex JSON parsing failed: {}", e3.getMessage());
                 }
             }
-            
+
             log.error("Failed to parse LLM response as JSON. Raw content: {}", content);
             throw new ExternalServiceException(
                 ErrorCode.LLM_SERVICE_UNAVAILABLE,

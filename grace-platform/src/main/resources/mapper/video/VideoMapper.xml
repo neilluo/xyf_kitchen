@@ -15,18 +15,19 @@
         <result property="storageProvider" column="storage_provider" typeHandler="com.grace.platform.shared.infrastructure.persistence.typehandler.StorageProviderTypeHandler"/>
     </resultMap>
 
-    <!-- 根据 ID 查询视频 -->
+    <!-- 根据 ID 查询视频（findById 不排除 DELETED，删除接口需查询后再标记） -->
     <select id="findById" resultMap="videoResultMap">
         SELECT id, file_name, file_size, format, duration_seconds, file_path, storage_url, storage_provider, status, created_at, updated_at
         FROM video
         WHERE id = #{id}
     </select>
 
-    <!-- 条件分页查询 -->
+    <!-- 条件分页查询（排除已软删除的视频） -->
     <select id="findByCondition" resultMap="videoResultMap">
         SELECT id, file_name, file_size, format, duration_seconds, file_path, storage_url, storage_provider, status, created_at, updated_at
         FROM video
         <where>
+            AND status != 'DELETED'
             <if test="status != null and status != ''">
                 AND status = #{status}
             </if>
@@ -44,11 +45,12 @@
         LIMIT #{limit} OFFSET #{offset}
     </select>
 
-    <!-- 统计符合条件的视频数量 -->
+    <!-- 统计符合条件的视频数量（排除已软删除的视频） -->
     <select id="countByCondition" resultType="long">
         SELECT COUNT(*)
         FROM video
         <where>
+            AND status != 'DELETED'
             <if test="status != null and status != ''">
                 AND status = #{status}
             </if>

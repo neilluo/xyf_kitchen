@@ -41,3 +41,64 @@
 2. `grep "<traceId>" logs/grace-platform/*.log` 串起完整调用链（含异步线程，TTL 自动透传 MDC）
 3. 仅看错误：在 `logs/grace-platform/error.log` 里 grep 同一 traceId
 4. 看入参/耗时：在 `logs/grace-platform/access.log` 里 grep 同一 traceId（pipe 分隔：`时间|traceId|rpcId|method|uri|status|rt|userIp|userAgent`）
+
+## 快速调试工具
+
+排查具体问题时,优先让 `grace-debug-agent` (Qoder) 自动串联日志 + 数据库,Agent 配置见 `.qoder/agents/grace-debug-agent.md`。
+
+### 查询脚本
+
+`./scripts/grace-db-query.sh` 提供只读的日志 / 数据库查询能力:
+
+```bash
+# 按 traceId 串联所有日志
+./scripts/grace-db-query.sh trace <traceId>
+
+# 按资源 ID 查详情
+./scripts/grace-db-query.sh video <id>
+
+# 常用视图
+./scripts/grace-db-query.sh status        # 状态分布
+./scripts/grace-db-query.sh recent [n]    # 最近 n 条
+
+# 自定义 SQL (仅 SELECT)
+./scripts/grace-db-query.sh "SELECT ... FROM ... WHERE ...;"
+./scripts/grace-db-query.sh "SHOW TABLES;"
+./scripts/grace-db-query.sh "SHOW COLUMNS FROM <table>;"
+```
+
+所有输出统一 JSON 结构: `{ success, rowCount, data: [...] }`。
+
+### Debug API
+
+脚本底层调用后端 `/api/debug/*`,也可直接 curl:
+
+```bash
+curl http://localhost:8000/api/debug/video/{id} | jq
+curl http://localhost:8000/api/debug/video/status-distribution | jq
+curl -X POST http://localhost:8000/api/debug/query \
+  -H "Content-Type: application/json" \
+  -d '{"query":"SELECT ..."}' | jq
+```
+
+**安全机制**: 代码层仅放行 SELECT,拦截 INSERT/UPDATE/DELETE/DROP/ALTER/CREATE/TRUNCATE 等写操作;所有查询落入 application.log。生产环境再加 Profile / IP 白名单 / 认证 Token。
+
+### 排查顺序
+
+```
+日志 (发生了什么) → 数据库 (当前状态) → 代码 (业务约束) → 根因结论
+```
+
+日志缺失推断表:
+
+| access.log | application.log | error.log | 含义 |
+|------------|-----------------|-----------|------|
+| ✅ | ❌ | ❌ | 请求在 Filter/Security 层被拦截,未进业务 |
+| ✅ | ✅ | ❌ | 正常业务流程,按 status 判断 |
+| ✅ | ✅ | ✅ | 业务层抛异常,看堆栈 |
+| ❌ | —  | —  | traceId 无效或请求未到达后端 |
+
+### 常见问题
+
+- **脚本提示 "Backend debug endpoint not available"** → 后端未启动,跑 `./start.sh`
+- **数据库连接失败** → 检查 `.env` 的 `MYSQL_HOST/USER/PASSWORD/DATABASE`

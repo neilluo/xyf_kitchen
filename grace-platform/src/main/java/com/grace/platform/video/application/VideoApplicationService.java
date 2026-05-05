@@ -112,6 +112,27 @@ public class VideoApplicationService {
         );
     }
 
+    // ==================== 软删除视频 ====================
+
+    /**
+     * 软删除视频。
+     * <p>
+     * 将视频状态置为 DELETED，保留数据库记录与 OSS 文件。
+     * 已发布（PUBLISHED）的视频不允许删除。
+     *
+     * @param videoId 视频 ID
+     * @throws EntityNotFoundException 当视频不存在时
+     */
+    public void deleteVideo(String videoId) {
+        VideoId vid = new VideoId(videoId);
+        Video video = videoRepository.findById(vid)
+            .orElseThrow(() -> new EntityNotFoundException(
+                ErrorCode.VIDEO_NOT_FOUND, "Video", videoId));
+
+        video.markAsDeleted();
+        videoRepository.save(video);
+    }
+
     // ==================== 私有辅助方法 ====================
 
     private VideoListItemDTO toVideoListItemDTO(Video video) {

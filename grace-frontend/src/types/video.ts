@@ -4,7 +4,7 @@ import type { PublishRecord } from './distribution'
 // 视频格式
 export type VideoFormat = 'MP4' | 'MOV' | 'AVI' | 'MKV'
 
-// 视频状态 - 7种
+// 视频状态 - 8种（含软删除 DELETED）
 export type VideoStatus =
   | 'UPLOADED'
   | 'METADATA_GENERATED'
@@ -13,6 +13,7 @@ export type VideoStatus =
   | 'PUBLISHED'
   | 'PUBLISH_FAILED'
   | 'PROMOTION_DONE'
+  | 'DELETED'
 
 export interface Video {
   videoId: string

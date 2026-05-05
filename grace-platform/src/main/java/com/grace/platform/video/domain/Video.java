@@ -216,6 +216,28 @@ public class Video {
     }
 
     /**
+     * 软删除视频。
+     * <p>
+     * 将状态标记为 DELETED，保留数据库记录与存储文件。
+     * 已发布（PUBLISHED）的视频不允许删除。
+     *
+     * @throws BusinessRuleViolationException 当视频处于 PUBLISHED 状态时
+     */
+    public void markAsDeleted() {
+        if (this.status == VideoStatus.PUBLISHED) {
+            throw new BusinessRuleViolationException(
+                ErrorCode.INTERNAL_SERVER_ERROR,
+                "Published video cannot be deleted"
+            );
+        }
+        if (this.status == VideoStatus.DELETED) {
+            return;
+        }
+        this.status = VideoStatus.DELETED;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
      * 更新视频信息
      *
      * @param fileName 新文件名（可选）

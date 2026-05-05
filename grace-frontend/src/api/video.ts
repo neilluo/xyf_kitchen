@@ -62,3 +62,8 @@ export async function serverUploadComplete(uploadId: string): Promise<ServerUplo
   )
   return response.data.data
 }
+
+// B7: DELETE /api/videos/{videoId} - 软删除视频
+export async function deleteVideo(videoId: string): Promise<void> {
+  await apiClient.delete(`/videos/${videoId}`)
+}
