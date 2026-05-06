@@ -74,23 +74,23 @@ class DistributionIntegrationTest extends AbstractIntegrationTest {
         String taskId = "youtube_task_123";
         String videoUrl = "https://www.youtube.com/watch?v=test123";
         YouTubeUploadResult mockResult = YouTubeUploadResult.completed(taskId, videoUrl);
-        
+
         when(youTubeApiAdapter.uploadVideo(
-            anyString(), 
-            anyString(), 
-            anyString(), 
-            anyString(), 
-            anyList(), 
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString(),
+            anyList(),
             anyString()
         )).thenReturn(mockResult);
 
         // Mock 上传进度查询
         YouTubeUploadProgress mockProgress = new YouTubeUploadProgress(
-            "upload_uri_123", 
-            1000000, 
-            1000000, 
-            YouTubeUploadStatus.COMPLETED, 
-            videoUrl, 
+            "upload_uri_123",
+            1000000,
+            1000000,
+            YouTubeUploadStatus.COMPLETED,
+            videoUrl,
             null
         );
         when(youTubeApiAdapter.getUploadProgress(anyString(), anyString()))
@@ -126,7 +126,7 @@ class DistributionIntegrationTest extends AbstractIntegrationTest {
             com.grace.platform.metadata.domain.MetadataSource.AI_GENERATED
         );
         metadata.confirm(); // 确认元数据
-        metadataRepository.save(metadata);
+        metadataRepository.insert(metadata);
         metadataId = metadata.getId();
 
         // 创建 OAuth Token（模拟已授权）
@@ -141,26 +141,26 @@ class DistributionIntegrationTest extends AbstractIntegrationTest {
         // 1. Publish - 发布视频
         PublishCommand publishCommand = new PublishCommand(videoId, metadataId, "youtube", "public");
         PublishResultDTO result = distributionService.publish(publishCommand);
-        
+
         assertThat(result).isNotNull();
         assertThat(result.publishRecordId()).isNotBlank();
         assertThat(result.videoId()).isEqualTo(videoId.value());
         assertThat(result.platform()).isEqualTo("youtube");
         assertThat(result.uploadTaskId()).isNotBlank();
-        
+
         String taskId = result.uploadTaskId();
         String recordId = result.publishRecordId();
 
         // 2. Query upload status - 查询上传状态
         UploadStatusDTO status = distributionService.getUploadStatus(taskId);
-        
+
         assertThat(status).isNotNull();
         assertThat(status.publishRecordId()).isEqualTo(recordId);
         assertThat(status.platform()).isEqualTo("youtube");
 
         // 3. Query publish records - 查询发布记录
         List<PublishRecordDTO> records = distributionService.getPublishRecords(videoId);
-        
+
         assertThat(records).isNotEmpty();
         assertThat(records.get(0).platform()).isEqualTo("youtube");
     }
@@ -172,10 +172,10 @@ class DistributionIntegrationTest extends AbstractIntegrationTest {
         VideoId videoId = TestFixtures.randomVideoId();
         PublishRecord record = TestFixtures.createPublishRecord(videoId);
         PublishRecord saved = publishRecordRepository.save(record);
-        
+
         // Query by video ID
         List<PublishRecord> found = publishRecordRepository.findByVideoId(videoId);
-        
+
         assertThat(found).isNotEmpty();
         assertThat(found.get(0).getVideoId()).isEqualTo(saved.getVideoId());
         assertThat(found.get(0).getPlatform()).isEqualTo(saved.getPlatform());
@@ -192,10 +192,10 @@ class DistributionIntegrationTest extends AbstractIntegrationTest {
             LocalDateTime.now().plusHours(1)
         );
         OAuthToken saved = oAuthTokenRepository.save(token);
-        
+
         // Query by platform
         java.util.Optional<OAuthToken> found = oAuthTokenRepository.findByPlatform("youtube");
-        
+
         assertThat(found).isPresent();
         assertThat(found.get().getPlatform()).isEqualTo("youtube");
         assertThat(found.get().getId()).isEqualTo(saved.getId());
@@ -215,7 +215,7 @@ class DistributionIntegrationTest extends AbstractIntegrationTest {
 
         // List platforms
         var platforms = distributionService.listPlatforms();
-        
+
         assertThat(platforms).isNotEmpty();
         // YouTube should be in the list (from YouTubeDistributor @Component)
         assertThat(platforms).anyMatch(p -> p.platform().equals("youtube"));

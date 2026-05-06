@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 public record ServerUploadCompleteResponse(
     String videoId,
+    String taskId,
     String fileName,
     long fileSize,
     String format,

@@ -26,7 +26,8 @@ public record VideoDetailResponse(
     MetadataResponse metadata,
     List<PublishRecordResponse> publishRecords,
     /** 只读扩展字段（含 traceId / rpcId / createdTraceId 等），不接受写入 */
-    Map<String, Object> extInfo
+    Map<String, Object> extInfo,
+    TaskSummaryResponse task
 ) {
     /**
      * 元数据响应 DTO（内嵌）。
@@ -39,6 +40,17 @@ public record VideoDetailResponse(
         String source,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
+    ) {
+    }
+
+    /**
+     * 任务摘要响应 DTO（内嵌）。
+     */
+    public record TaskSummaryResponse(
+        String currentStep,
+        String status,
+        int attempts,
+        String lastError
     ) {
     }
 

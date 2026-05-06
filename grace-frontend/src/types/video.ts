@@ -4,10 +4,11 @@ import type { PublishRecord } from './distribution'
 // 视频格式
 export type VideoFormat = 'MP4' | 'MOV' | 'AVI' | 'MKV'
 
-// 视频状态 - 8种（含软删除 DELETED）
+// 视频状态 - 9种（含软删除 DELETED、元数据失败 METADATA_FAILED）
 export type VideoStatus =
   | 'UPLOADED'
   | 'METADATA_GENERATED'
+  | 'METADATA_FAILED'
   | 'READY_TO_PUBLISH'
   | 'PUBLISHING'
   | 'PUBLISHED'
@@ -28,11 +29,20 @@ export interface Video {
   updatedAt: string
 }
 
+// 异步任务摘要
+export interface TaskSummary {
+  currentStep: string
+  status: 'PENDING' | 'RUNNING' | 'FAILED' | 'DONE'
+  attempts: number
+  lastError: string | null
+}
+
 // 视频详情
 export interface VideoDetail extends Video {
   filePath: string
   metadata: VideoMetadata | null
   publishRecords: PublishRecord[]
+  task?: TaskSummary
 }
 
 export interface VideoListParams {
@@ -74,4 +84,5 @@ export interface ServerUploadCompleteResponse {
   videoId: string
   fileName: string
   status: VideoStatus
+  taskId: string
 }

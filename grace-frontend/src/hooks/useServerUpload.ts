@@ -14,7 +14,7 @@ export interface ServerUploadState {
   progress: number
   speed: number
   estimatedTime: number
-  status: 'idle' | 'initializing' | 'uploading' | 'completing' | 'completed' | 'error'
+  status: 'idle' | 'initializing' | 'uploading' | 'completing' | 'completed' | 'metadata_failed' | 'error'
   error: Error | null
   videoId: string | null
   videoStatus: VideoStatus | null
@@ -64,7 +64,7 @@ export function useServerUpload() {
       while (attempts < MAX_POLL_ATTEMPTS && !abortRef.current) {
         try {
           const video = await getVideoDetail(videoId)
-          if (video.status !== 'UPLOADED') {
+          if (video.status === 'METADATA_GENERATED' || video.status === 'METADATA_FAILED') {
             return video.status
           }
         } catch {
@@ -79,7 +79,7 @@ export function useServerUpload() {
   )
 
   const uploadFile = useCallback(
-    async (file: File): Promise<{ videoId: string; fileName: string }> => {
+    async (file: File): Promise<{ videoId: string; fileName: string; videoStatus: VideoStatus }> => {
       abortRef.current = false
       startTimeRef.current = Date.now()
 
@@ -173,6 +173,16 @@ export function useServerUpload() {
 
         const videoStatus = await pollVideoStatus(completeResult.videoId)
 
+        if (videoStatus === 'METADATA_FAILED') {
+          setUploadState((prev) => ({
+            ...prev,
+            status: 'metadata_failed',
+            videoId: completeResult.videoId,
+            videoStatus,
+          }))
+          return { videoId: completeResult.videoId, fileName: file.name, videoStatus }
+        }
+
         setUploadState((prev) => ({
           ...prev,
           status: 'completed',
@@ -180,7 +190,7 @@ export function useServerUpload() {
           videoStatus,
         }))
 
-        return { videoId: completeResult.videoId, fileName: file.name }
+        return { videoId: completeResult.videoId, fileName: file.name, videoStatus }
       } catch (error) {
         const err = error instanceof Error ? error : new Error('Upload failed')
         setUploadState((prev) => ({

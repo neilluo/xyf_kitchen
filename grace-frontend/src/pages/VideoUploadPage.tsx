@@ -5,6 +5,7 @@ import { ProgressBar } from '@/components/ui/ProgressBar'
 import { useServerUpload } from '@/hooks/useServerUpload'
 import { useVideoList } from '@/hooks/useVideos'
 import { useAppStore } from '@/store/useAppStore'
+import { retryMetadata } from '@/api/video'
 import { formatFileSize } from '@/utils/format'
 import { ROUTES } from '@/utils/constants'
 import type { VideoStatus, Video } from '@/types/video'
@@ -49,11 +50,13 @@ interface CompletedUpload {
 const statusTextMap: Record<VideoStatus, string> = {
   UPLOADED: '上传完成，正在生成元数据...',
   METADATA_GENERATED: '元数据已生成，等待审核',
+  METADATA_FAILED: '元数据生成失败',
   READY_TO_PUBLISH: '准备就绪，等待发布',
   PUBLISHING: '正在发布...',
   PUBLISHED: '已发布',
   PUBLISH_FAILED: '发布失败',
   PROMOTION_DONE: '推广完成',
+  DELETED: '已删除',
 }
 interface DropZoneProps {
   onFileSelect: (file: File) => void
@@ -262,8 +265,14 @@ function UploadProgressCard({ fileName, fileSize, progress, speed, estimatedTime
           </div>
 
           <div className="flex justify-between items-center mt-3">
-            <span className="text-xs text-slate-500 flex items-center gap-1">
-              <Icon name="speed" size={14} />
+            <span className={`text-xs flex items-center gap-1 ${status === 'error' ? 'text-error' : 'text-slate-500'}`}>
+              {status === 'initializing' || status === 'completing' ? (
+                <Icon name="progress_activity" size={14} className="animate-spin" />
+              ) : status === 'error' ? (
+                <Icon name="error" size={14} />
+              ) : (
+                <Icon name="speed" size={14} />
+              )}
               {statusText}
             </span>
             <span className="text-sm font-bold text-primary">{Math.round(progress)}%</span>
@@ -277,33 +286,49 @@ function UploadProgressCard({ fileName, fileSize, progress, speed, estimatedTime
 interface CompletedUploadItemProps {
   upload: CompletedUpload
   onReviewMetadata: () => void
+  onRetryMetadata: (videoId: string) => void
 }
 
-function CompletedUploadItem({ upload, onReviewMetadata }: CompletedUploadItemProps) {
+function CompletedUploadItem({ upload, onReviewMetadata, onRetryMetadata }: CompletedUploadItemProps) {
   const statusText = statusTextMap[upload.status]
   const isMetadataPending = upload.status === 'UPLOADED'
+  const isMetadataFailed = upload.status === 'METADATA_FAILED'
 
   return (
     <div className="bg-surface-container-lowest p-5 rounded-xl flex items-center gap-4 group hover:bg-surface-bright transition-all">
-      <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600">
-        <Icon name="check_circle" size={20} />
+      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isMetadataFailed ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+        <Icon name={isMetadataFailed ? 'error' : 'check_circle'} size={20} />
       </div>
       <div className="flex-1 flex items-center justify-between">
         <div>
           <h4 className="font-medium text-sm text-on-surface">{upload.fileName}</h4>
-          <p className={`text-xs mt-0.5 font-medium flex items-center gap-1 ${isMetadataPending ? 'text-green-600' : 'text-slate-500'}`}>
-            {isMetadataPending ? statusText : `已于 ${formatCompletedTime(upload.completedAt)} 上传`}
-          </p>
+          {isMetadataFailed ? (
+            <div className="mt-1">
+              <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-900">
+                <div>元数据生成失败，视频已上传但待补齐。</div>
+                <button
+                  className="mt-2 rounded bg-red-600 px-3 py-1 text-white hover:bg-red-700"
+                  onClick={() => onRetryMetadata(upload.videoId)}
+                >重试元数据生成</button>
+              </div>
+            </div>
+          ) : (
+            <p className={`text-xs mt-0.5 font-medium flex items-center gap-1 ${isMetadataPending ? 'text-green-600' : 'text-slate-500'}`}>
+              {isMetadataPending ? statusText : `已于 ${formatCompletedTime(upload.completedAt)} 上传`}
+            </p>
+          )}
         </div>
-        <div className="flex items-center gap-6">
-          <div className="w-32 h-1.5 bg-green-500 rounded-full" />
-          <button
-            onClick={onReviewMetadata}
-            className="text-primary text-sm font-semibold hover:underline px-3 py-1 bg-primary/5 rounded transition-colors"
-          >
-            编辑元数据
-          </button>
-        </div>
+        {!isMetadataFailed && (
+          <div className="flex items-center gap-6">
+            <div className="w-32 h-1.5 bg-green-500 rounded-full" />
+            <button
+              onClick={onReviewMetadata}
+              className="text-primary text-sm font-semibold hover:underline px-3 py-1 bg-primary/5 rounded transition-colors"
+            >
+              编辑元数据
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -421,14 +446,21 @@ export function VideoUploadPage() {
             fileName: result.fileName,
             fileSize: file.size,
             completedAt: new Date(),
-            status: uploadState.videoStatus ?? 'UPLOADED',
+            status: result.videoStatus,
           },
           ...prev,
         ])
-        addToast({
-          type: 'success',
-          message: `「${result.fileName}」上传成功`,
-        })
+        if (result.videoStatus === 'METADATA_FAILED') {
+          addToast({
+            type: 'info',
+            message: `「${result.fileName}」已上传，但元数据生成失败`,
+          })
+        } else {
+          addToast({
+            type: 'success',
+            message: `「${result.fileName}」上传成功`,
+          })
+        }
         setTimeout(() => {
           resetState()
           setIsUploading(false)
@@ -442,7 +474,7 @@ export function VideoUploadPage() {
         setIsUploading(false)
       }
     },
-    [uploadFile, uploadState.videoStatus, addToast, resetState]
+    [uploadFile, addToast, resetState]
   )
 
   const handleFileSelect = useCallback(
@@ -480,6 +512,18 @@ export function VideoUploadPage() {
     })
   }, [cancelUpload, addToast])
 
+  const handleRetryMetadata = useCallback(
+    async (videoId: string) => {
+      try {
+        await retryMetadata(videoId)
+        addToast({ type: 'info', message: '已提交重试，稍候刷新' })
+      } catch {
+        addToast({ type: 'error', message: '重试失败，请稍后再试' })
+      }
+    },
+    [addToast]
+  )
+
   const handleReviewMetadata = useCallback(
     (videoId: string) => {
       navigate(ROUTES.VIDEO_METADATA(videoId))
@@ -490,7 +534,7 @@ export function VideoUploadPage() {
   const showProgress =
     uploadState.status !== 'idle' &&
     uploadState.status !== 'completed' &&
-    uploadState.status !== 'error'
+    uploadState.status !== 'metadata_failed'
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
@@ -542,6 +586,7 @@ export function VideoUploadPage() {
                 key={upload.videoId}
                 upload={upload}
                 onReviewMetadata={() => handleReviewMetadata(upload.videoId)}
+                onRetryMetadata={handleRetryMetadata}
               />
             ))}
             {videoListData?.items

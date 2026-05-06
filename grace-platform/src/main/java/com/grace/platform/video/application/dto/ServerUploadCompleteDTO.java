@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 
 public record ServerUploadCompleteDTO(
     String videoId,
+    String taskId,
     String fileName,
     long fileSize,
     String format,

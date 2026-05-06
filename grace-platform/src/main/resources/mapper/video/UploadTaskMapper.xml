@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.grace.platform.video.infrastructure.persistence.UploadTaskMapper">
+
+    <!-- ResultMap：利用 mybatis.configuration.map-underscore-to-camel-case=true 自动映射 -->
+    <!-- 仅需对 TypeHandler 类型的字段显式声明 -->
+    <resultMap id="uploadTaskResultMap" type="com.grace.platform.video.domain.UploadTask">
+        <id property="id" column="id"/>
+        <result property="currentStep" column="current_step" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="status" column="status" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="payload" column="payload" typeHandler="com.grace.platform.shared.infrastructure.persistence.typehandler.JsonMapTypeHandler"/>
+        <result property="extInfo" column="ext_info" typeHandler="com.grace.platform.shared.infrastructure.persistence.typehandler.JsonMapTypeHandler"/>
+    </resultMap>
+
+    <!-- 根据 ID 查询上传任务 -->
+    <select id="findById" resultMap="uploadTaskResultMap">
+        SELECT id, video_id, current_step, status, attempts, max_attempts,
+               last_error, owner_instance_id, heartbeat_at, payload, ext_info, created_at, updated_at
+        FROM upload_task
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据视频 ID 查询上传任务 -->
+    <select id="findByVideoId" resultMap="uploadTaskResultMap">
+        SELECT id, video_id, current_step, status, attempts, max_attempts,
+               last_error, owner_instance_id, heartbeat_at, payload, ext_info, created_at, updated_at
+        FROM upload_task
+        WHERE video_id = #{videoId}
+    </select>
+
+    <!-- 插入新上传任务 -->
+    <insert id="insert">
+        INSERT INTO upload_task (id, video_id, current_step, status, attempts, max_attempts,
+                                last_error, owner_instance_id, heartbeat_at, payload, ext_info, created_at, updated_at)
+        VALUES (
+            #{id},
+            #{videoId},
+            #{currentStep, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+            #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+            #{attempts},
+            #{maxAttempts},
+            #{lastError},
+            #{ownerInstanceId},
+            #{heartbeatAt},
+            #{payload, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.JsonMapTypeHandler},
+            #{extInfo, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.JsonMapTypeHandler},
+            #{createdAt},
+            #{updatedAt}
+        )
+    </insert>
+
+    <!-- 更新上传任务信息 -->
+    <update id="update">
+        UPDATE upload_task
+        SET current_step = #{currentStep, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+            status = #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+            attempts = #{attempts},
+            max_attempts = #{maxAttempts},
+            last_error = #{lastError},
+            owner_instance_id = #{ownerInstanceId},
+            heartbeat_at = #{heartbeatAt},
+            payload = #{payload, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.JsonMapTypeHandler},
+            ext_info = #{extInfo, typeHandler=com.grace.platform.shared.infrastructure.persistence.typehandler.JsonMapTypeHandler},
+            updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 原子 claim：status PENDING→RUNNING + attempts++ -->
+    <update id="claim">
+        UPDATE upload_task
+        SET status = 'RUNNING',
+            owner_instance_id = #{instanceId},
+            heartbeat_at = NOW(),
+            attempts = attempts + 1,
+            updated_at = NOW()
+        WHERE id = #{id}
+          AND status = 'PENDING'
+    </update>
+
+    <!-- 心跳更新 -->
+    <update id="touchHeartbeat">
+        UPDATE upload_task
+        SET heartbeat_at = NOW(),
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 扫描 PENDING 但超过 orphanSeconds 未被消费的任务 ID -->
+    <select id="findOrphanPendingIds" resultType="string">
+        SELECT id FROM upload_task
+        WHERE status = 'PENDING'
+          AND updated_at &lt; DATE_SUB(NOW(), INTERVAL #{orphanSeconds} SECOND)
+        LIMIT 100
+    </select>
+
+    <!-- 扫描 RUNNING 但 heartbeat 超过 zombieSeconds 的任务，重置为 PENDING -->
+    <update id="resetZombies">
+        UPDATE upload_task
+        SET status = 'PENDING',
+            owner_instance_id = NULL,
+            heartbeat_at = NULL,
+            updated_at = NOW()
+        WHERE status = 'RUNNING'
+          AND heartbeat_at &lt; DATE_SUB(NOW(), INTERVAL #{zombieSeconds} SECOND)
+    </update>
+
+</mapper>

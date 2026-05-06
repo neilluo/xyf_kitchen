@@ -112,6 +112,8 @@
 | 1006 | 400 | DUPLICATE_CHUNK | 重复上传相同 chunkIndex |
 | 1007 | 400 | UPLOAD_NOT_COMPLETE | 尚有分片未上传就调用 complete |
 | 1008 | 404 | VIDEO_NOT_FOUND | 视频 ID 不存在 |
+| 1009 | 400 | INVALID_STATE | 视频状态不满足操作要求 |
+| 1010 | 409 | ALREADY_RUNNING | 任务已在执行中 |
 | **2001-2099：元数据上下文** | | | |
 | 2001 | 400 | INVALID_METADATA | 元数据字段约束校验失败 |
 | 2002 | 404 | METADATA_NOT_FOUND | 元数据 ID 不存在 |
@@ -245,7 +247,56 @@
 
 ---
 
-> 视频上传相关端点（服务端分片上传）请参考 `ServerUploadController`：`POST /api/videos/upload/server/init`、`POST /api/videos/upload/server/{uploadId}/chunk`、`POST /api/videos/upload/server/{uploadId}/complete`。
+> 视频上传相关端点（服务端分片上传）请参考 `ServerUploadController`：`POST /api/videos/upload/server/init`、`POST /api/videos/upload/server/{uploadId}/chunk`。`POST /api/videos/upload/server/{uploadId}/complete` 详见下方 B3。
+
+---
+
+#### B3. POST /api/videos/upload/server/{uploadId}/complete
+
+**描述：** 完成服务端分片上传。合并分片、触发异步流水线，立即返回视频初始状态（`UPLOADED`）和任务 ID。
+
+**对应UI页面：** grace_video_upload
+
+**路径参数：**
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| uploadId | string | 上传会话 ID |
+
+**请求 Body：** 无
+
+**HTTP 状态码：** `202 Accepted`
+
+**响应 `data` 字段：**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| videoId | string | 视频 ID |
+| taskId | string | 异步任务 ID |
+| fileName | string | 文件名 |
+| fileSize | long | 文件字节数 |
+| format | string | 文件格式 |
+| status | string | 初始状态：`UPLOADED` |
+| createdAt | string | 创建时间 |
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "videoId": "vid_a7bba5267702486d90eae19e6163c57d",
+    "taskId": "task_xxxx",
+    "fileName": "A01京东送货正常光照外卖送达拍照离开.mp4",
+    "fileSize": 1321275,
+    "format": "MP4",
+    "status": "UPLOADED",
+    "createdAt": "2026-05-06T00:04:49.129"
+  },
+  "timestamp": "2026-05-06T00:04:49Z"
+}
+```
+
+**错误码：** `1003` UPLOAD_SESSION_NOT_FOUND, `1004` UPLOAD_SESSION_EXPIRED, `1007` UPLOAD_NOT_COMPLETE
 
 ---
 
@@ -363,6 +414,11 @@
 | publishRecords[].errorMessage | string / null | 错误信息 |
 | publishRecords[].publishedAt | string / null | 发布时间 |
 | publishRecords[].createdAt | string | 记录创建时间 |
+| task | object / null | 异步上传任务状态（如存在） |
+| task.currentStep | string | 当前步骤，如 `RUNNING_METADATA` |
+| task.status | string | 任务状态：`PENDING` / `RUNNING` / `FAILED` / `DONE` |
+| task.attempts | int | 当前步骤已尝试次数 |
+| task.lastError | string / null | 最近一次错误信息 |
 
 ```json
 {
@@ -399,13 +455,58 @@
         "publishedAt": "2023-10-25T09:00:00Z",
         "createdAt": "2023-10-25T08:50:00Z"
       }
-    ]
+    ],
+    "task": {
+      "currentStep": "RUNNING_METADATA",
+      "status": "RUNNING",
+      "attempts": 1,
+      "lastError": null
+    }
   },
   "timestamp": "2024-01-15T10:30:00Z"
 }
 ```
 
 **错误码：** `1008` VIDEO_NOT_FOUND
+
+---
+
+#### B7. POST /api/videos/{videoId}/retry-metadata
+
+**描述：** 手动重试元数据生成。仅当视频状态为 `METADATA_FAILED` 时可用。
+
+**对应UI页面：** grace_video_upload, grace_video_management
+
+**路径参数：**
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| videoId | string | 视频 ID |
+
+**请求 Body：** 无
+
+**响应 `data` 字段：**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| taskId | string | 任务 ID |
+| currentStep | string | 当前步骤：`PENDING_METADATA` |
+| status | string | 任务状态：`PENDING` |
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "taskId": "task_xxxx",
+    "currentStep": "PENDING_METADATA",
+    "status": "PENDING"
+  },
+  "timestamp": "2026-05-06T10:30:00Z"
+}
+```
+
+**错误码：** `1008` VIDEO_NOT_FOUND, `1009` INVALID_STATE, `1010` ALREADY_RUNNING
 
 ---
 
@@ -1681,8 +1782,10 @@
 | 编号 | 方法 | 路径 | 描述 | 来源 |
 |------|------|------|------|------|
 | A1 | GET | /api/dashboard/overview | 仪表盘概览数据 | 新增 |
+| B3 | POST | /api/videos/upload/server/{uploadId}/complete | 完成服务端分片上传（异步） | 新增 |
 | B5 | GET | /api/videos | 视频列表（分页/搜索/筛选） | 新增 |
-| B6 | GET | /api/videos/{videoId} | 视频详情（含元数据+发布记录） | 新增 |
+| B6 | GET | /api/videos/{videoId} | 视频详情（含元数据+发布记录+任务状态） | 新增 |
+| B7 | POST | /api/videos/{videoId}/retry-metadata | 重试元数据生成 | 新增 |
 | C1 | POST | /api/metadata/generate | AI 生成元数据 | design.md |
 | C2 | PUT | /api/metadata/{id} | 更新元数据 | design.md |
 | C3 | POST | /api/metadata/{id}/regenerate | 重新生成元数据 | design.md |
@@ -1734,11 +1837,37 @@
 |------|------|
 | UPLOADED | 已上传，待生成元数据 |
 | METADATA_GENERATED | 元数据已生成，待审核 |
+| METADATA_FAILED | 元数据生成失败，可手动重试 |
 | READY_TO_PUBLISH | 元数据已确认，待发布 |
 | PUBLISHING | 发布中 |
 | PUBLISHED | 已发布成功 |
 | PUBLISH_FAILED | 发布失败 |
 | PROMOTION_DONE | 推广完成 |
+
+### UploadTaskStatus
+
+| 值 | 说明 |
+|------|------|
+| PENDING | 待执行 |
+| RUNNING | 执行中 |
+| FAILED | 失败（已耗尽重试次数） |
+| DONE | 完成 |
+
+### UploadTaskStep
+
+| 值 | 说明 |
+|------|------|
+| PENDING_MERGE | 待合并分片 |
+| RUNNING_MERGE | 正在合并分片 |
+| PENDING_INSPECT | 待探测视频信息 |
+| RUNNING_INSPECT | 正在探测视频信息 |
+| PENDING_OSS | 待上传 OSS |
+| RUNNING_OSS | 正在上传 OSS |
+| PENDING_METADATA | 待生成元数据 |
+| RUNNING_METADATA | 正在生成元数据 |
+| PENDING_CLEANUP | 待清理临时文件 |
+| RUNNING_CLEANUP | 正在清理临时文件 |
+| DONE | 已完成 |
 
 ### UploadSessionStatus
 

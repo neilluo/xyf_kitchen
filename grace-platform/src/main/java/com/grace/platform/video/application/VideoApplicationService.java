@@ -5,11 +5,18 @@ import com.grace.platform.shared.application.dto.PageResponse;
 import com.grace.platform.shared.domain.PageRequest;
 import com.grace.platform.shared.domain.PaginatedResult;
 import com.grace.platform.shared.domain.id.VideoId;
+import com.grace.platform.shared.infrastructure.exception.BusinessRuleViolationException;
 import com.grace.platform.shared.infrastructure.exception.EntityNotFoundException;
 import com.grace.platform.video.application.command.VideoQueryCommand;
 import com.grace.platform.video.application.dto.*;
+import com.grace.platform.video.application.event.TaskReadyEvent;
+import com.grace.platform.video.domain.UploadTask;
+import com.grace.platform.video.domain.UploadTaskRepository;
+import com.grace.platform.video.domain.UploadTaskStatus;
 import com.grace.platform.video.domain.Video;
 import com.grace.platform.video.domain.VideoRepository;
+import com.grace.platform.video.domain.VideoStatus;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,14 +42,22 @@ import java.util.stream.Collectors;
 public class VideoApplicationService {
 
     private final VideoRepository videoRepository;
+    private final UploadTaskRepository uploadTaskRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 构造器注入依赖。
      *
-     * @param videoRepository 视频仓储
+     * @param videoRepository       视频仓储
+     * @param uploadTaskRepository  上传任务仓储
+     * @param eventPublisher        事件发布器
      */
-    public VideoApplicationService(VideoRepository videoRepository) {
+    public VideoApplicationService(VideoRepository videoRepository,
+                                   UploadTaskRepository uploadTaskRepository,
+                                   ApplicationEventPublisher eventPublisher) {
         this.videoRepository = videoRepository;
+        this.uploadTaskRepository = uploadTaskRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     // ==================== B5: 视频列表查询 ====================
@@ -96,6 +111,14 @@ public class VideoApplicationService {
 
         List<VideoDetailDTO.PublishRecordDTO> publishRecords = List.of();
 
+        TaskSummary taskSummary = uploadTaskRepository.findByVideoId(videoId)
+            .map(t -> new TaskSummary(
+                t.getCurrentStep().name(),
+                t.getStatus().name(),
+                t.getAttempts(),
+                t.getLastError()))
+            .orElse(null);
+
         return new VideoDetailDTO(
             video.getId().value(),
             video.getFileName(),
@@ -109,7 +132,8 @@ public class VideoApplicationService {
             video.getUpdatedAt(),
             metadata,
             publishRecords,
-            video.getExtInfo()
+            video.getExtInfo(),
+            taskSummary
         );
     }
 
@@ -132,6 +156,50 @@ public class VideoApplicationService {
 
         video.markAsDeleted();
         videoRepository.save(video);
+    }
+
+    // ==================== B8: 手动重试元数据生成 ====================
+
+    /**
+     * 手动重试元数据生成。
+     * <p>
+     * 仅当视频处于 METADATA_FAILED 状态且任务不在 RUNNING 时允许重试。
+     *
+     * @param videoId 视频 ID
+     * @return 重试后的任务信息
+     * @throws EntityNotFoundException          当视频或任务不存在时
+     * @throws BusinessRuleViolationException  当状态校验不通过时
+     */
+    @Transactional
+    public RetryMetadataDTO retryMetadata(String videoId) {
+        VideoId vid = new VideoId(videoId);
+        Video video = videoRepository.findById(vid)
+            .orElseThrow(() -> new EntityNotFoundException(
+                ErrorCode.VIDEO_NOT_FOUND, "Video", videoId));
+
+        if (video.getStatus() != VideoStatus.METADATA_FAILED) {
+            throw new BusinessRuleViolationException(
+                ErrorCode.INVALID_METADATA, "video not in METADATA_FAILED");
+        }
+
+        UploadTask task = uploadTaskRepository.findByVideoId(videoId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                ErrorCode.VIDEO_NOT_FOUND, "UploadTask", videoId));
+
+        if (task.getStatus() == UploadTaskStatus.RUNNING) {
+            throw new BusinessRuleViolationException(
+                ErrorCode.INTERNAL_SERVER_ERROR, "task already running");
+        }
+
+        task.resetForManualRetry();
+        uploadTaskRepository.save(task);
+        eventPublisher.publishEvent(new TaskReadyEvent(task.getId()));
+
+        return new RetryMetadataDTO(
+            task.getId(),
+            task.getCurrentStep().name(),
+            task.getStatus().name()
+        );
     }
 
     // ==================== 私有辅助方法 ====================

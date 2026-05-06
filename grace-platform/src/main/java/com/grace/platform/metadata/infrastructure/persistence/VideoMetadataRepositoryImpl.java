@@ -28,13 +28,23 @@ public class VideoMetadataRepositoryImpl implements VideoMetadataRepository {
     }
 
     @Override
-    public VideoMetadata save(VideoMetadata metadata) {
-        if (metadata.getId() == null) {
-            // 新增
-            videoMetadataMapper.insert(metadata);
-        } else {
-            // 更新
-            videoMetadataMapper.update(metadata);
+    public VideoMetadata insert(VideoMetadata metadata) {
+        int affected = videoMetadataMapper.insert(metadata);
+        if (affected != 1) {
+            throw new IllegalStateException(
+                "Failed to insert video_metadata, expected 1 row but was " + affected
+                    + ", id=" + metadata.getId().value());
+        }
+        return metadata;
+    }
+
+    @Override
+    public VideoMetadata update(VideoMetadata metadata) {
+        int affected = videoMetadataMapper.update(metadata);
+        if (affected != 1) {
+            throw new IllegalStateException(
+                "Failed to update video_metadata, expected 1 row but was " + affected
+                    + ", id=" + metadata.getId().value());
         }
         return metadata;
     }

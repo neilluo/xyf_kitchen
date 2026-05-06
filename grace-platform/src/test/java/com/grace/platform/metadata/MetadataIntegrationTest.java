@@ -69,7 +69,7 @@ class MetadataIntegrationTest extends AbstractIntegrationTest {
 
         // 1. Generate - 生成元数据（Mock LLM）
         VideoMetadataDTO generated = metadataService.generateMetadata(videoId);
-        
+
         assertThat(generated).isNotNull();
         assertThat(generated.metadataId()).isNotBlank();
         assertThat(generated.videoId()).isEqualTo(videoId.value());
@@ -77,7 +77,7 @@ class MetadataIntegrationTest extends AbstractIntegrationTest {
         assertThat(generated.description()).isEqualTo("详细讲解红烧肉的烹饪步骤，从选材到出锅全程演示");
         assertThat(generated.tags()).hasSize(5);
         assertThat(generated.confirmed()).isFalse();
-        
+
         String metadataId = generated.metadataId();
 
         // 2. Update - 更新元数据
@@ -86,12 +86,12 @@ class MetadataIntegrationTest extends AbstractIntegrationTest {
             "更新后的描述内容",
             List.of("更新", "标签", "列表", "美食", "教程")
         );
-        
+
         VideoMetadataDTO updated = metadataService.updateMetadata(
-            new MetadataId(metadataId), 
+            new MetadataId(metadataId),
             updateCommand
         );
-        
+
         assertThat(updated).isNotNull();
         assertThat(updated.title()).isEqualTo("更新后的标题");
         assertThat(updated.description()).isEqualTo("更新后的描述内容");
@@ -99,7 +99,7 @@ class MetadataIntegrationTest extends AbstractIntegrationTest {
 
         // 3. Confirm - 确认元数据
         VideoMetadataDTO confirmed = metadataService.confirmMetadata(new MetadataId(metadataId));
-        
+
         assertThat(confirmed).isNotNull();
         assertThat(confirmed.confirmed()).isTrue();
 
@@ -117,11 +117,11 @@ class MetadataIntegrationTest extends AbstractIntegrationTest {
         // Create and save metadata
         VideoId videoId = TestFixtures.randomVideoId();
         VideoMetadata metadata = TestFixtures.createMetadata(videoId);
-        VideoMetadata saved = metadataRepository.save(metadata);
-        
+        VideoMetadata saved = metadataRepository.insert(metadata);
+
         // Query by ID
         Optional<VideoMetadata> found = metadataRepository.findById(saved.getId());
-        
+
         assertThat(found).isPresent();
         assertThat(found.get().getId()).isEqualTo(saved.getId());
         assertThat(found.get().getVideoId()).isEqualTo(saved.getVideoId());
@@ -135,14 +135,14 @@ class MetadataIntegrationTest extends AbstractIntegrationTest {
     void findLatestByVideoId() {
         // Given: 一个视频 ID
         VideoId videoId = TestFixtures.randomVideoId();
-        
+
         // Create and save metadata
         VideoMetadata metadata = TestFixtures.createMetadata(videoId);
-        metadataRepository.save(metadata);
-        
+        metadataRepository.insert(metadata);
+
         // Query by video ID
         VideoMetadataDTO found = metadataService.getMetadataByVideoId(videoId);
-        
+
         assertThat(found).isNotNull();
         assertThat(found.videoId()).isEqualTo(videoId.value());
         assertThat(found.title()).isEqualTo("AI 生成标题");

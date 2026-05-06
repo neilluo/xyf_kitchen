@@ -168,6 +168,60 @@ public class UploadTask {
         return updatedAt;
     }
 
+    // ==================== Setters for persistence layer (package-private) ====================
+
+    void setId(String id) {
+        this.id = id;
+    }
+
+    void setVideoId(String videoId) {
+        this.videoId = videoId;
+    }
+
+    void setCurrentStep(UploadTaskStep currentStep) {
+        this.currentStep = currentStep;
+    }
+
+    void setStatus(UploadTaskStatus status) {
+        this.status = status;
+    }
+
+    void setAttempts(int attempts) {
+        this.attempts = attempts;
+    }
+
+    void setMaxAttempts(int maxAttempts) {
+        this.maxAttempts = maxAttempts;
+    }
+
+    void setLastError(String lastError) {
+        this.lastError = lastError;
+    }
+
+    void setOwnerInstanceId(String ownerInstanceId) {
+        this.ownerInstanceId = ownerInstanceId;
+    }
+
+    void setHeartbeatAt(LocalDateTime heartbeatAt) {
+        this.heartbeatAt = heartbeatAt;
+    }
+
+    void setPayload(Map<String, Object> payload) {
+        this.payload = payload;
+    }
+
+    void setExtInfo(Map<String, Object> extInfo) {
+        this.extInfo = extInfo;
+    }
+
+    void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
     // ==================== Private Helpers ====================
 
     private String truncateStackTrace(Throwable e, int maxLength) {

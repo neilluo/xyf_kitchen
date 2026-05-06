@@ -91,6 +91,18 @@ grace:
       fixed-delay: 1800000
       max-retries: 5
 
+  upload-task:
+    executor:
+      core-pool-size: 4
+      max-pool-size: 8
+      queue-capacity: 50
+    pull:
+      scan-interval-ms: 30000
+      orphan-threshold-s: 60
+      zombie-threshold-s: 120
+    max-attempts: 5
+    instance-id: ${HOSTNAME:local}
+
 server:
   port: ${SERVER_PORT:8000}
 

@@ -1,21 +1,19 @@
 package com.grace.platform.video.application;
 
 import com.grace.platform.shared.ErrorCode;
-import com.grace.platform.shared.domain.DomainEventPublisher;
-import com.grace.platform.shared.domain.id.VideoId;
 import com.grace.platform.shared.infrastructure.exception.BusinessRuleViolationException;
 import com.grace.platform.shared.infrastructure.exception.EntityNotFoundException;
-import com.grace.platform.storage.domain.OssStorageService;
-import com.grace.platform.storage.domain.StorageProvider;
+import com.grace.platform.shared.infrastructure.log.TraceContext;
 import com.grace.platform.video.application.command.ServerUploadInitCommand;
 import com.grace.platform.video.application.dto.ServerChunkUploadDTO;
 import com.grace.platform.video.application.dto.ServerUploadCompleteDTO;
 import com.grace.platform.video.application.dto.ServerUploadInitDTO;
+import com.grace.platform.video.application.event.TaskReadyEvent;
 import com.grace.platform.video.domain.*;
-import com.grace.platform.video.domain.event.VideoUploadedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,24 +23,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
-@Transactional
 public class ServerUploadApplicationService {
 
     private static final Logger logger = LoggerFactory.getLogger(ServerUploadApplicationService.class);
 
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
-
     private final VideoRepository videoRepository;
     private final UploadSessionRepository uploadSessionRepository;
-    private final ChunkMergeService chunkMergeService;
-    private final VideoFileInspector videoFileInspector;
-    private final OssStorageService ossStorageService;
-    private final DomainEventPublisher eventPublisher;
+    private final UploadTaskRepository uploadTaskRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     private final long defaultChunkSize;
     private final String tempBaseDir;
@@ -50,17 +43,13 @@ public class ServerUploadApplicationService {
     public ServerUploadApplicationService(
             VideoRepository videoRepository,
             UploadSessionRepository uploadSessionRepository,
-            ChunkMergeService chunkMergeService,
-            VideoFileInspector videoFileInspector,
-            OssStorageService ossStorageService,
-            DomainEventPublisher eventPublisher,
+            UploadTaskRepository uploadTaskRepository,
+            ApplicationEventPublisher eventPublisher,
             @Value("${grace.upload.chunk-size:16777216}") long defaultChunkSize,
             @Value("${grace.upload.temp-dir:./data/temp}") String tempBaseDir) {
         this.videoRepository = videoRepository;
         this.uploadSessionRepository = uploadSessionRepository;
-        this.chunkMergeService = chunkMergeService;
-        this.videoFileInspector = videoFileInspector;
-        this.ossStorageService = ossStorageService;
+        this.uploadTaskRepository = uploadTaskRepository;
         this.eventPublisher = eventPublisher;
         this.defaultChunkSize = defaultChunkSize;
         this.tempBaseDir = tempBaseDir;
@@ -175,6 +164,7 @@ public class ServerUploadApplicationService {
         );
     }
 
+    @Transactional
     public ServerUploadCompleteDTO completeUpload(String uploadId) {
         UploadSession session = uploadSessionRepository.findById(uploadId)
             .orElseThrow(() -> new EntityNotFoundException(
@@ -202,47 +192,37 @@ public class ServerUploadApplicationService {
             );
         }
 
-        Path tempDir = Paths.get(session.getTempDirectory());
-        Path mergedFile = chunkMergeService.mergeChunks(
-            tempDir, 
-            session.getTotalChunks(), 
-            session.getFileName()
-        );
-
-        VideoFileInfo fileInfo = videoFileInspector.inspect(mergedFile);
-
-        String storageKey = generateStorageKey(session);
-        ossStorageService.uploadFile(mergedFile, storageKey);
-        String storageUrl = ossStorageService.buildObjectUrl(storageKey);
-
-        Video video = Video.createWithStorageUrl(
-            session.getFileName(),
-            session.getFileSize(),
-            session.getFormat(),
-            fileInfo.duration(),
-            storageUrl,
-            StorageProvider.OSS
-        );
-
+        // 创建“空壳” video（无 duration / storageUrl，后续 pipeline 步骤补充）
+        Video video = Video.createPendingProcessing(session);
         videoRepository.save(video);
+
+        // 构建 payload
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("uploadId", uploadId);
+        payload.put("fileName", session.getFileName());
+        payload.put("fileSize", session.getFileSize());
+        payload.put("format", session.getFormat().name());
+        payload.put("tempDirectory", session.getTempDirectory());
+
+        // 构建 extInfo（traceId 便于全链路关联）
+        Map<String, Object> ext = new LinkedHashMap<>();
+        ext.put("traceId", TraceContext.currentTraceId());
+        ext.put("createdTraceId", TraceContext.currentTraceId());
+
+        UploadTask task = UploadTask.createInitial(video.getId().value(), payload, ext);
+        uploadTaskRepository.save(task);
 
         session.markAsCompleted();
         uploadSessionRepository.save(session);
 
-        cleanupTempDirectory(tempDir, mergedFile);
+        // 事务提交后触发 push
+        eventPublisher.publishEvent(new TaskReadyEvent(task.getId()));
 
-        VideoUploadedEvent event = new VideoUploadedEvent(
-            video.getId(),
-            video.getFileName(),
-            video.getFileSize(),
-            video.getFormat().name()
-        );
-        eventPublisher.publish(event);
-
-        logger.info("Server upload completed for video: {} (OSS: {})", video.getId(), storageUrl);
+        logger.info("Server upload accepted for video: {}, task: {}", video.getId(), task.getId());
 
         return new ServerUploadCompleteDTO(
             video.getId().value(),
+            task.getId(),
             video.getFileName(),
             video.getFileSize(),
             video.getFormat().name(),
@@ -253,49 +233,7 @@ public class ServerUploadApplicationService {
         );
     }
 
-    private String generateStorageKey(UploadSession session) {
-        String datePrefix = LocalDateTime.now().format(DATE_FORMATTER);
-        String uuid = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
-        String extension = getFileExtension(session.getFileName());
-        return String.format("videos/%s/%s_%s.%s", datePrefix, session.getUploadId(), uuid, extension);
-    }
-
-    private String getFileExtension(String fileName) {
-        if (fileName == null || fileName.isBlank()) {
-            return "mp4";
-        }
-        int lastDot = fileName.lastIndexOf('.');
-        if (lastDot > 0 && lastDot < fileName.length() - 1) {
-            return fileName.substring(lastDot + 1).toLowerCase();
-        }
-        return "mp4";
-    }
-
     private String generateUploadId() {
         return "upl_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-    }
-
-    private void cleanupTempDirectory(Path tempDir, Path mergedFile) {
-        try {
-            if (Files.exists(mergedFile)) {
-                Files.deleteIfExists(mergedFile);
-                logger.debug("Deleted merged file: {}", mergedFile);
-            }
-            
-            if (Files.exists(tempDir)) {
-                Files.walk(tempDir)
-                    .sorted((a, b) -> b.compareTo(a))
-                    .forEach(path -> {
-                        try {
-                            Files.deleteIfExists(path);
-                        } catch (IOException e) {
-                            logger.warn("Failed to delete temp path: {}", path, e);
-                        }
-                    });
-                logger.debug("Cleaned up temp directory: {}", tempDir);
-            }
-        } catch (IOException e) {
-            logger.warn("Failed to cleanup temp directory: {}", tempDir, e);
-        }
     }
 }

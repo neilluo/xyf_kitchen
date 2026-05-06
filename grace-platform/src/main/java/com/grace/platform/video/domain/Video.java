@@ -119,6 +119,55 @@ public class Video {
     }
 
     /**
+     * 创建待异步处理的 Video（无 storageUrl / duration，由 pipeline 后续补充）
+     *
+     * @param session 上传会话
+     * @return 新建的 Video 实例（状态为 UPLOADED，storageUrl=null，duration=null）
+     */
+    public static Video createPendingProcessing(UploadSession session) {
+        if (session == null) {
+            throw new BusinessRuleViolationException(
+                ErrorCode.INTERNAL_SERVER_ERROR,
+                "Upload session must not be null"
+            );
+        }
+        if (session.getFileName() == null || session.getFileName().isBlank()) {
+            throw new BusinessRuleViolationException(
+                ErrorCode.INTERNAL_SERVER_ERROR,
+                "File name must not be blank"
+            );
+        }
+        if (session.getFileSize() <= 0) {
+            throw new BusinessRuleViolationException(
+                ErrorCode.VIDEO_FILE_SIZE_EXCEEDED,
+                "File size must be greater than 0"
+            );
+        }
+        if (session.getFormat() == null || !SUPPORTED_FORMATS.contains(session.getFormat())) {
+            throw new BusinessRuleViolationException(
+                ErrorCode.UNSUPPORTED_VIDEO_FORMAT,
+                String.format("Unsupported video format: %s. Supported formats: MP4, MOV, AVI, MKV", session.getFormat())
+            );
+        }
+
+        Video video = new Video();
+        video.id = VideoId.generate();
+        video.fileName = session.getFileName();
+        video.fileSize = session.getFileSize();
+        video.format = session.getFormat();
+        video.duration = null;
+        video.filePath = null;
+        video.storageUrl = null;
+        video.storageProvider = null;
+        video.status = VideoStatus.UPLOADED;
+        video.createdAt = LocalDateTime.now();
+        video.updatedAt = video.createdAt;
+        video.extInfo = buildInitialExtInfo();
+
+        return video;
+    }
+
+    /**
      * 内部创建方法，支持本地和 OSS 存储
      */
     private static Video createInternal(String fileName, long fileSize, VideoFormat format,
@@ -268,6 +317,31 @@ public class Video {
             return;
         }
         this.status = VideoStatus.DELETED;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 附加存储信息（用于异步上传流水线设置 OSS URL）
+     *
+     * @param storageUrl      存储 URL
+     * @param storageProvider 存储提供者
+     * @throws BusinessRuleViolationException 当参数无效时
+     */
+    public void attachStorage(String storageUrl, StorageProvider storageProvider) {
+        if (storageUrl == null || storageUrl.isBlank()) {
+            throw new BusinessRuleViolationException(
+                ErrorCode.INTERNAL_SERVER_ERROR,
+                "Storage URL must not be blank"
+            );
+        }
+        if (storageProvider == null) {
+            throw new BusinessRuleViolationException(
+                ErrorCode.INTERNAL_SERVER_ERROR,
+                "Storage provider must not be null"
+            );
+        }
+        this.storageUrl = storageUrl;
+        this.storageProvider = storageProvider;
         this.updatedAt = LocalDateTime.now();
     }
 

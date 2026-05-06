@@ -15,6 +15,7 @@ import com.grace.platform.video.interfaces.rest.dto.response.ServerUploadInitRes
 import com.grace.platform.video.interfaces.rest.dto.response.ServerChunkUploadResponse;
 import com.grace.platform.video.interfaces.rest.dto.response.ServerUploadCompleteResponse;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -98,6 +99,7 @@ public class ServerUploadController {
 
         ServerUploadCompleteResponse response = new ServerUploadCompleteResponse(
             dto.videoId(),
+            dto.taskId(),
             dto.fileName(),
             dto.fileSize(),
             dto.format(),
@@ -107,7 +109,7 @@ public class ServerUploadController {
             dto.createdAt()
         );
 
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(ApiResponse.success(response));
     }
 
     private String formatDuration(java.time.Duration duration) {

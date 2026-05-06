@@ -1,6 +1,10 @@
 spring:
   flyway:
-    enabled: false
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+    validate-on-migrate: false
 
 mybatis:
   mapper-locations: classpath:mapper/**/*.xml
@@ -15,3 +19,16 @@ grace:
     video-dir: ${java.io.tmpdir}/grace-test/videos
     temp-dir: ${java.io.tmpdir}/grace-test/temp
     avatar-dir: ${java.io.tmpdir}/grace-test/avatars
+  llm:
+    api-key: test-dummy-key
+  youtube:
+    client-id: test
+    client-secret: test
+    redirect-uri: http://localhost:8000/api/distribution/auth/youtube/callback
+  opencrawl:
+    api-key: test
+  oss:
+    endpoint: test
+    bucket: test
+    access-key-id: test
+    access-key-secret: test

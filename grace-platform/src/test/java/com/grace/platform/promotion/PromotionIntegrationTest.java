@@ -92,7 +92,7 @@ class PromotionIntegrationTest extends AbstractIntegrationTest {
         // Mock OpenCrawl 返回成功响应
         when(openCrawlAdapter.execute(any(OpenCrawlRequest.class)))
             .thenReturn(OpenCrawlResponse.success(
-                "https://example.com/promotion/123", 
+                "https://example.com/promotion/123",
                 "{\"success\": true, \"url\": \"https://example.com/promotion/123\"}"
             ));
     }
@@ -112,7 +112,7 @@ class PromotionIntegrationTest extends AbstractIntegrationTest {
             List.of("美食", "测试", "视频"),
             com.grace.platform.metadata.domain.MetadataSource.AI_GENERATED
         );
-        metadataRepository.save(metadata);
+        metadataRepository.insert(metadata);
 
         // 1. Create channel - 创建推广渠道
         CreateChannelCommand createChannelCmd = new CreateChannelCommand(
@@ -122,19 +122,19 @@ class PromotionIntegrationTest extends AbstractIntegrationTest {
             "test_api_key_12345",
             1
         );
-        
+
         ChannelDTO channel = channelService.createChannel(createChannelCmd);
         assertThat(channel).isNotNull();
         assertThat(channel.channelId()).isNotBlank();
         assertThat(channel.name()).isEqualTo("测试渠道");
         assertThat(channel.type()).isEqualTo(ChannelType.SOCIAL_MEDIA);
         assertThat(channel.hasApiKey()).isTrue();
-        
+
         ChannelId channelId = new ChannelId(channel.channelId());
 
         // 2. Generate copy - 生成推广文案（Mock LLM）
         List<PromotionCopyDTO> copies = promotionService.generateCopy(videoId, List.of(channelId));
-        
+
         assertThat(copies).isNotEmpty();
         assertThat(copies.get(0).channelId()).isEqualTo(channel.channelId());
         assertThat(copies.get(0).promotionTitle()).isEqualTo("精彩美食视频推荐");
@@ -148,10 +148,10 @@ class PromotionIntegrationTest extends AbstractIntegrationTest {
             "这个视频教你怎么做美味的红烧肉，步骤详细，一看就会！",
             PromotionMethod.POST
         );
-        
+
         ExecutePromotionCommand executeCmd = new ExecutePromotionCommand(videoId, List.of(promotionItem));
         List<PromotionResultDTO> results = promotionService.executePromotion(executeCmd);
-        
+
         assertThat(results).isNotEmpty();
         assertThat(results.get(0).channelId()).isEqualTo(channelId.value());
         assertThat(results.get(0).status()).isEqualTo(PromotionStatus.COMPLETED);
@@ -162,14 +162,14 @@ class PromotionIntegrationTest extends AbstractIntegrationTest {
         var historyPage = promotionService.getPromotionHistory(
             videoId, pageRequest, null, null, null, null
         );
-        
+
         assertThat(historyPage).isNotNull();
         assertThat(historyPage.items()).isNotEmpty();
         assertThat(historyPage.total()).isGreaterThan(0);
 
         // 5. Get promotion report - 获取推广报告
         PromotionReportDTO report = promotionService.getPromotionReport(videoId);
-        
+
         assertThat(report).isNotNull();
         assertThat(report.videoId()).isEqualTo(videoId.value());
         assertThat(report.totalChannels()).isGreaterThan(0);
@@ -187,7 +187,7 @@ class PromotionIntegrationTest extends AbstractIntegrationTest {
             "api_key_for_test",
             5
         );
-        
+
         ChannelDTO created = channelService.createChannel(createCmd);
         assertThat(created).isNotNull();
         String channelId = created.channelId();
@@ -218,14 +218,14 @@ class PromotionIntegrationTest extends AbstractIntegrationTest {
         // Given: video and channel
         VideoId videoId = TestFixtures.randomVideoId();
         ChannelId channelId = TestFixtures.randomChannelId();
-        
+
         // Create and save promotion record
         PromotionRecord record = TestFixtures.createPromotionRecord(videoId, channelId);
         PromotionRecord saved = recordRepository.save(record);
-        
+
         // Query by video ID
         List<PromotionRecord> found = recordRepository.findByVideoIdForReport(videoId);
-        
+
         assertThat(found).isNotEmpty();
         assertThat(found.get(0).getVideoId()).isEqualTo(saved.getVideoId());
         assertThat(found.get(0).getChannelId()).isEqualTo(saved.getChannelId());

@@ -14,12 +14,27 @@ import java.util.Optional;
 public interface VideoMetadataRepository {
 
     /**
-     * 保存元数据（新增或更新）
+     * 新增元数据。
+     * <p>
+     * 调用方在语义上明确是"新建"时使用。若受影响行数不为 1，抛出异常。
+     * </p>
      *
      * @param metadata 元数据实体
      * @return 保存后的元数据实体
      */
-    VideoMetadata save(VideoMetadata metadata);
+    VideoMetadata insert(VideoMetadata metadata);
+
+    /**
+     * 更新已存在的元数据。
+     * <p>
+     * 调用方在语义上明确是"更新"时使用。若受影响行数不为 1（通常意味着 id 不存在），
+     * 抛出异常以避免静默失败。
+     * </p>
+     *
+     * @param metadata 元数据实体
+     * @return 更新后的元数据实体
+     */
+    VideoMetadata update(VideoMetadata metadata);
 
     /**
      * 按 ID 查询元数据

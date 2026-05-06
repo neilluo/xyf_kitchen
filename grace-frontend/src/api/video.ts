@@ -67,3 +67,11 @@ export async function serverUploadComplete(uploadId: string): Promise<ServerUplo
 export async function deleteVideo(videoId: string): Promise<void> {
   await apiClient.delete(`/videos/${videoId}`)
 }
+
+// 重试元数据生成
+export async function retryMetadata(videoId: string): Promise<{ taskId: string; currentStep: string; status: string }> {
+  const response = await apiClient.post<ApiResponse<{ taskId: string; currentStep: string; status: string }>>(
+    `/videos/${videoId}/retry-metadata`
+  )
+  return response.data.data
+}

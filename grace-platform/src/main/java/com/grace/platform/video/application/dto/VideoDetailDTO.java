@@ -28,7 +28,8 @@ public record VideoDetailDTO(
     LocalDateTime updatedAt,
     MetadataDTO metadata,
     List<PublishRecordDTO> publishRecords,
-    Map<String, Object> extInfo
+    Map<String, Object> extInfo,
+    TaskSummary task
 ) {
     /**
      * 元数据 DTO（内嵌）。

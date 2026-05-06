@@ -52,13 +52,12 @@ print_help() {
     exit 0
 }
 
-# 执行 SQL 查询 (通过应用层的 debug 端点)
+# 执行 SQL 查询 (优先直连 MySQL，降级到后端 debug 端点)
 execute_sql() {
     local query="$1"
-    local endpoint="http://localhost:8000/api/debug/query"
     
-    # 安全检查: 只允许 SELECT
-    if echo "$query" | grep -qiE "(INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|TRUNCATE)"; then
+    # 安全检查: 只允许 SELECT (匹配独立 SQL 关键字，避免 created_at 等误拦截)
+    if echo "$query" | grep -qiE "\b(INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|TRUNCATE|REPLACE|MERGE)\b"; then
         echo -e "${RED}❌ Error: Only SELECT queries are allowed${NC}"
         exit 1
     fi
@@ -66,16 +65,64 @@ execute_sql() {
     echo -e "${BLUE}📊 Executing query:${NC} $query"
     echo ""
     
-    # 调用后端 debug 端点 (需要先在后端实现)
+    # 方案 1: Python pymysql 直连 (不依赖后端服务)
+    python3 -c "
+import pymysql, sys, json
+
+try:
+    conn = pymysql.connect(
+        host='${DB_HOST}',
+        port=${DB_PORT},
+        user='${DB_USER}',
+        password='${DB_PASS}',
+        database='${DB_NAME}',
+        charset='utf8mb4',
+        cursorclass=pymysql.cursors.DictCursor,
+        connect_timeout=5
+    )
+    
+    with conn.cursor() as cursor:
+        cursor.execute('''${query}''')
+        rows = cursor.fetchall()
+        
+        if not rows:
+            print('(empty set)')
+        else:
+            # 打印表头
+            headers = list(rows[0].keys())
+            print(' | '.join(str(h) for h in headers))
+            print('-' * 80)
+            # 打印数据
+            for row in rows:
+                print(' | '.join(str(row.get(h, '')) for h in headers))
+            print(f'\n({len(rows)} row(s))')
+    
+    conn.close()
+    
+except Exception as e:
+    print(f'DIRECT_DB_ERROR: {e}', file=sys.stderr)
+    sys.exit(1)
+" 2>&1
+    
+    local direct_exit=$?
+    
+    # 如果直连成功，直接返回
+    if [ $direct_exit -eq 0 ]; then
+        return 0
+    fi
+    
+    # 方案 2: 降级到后端 debug API
+    echo -e "${YELLOW}⚠️  Direct MySQL connection failed, trying backend API...${NC}"
+    echo ""
+    
+    local endpoint="http://localhost:8000/api/debug/query"
+    
     response=$(curl -s -X POST "$endpoint" \
         -H "Content-Type: application/json" \
-        -d "{\"query\": \"$query\"}" \
+        -d "{\"query\": \"$(echo "$query" | sed 's/"/\\"/g')}\"}" \
         --max-time 10 2>&1) || {
-        echo -e "${YELLOW}⚠️  Backend debug endpoint not available.${NC}"
-        echo -e "${YELLOW}   Please start the backend server first, or use direct MySQL connection.${NC}"
-        echo ""
-        echo -e "${BLUE}Alternative: Use MySQL CLI directly:${NC}"
-        echo "  mysql -h $DB_HOST -P $DB_PORT -u $DB_USER -p $DB_NAME"
+        echo -e "${RED}❌ Both direct DB connection and backend API failed.${NC}"
+        echo -e "${YELLOW}   Check: 1) MySQL credentials  2) Backend server running${NC}"
         exit 1
     }
     

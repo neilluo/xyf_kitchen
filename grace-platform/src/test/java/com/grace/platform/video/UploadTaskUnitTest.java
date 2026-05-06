@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Unit tests for UploadTask domain entity.
@@ -180,6 +181,20 @@ class UploadTaskUnitTest {
         assertThat(UploadTaskStep.RUNNING_MERGE.isRunning()).isTrue();
         assertThat(UploadTaskStep.DONE.isPending()).isFalse();
         assertThat(UploadTaskStep.DONE.isRunning()).isFalse();
+    }
+
+    @Test
+    @DisplayName("UploadTaskStep.toRunning 在 RUNNING/DONE 状态应抛异常")
+    void stepToRunning_onInvalidState_shouldThrow() {
+        assertThrows(IllegalStateException.class, () -> UploadTaskStep.RUNNING_MERGE.toRunning());
+        assertThrows(IllegalStateException.class, () -> UploadTaskStep.DONE.toRunning());
+    }
+
+    @Test
+    @DisplayName("UploadTaskStep.nextPending 在 PENDING/DONE 状态应抛异常")
+    void stepNextPending_onInvalidState_shouldThrow() {
+        assertThrows(IllegalStateException.class, () -> UploadTaskStep.PENDING_MERGE.nextPending());
+        assertThrows(IllegalStateException.class, () -> UploadTaskStep.DONE.nextPending());
     }
 
     // ==================== Helper Methods ====================

@@ -15,7 +15,7 @@ public interface VideoMetadataMapper {
 
     List<VideoMetadata> findByVideoIdOrdered(@Param("videoId") String videoId);
 
-    void insert(VideoMetadata metadata);
+    int insert(VideoMetadata metadata);
 
-    void update(VideoMetadata metadata);
+    int update(VideoMetadata metadata);
 }

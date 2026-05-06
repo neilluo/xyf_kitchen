@@ -117,3 +117,55 @@ src/
 上下文间不直接依赖，通过 Spring ApplicationEvent 传递领域事件。
 
 详见：`docs/backend/02-shared-kernel.md`（DomainEvent 基类定义）
+
+## 视频上传异步链路
+
+### 数据流
+
+```
+前端                              后端 (Server 线程池)                            Worker 线程池                    Qwen LLM
+ │                                       │                                            │                               │
+ ├── POST /init ─────────────────────►   │ INSERT upload_session (ACTIVE)             │                               │
+ │ ◄── 200 { uploadId, ... }             │                                            │                               │
+ │                                       │                                            │                               │
+ ├── POST /chunk  (循环 N 次) ──────►    │ Files.copy + UPDATE session                │                               │
+ │ ◄── 200                               │                                            │                               │
+ │                                       │                                            │                               │
+ ├── POST /complete ──────────────────►  │ ① 事务：                                   │                               │
+ │                                       │    INSERT video (status=UPLOADED)          │                               │
+ │                                       │    INSERT upload_task (step=PENDING_MERGE) │                               │
+ │                                       │    UPDATE session COMPLETED                │                               │
+ │                                       │ ② 提交事务                                  │                               │
+ │                                       │ ③ @Async publish TaskReadyEvent ──────────►│                               │
+ │ ◄── 202 { videoId, status=UPLOADED }  │ ④ return（毫秒级）                          │                               │
+ │                                       │                                            ├─ SELECT ... FOR UPDATE        │
+ │  前端 pollVideoStatus                 │                                            │  SKIP LOCKED                   │
+ │    → GET /videos/{id}                 │                                            │  确认 task 可执行              │
+ │                                       │                                            ├─ MERGE   （独立小事务）         │
+ │                                       │                                            ├─ INSPECT （独立小事务）         │
+ │                                       │                                            ├─ OSS_UPLOAD                    │
+ │                                       │                                            ├─ GENERATE_METADATA ────POST───►│
+ │                                       │                                            │                         ◄─────│
+ │                                       │                                            ├─ CLEANUP                       │
+ │                                       │                                            └─ UPDATE task (DONE)             │
+ │                                       │                                                                             │
+ │                                       │ 兜底：@Scheduled(30s) 扫描                  │                               │
+ │                                       │   - PENDING > 60s 未被 push 消费 → 主动拉起 │                               │
+ │                                       │   - RUNNING 但 heartbeat > 2min → 重置      │                               │
+```
+
+### 新增组件
+
+| 组件 | 类型 | 职责 |
+|---|---|---|
+| `upload_task` | 表 | 异步任务状态机驱动，一视频一行，记录当前步骤、状态、重试次数、心跳 |
+| `VideoUploadPipelineExecutor` | 驱动器 | 5 步（MERGE → INSPECT → OSS → METADATA → CLEANUP）的 switch-case 驱动器，每个步骤在独立小事务内执行 |
+| `UploadTaskPushListener` | 事件监听 | `@Async` 监听 `TaskReadyEvent`，事务提交后触发，主路径，~0ms 延迟 |
+| `UploadTaskPullScheduler` | 定时扫描 | `@Scheduled(fixedDelay = 30_000)`，兜底机制：扫描孤儿 PENDING 任务和僵尸 RUNNING 任务 |
+
+### 设计要点
+
+- **Push 为主路径**：`completeUpload` 事务提交后发布 `TaskReadyEvent`，`@TransactionalEventListener(AFTER_COMMIT)` + `@Async` 保证事件在事务落盘后异步消费。
+- **Pull 为兜底**：应用重启、Push 丢失或 worker 异常退出时，30s 粒度扫描把任务重新拉起。
+- **心跳防僵尸**：长步骤（如 LLM）通过守护线程周期性更新 `heartbeat_at`，scheduler 检测到心跳超时（>120s）将任务重置为 `PENDING`。
+- **终态失败可恢复**：`METADATA` 步骤耗尽 `max_attempts` 后，`video.status` 同步推进为 `METADATA_FAILED`，前端可调 `POST /videos/{id}/retry-metadata` 手动重试。

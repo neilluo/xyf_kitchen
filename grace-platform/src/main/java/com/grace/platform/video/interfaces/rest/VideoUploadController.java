@@ -124,6 +124,28 @@ public class VideoUploadController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    // ==================== B8: 手动重试元数据生成 ====================
+
+    /**
+     * 手动重试元数据生成。
+     * <p>
+     * 将 METADATA_FAILED 状态的视频重新触发元数据生成任务。
+     *
+     * @param videoId 视频 ID
+     * @return 重试后的任务信息
+     */
+    @PostMapping("/{videoId}/retry-metadata")
+    public ResponseEntity<ApiResponse<RetryMetadataResponse>> retryMetadata(
+            @PathVariable String videoId) {
+        RetryMetadataDTO dto = videoApplicationService.retryMetadata(videoId);
+        RetryMetadataResponse response = new RetryMetadataResponse(
+            dto.taskId(),
+            dto.currentStep(),
+            dto.status()
+        );
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
     // ==================== B7: 软删除视频 ====================
 
     /**
@@ -213,6 +235,16 @@ public class VideoUploadController {
                 .collect(Collectors.toList());
         }
 
+        VideoDetailResponse.TaskSummaryResponse task = null;
+        if (dto.task() != null) {
+            task = new VideoDetailResponse.TaskSummaryResponse(
+                dto.task().currentStep(),
+                dto.task().status(),
+                dto.task().attempts(),
+                dto.task().lastError()
+            );
+        }
+
         return new VideoDetailResponse(
             dto.videoId(),
             dto.fileName(),
@@ -226,7 +258,8 @@ public class VideoUploadController {
             dto.updatedAt(),
             metadata,
             publishRecords,
-            dto.extInfo()
+            dto.extInfo(),
+            task
         );
     }
 
@@ -243,6 +276,13 @@ public class VideoUploadController {
         boolean hasMetadata,
         java.time.LocalDateTime createdAt,
         java.time.LocalDateTime updatedAt
+    ) {
+    }
+
+    private record RetryMetadataResponse(
+        String taskId,
+        String currentStep,
+        String status
     ) {
     }
 }

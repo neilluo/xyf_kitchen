@@ -18,6 +18,7 @@ import com.grace.platform.video.domain.VideoFormat;
 import com.grace.platform.video.domain.VideoRepository;
 import com.grace.platform.video.domain.VideoStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
@@ -37,7 +38,6 @@ import java.util.List;
  * </p>
  */
 @Service
-@Transactional
 public class MetadataApplicationService {
 
     private final VideoMetadataRepository videoMetadataRepository;
@@ -79,6 +79,7 @@ public class MetadataApplicationService {
      * @return 生成的元数据 DTO
      * @throws EntityNotFoundException 当视频不存在时
      */
+    @Transactional(propagation = Propagation.REQUIRED)
     public VideoMetadataDTO generateMetadata(VideoId videoId) {
         // 1. 查询视频
         Video video = videoRepository.findById(videoId)
@@ -102,8 +103,8 @@ public class MetadataApplicationService {
         // 4. 调用 LLM 生成元数据
         VideoMetadata metadata = metadataGenerationService.generate(videoId, videoFileInfo, historicalMetadata);
 
-        // 5. 保存元数据
-        metadata = videoMetadataRepository.save(metadata);
+        // 5. 保存元数据（新建）
+        metadata = videoMetadataRepository.insert(metadata);
 
         // 6. 更新视频状态
         video.transitionTo(VideoStatus.METADATA_GENERATED);
@@ -123,6 +124,7 @@ public class MetadataApplicationService {
      * @return 更新后的元数据 DTO
      * @throws EntityNotFoundException 当元数据不存在时
      */
+    @Transactional(propagation = Propagation.REQUIRED)
     public VideoMetadataDTO updateMetadata(MetadataId metadataId, UpdateMetadataCommand command) {
         VideoMetadata metadata = videoMetadataRepository.findById(metadataId)
                 .orElseThrow(() -> new EntityNotFoundException(
@@ -132,7 +134,7 @@ public class MetadataApplicationService {
                 ));
 
         metadata.update(command.title(), command.description(), command.tags());
-        metadata = videoMetadataRepository.save(metadata);
+        metadata = videoMetadataRepository.update(metadata);
 
         return toDto(metadata);
     }
@@ -148,6 +150,7 @@ public class MetadataApplicationService {
      * @return 重新生成的元数据 DTO
      * @throws EntityNotFoundException 当元数据不存在时
      */
+    @Transactional(propagation = Propagation.REQUIRED)
     public VideoMetadataDTO regenerateMetadata(MetadataId metadataId) {
         // 1. 查询现有元数据
         VideoMetadata existingMetadata = videoMetadataRepository.findById(metadataId)
@@ -177,13 +180,18 @@ public class MetadataApplicationService {
                 video.getDuration()
         );
 
-        // 5. 调用 LLM 重新生成
+        // 5. 调用 LLM 重新生成（复用现有 metadataId，走更新分支）
         VideoMetadata regeneratedMetadata = metadataGenerationService.generate(videoId, videoFileInfo, historicalMetadata);
+        existingMetadata.update(
+                regeneratedMetadata.getTitle(),
+                regeneratedMetadata.getDescription(),
+                regeneratedMetadata.getTags()
+        );
 
-        // 6. 保存新元数据
-        regeneratedMetadata = videoMetadataRepository.save(regeneratedMetadata);
+        // 6. 保存新元数据（更新现有记录）
+        VideoMetadata saved = videoMetadataRepository.update(existingMetadata);
 
-        return toDto(regeneratedMetadata);
+        return toDto(saved);
     }
 
     /**
@@ -199,6 +207,7 @@ public class MetadataApplicationService {
      * @return 确认后的元数据 DTO
      * @throws EntityNotFoundException 当元数据不存在时
      */
+    @Transactional(propagation = Propagation.REQUIRED)
     public VideoMetadataDTO confirmMetadata(MetadataId metadataId) {
         // 1. 查询元数据
         VideoMetadata metadata = videoMetadataRepository.findById(metadataId)
@@ -210,7 +219,7 @@ public class MetadataApplicationService {
 
         // 2. 确认元数据
         metadata.confirm();
-        metadata = videoMetadataRepository.save(metadata);
+        metadata = videoMetadataRepository.update(metadata);
 
         // 3. 更新视频状态
         VideoId videoId = metadata.getVideoId();
