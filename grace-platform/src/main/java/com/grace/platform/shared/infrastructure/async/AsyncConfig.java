@@ -1,12 +1,15 @@
 package com.grace.platform.shared.infrastructure.async;
 
 import com.alibaba.ttl.threadpool.TtlExecutors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import java.util.Arrays;
 import java.util.concurrent.Executor;
 
 /**
@@ -17,6 +20,8 @@ import java.util.concurrent.Executor;
 @Configuration
 @EnableAsync
 public class AsyncConfig implements AsyncConfigurer {
+
+    private static final Logger logger = LoggerFactory.getLogger(AsyncConfig.class);
 
     @Override
     public Executor getAsyncExecutor() {
@@ -33,8 +38,11 @@ public class AsyncConfig implements AsyncConfigurer {
 
     @Override
     public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
-        return (throwable, method, params) -> {
-            // 异步方法异常处理，可由具体实现覆盖
-        };
+        return (throwable, method, params) ->
+                logger.error("Async method {}.{} threw uncaught exception, params={}",
+                        method.getDeclaringClass().getSimpleName(),
+                        method.getName(),
+                        Arrays.toString(params),
+                        throwable);
     }
 }
