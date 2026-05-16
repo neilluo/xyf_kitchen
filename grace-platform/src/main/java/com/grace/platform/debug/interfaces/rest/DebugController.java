@@ -2,6 +2,7 @@ package com.grace.platform.debug.interfaces.rest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +20,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/debug")
+@Profile({"dev", "local"})
 public class DebugController {
 
     private static final Logger logger = LoggerFactory.getLogger(DebugController.class);
