@@ -2,7 +2,6 @@ package com.grace.platform.debug.interfaces.rest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,8 +23,11 @@ public class DebugController {
 
     private static final Logger logger = LoggerFactory.getLogger(DebugController.class);
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
+
+    public DebugController(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     /**
      * 执行只读 SQL 查询。
@@ -77,7 +79,7 @@ public class DebugController {
     @GetMapping("/video/status-distribution")
     public Map<String, Object> getVideoStatusDistribution() {
         String sql = "SELECT status, COUNT(*) as count FROM video GROUP BY status ORDER BY count DESC";
-        
+
         try {
             List<Map<String, Object>> results = jdbcTemplate.queryForList(sql);
             return Map.of(
@@ -99,7 +101,7 @@ public class DebugController {
     @GetMapping("/video/{videoId}")
     public Map<String, Object> getVideoDetail(@PathVariable String videoId) {
         String sql = "SELECT * FROM video WHERE id = ?";
-        
+
         try {
             List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, videoId);
             if (results.isEmpty()) {
@@ -128,26 +130,26 @@ public class DebugController {
         if (sql == null || sql.isBlank()) {
             return false;
         }
-        
+
         String normalized = sql.trim().toUpperCase();
-        
+
         // 仅允许 SELECT
         if (!normalized.startsWith("SELECT")) {
             return false;
         }
-        
+
         // 禁止危险关键词
         String[] dangerousKeywords = {
-            "INSERT", "UPDATE", "DELETE", "DROP", "ALTER", 
+            "INSERT", "UPDATE", "DELETE", "DROP", "ALTER",
             "CREATE", "TRUNCATE", "REPLACE", "MERGE"
         };
-        
+
         for (String keyword : dangerousKeywords) {
             if (normalized.contains(keyword)) {
                 return false;
             }
         }
-        
+
         return true;
     }
 
