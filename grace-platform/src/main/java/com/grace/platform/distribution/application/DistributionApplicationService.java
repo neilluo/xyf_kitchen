@@ -152,23 +152,25 @@ public class DistributionApplicationService {
     // ==================== D2: 查询上传状态 ====================
 
     /**
-     * 查询上传状态
-     * <p>
-     * 流程：
-     * 1. 根据 taskId 查询 PublishRecord
-     * 2. 获取对应平台的 Distributor
-     * 3. 调用 distributor.getUploadStatus() 查询最新状态
-     * 4. 更新 PublishRecord 的进度和状态
-     * 5. 如果状态为 COMPLETED，更新视频状态为 PUBLISHED 并发布 VideoPublishedEvent
-     * </p>
-     *
-     * @param taskId 上传任务 ID
-     * @return 上传状态 DTO
-     * @throws EntityNotFoundException 当发布任务不存在时
+     * 查询上传状态（纯只读，不调用外部平台 API，不写库）。
      */
     @Transactional(readOnly = true)
     public UploadStatusDTO getUploadStatus(String taskId) {
-        // 1. 查询发布记录
+        PublishRecord record = publishRecordRepository.findByUploadTaskId(taskId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        ErrorCode.PUBLISH_TASK_NOT_FOUND,
+                        "PublishRecord",
+                        taskId
+                ));
+        return toUploadStatusDTO(record, taskId);
+    }
+
+    /**
+     * 同步上传状态：调用平台 API 拉取最新状态并落库；
+     * 状态完成时更新视频状态并发布 VideoPublishedEvent。
+     */
+    @Transactional
+    public void syncUploadStatus(String taskId) {
         PublishRecord record = publishRecordRepository.findByUploadTaskId(taskId)
                 .orElseThrow(() -> new EntityNotFoundException(
                         ErrorCode.PUBLISH_TASK_NOT_FOUND,
@@ -176,21 +178,15 @@ public class DistributionApplicationService {
                         taskId
                 ));
 
-        // 2. 获取分发器
         VideoDistributor distributor = distributorRegistry.getDistributor(record.getPlatform());
-
-        // 3. 查询平台上传状态
         UploadStatus status = distributor.getUploadStatus(taskId);
 
-        // 4. 更新记录进度
         record.updateProgress(status.progressPercent());
 
-        // 5. 根据状态更新记录
         if (status.status() == PublishStatus.COMPLETED) {
             record.markAsCompleted(status.videoUrl());
             publishRecordRepository.save(record);
 
-            // 更新视频状态为 PUBLISHED
             Video video = videoRepository.findById(record.getVideoId())
                     .orElseThrow(() -> new EntityNotFoundException(
                             ErrorCode.VIDEO_NOT_FOUND,
@@ -200,13 +196,10 @@ public class DistributionApplicationService {
             video.transitionTo(VideoStatus.PUBLISHED);
             videoRepository.save(video);
 
-            // 发布 VideoPublishedEvent
-            VideoPublishedEvent event = new VideoPublishedEvent(
+            eventPublisher.publish(new VideoPublishedEvent(
                     record.getVideoId(),
                     record.getPlatform(),
-                    status.videoUrl()
-            );
-            eventPublisher.publish(event);
+                    status.videoUrl()));
         } else if (status.status() == PublishStatus.FAILED) {
             record.markAsFailed(status.errorMessage());
             publishRecordRepository.save(record);
@@ -214,7 +207,9 @@ public class DistributionApplicationService {
             record.markAsQuotaExceeded();
             publishRecordRepository.save(record);
         }
+    }
 
+    private UploadStatusDTO toUploadStatusDTO(PublishRecord record, String taskId) {
         return new UploadStatusDTO(
                 record.getId().value(),
                 taskId,

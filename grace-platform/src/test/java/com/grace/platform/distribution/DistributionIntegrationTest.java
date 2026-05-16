@@ -152,6 +152,7 @@ class DistributionIntegrationTest extends AbstractIntegrationTest {
         String recordId = result.publishRecordId();
 
         // 2. Query upload status - 查询上传状态
+        distributionService.syncUploadStatus(taskId);
         UploadStatusDTO status = distributionService.getUploadStatus(taskId);
 
         assertThat(status).isNotNull();

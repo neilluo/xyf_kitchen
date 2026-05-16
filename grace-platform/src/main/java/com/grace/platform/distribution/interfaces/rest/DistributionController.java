@@ -118,6 +118,7 @@ public class DistributionController {
     public ResponseEntity<ApiResponse<UploadStatusResponse>> getUploadStatus(
             @PathVariable String taskId) {
 
+        distributionApplicationService.syncUploadStatus(taskId);
         UploadStatusDTO dto = distributionApplicationService.getUploadStatus(taskId);
 
         UploadStatusResponse response = new UploadStatusResponse(
