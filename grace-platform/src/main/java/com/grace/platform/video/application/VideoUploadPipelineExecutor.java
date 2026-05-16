@@ -21,8 +21,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -212,11 +211,12 @@ public class VideoUploadPipelineExecutor {
             return;
         }
 
-        ScheduledExecutorService heartbeatExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
+        ScheduledThreadPoolExecutor heartbeatExecutor = new ScheduledThreadPoolExecutor(1, r -> {
             Thread t = new Thread(r, "task-heartbeat-" + task.getId());
             t.setDaemon(true);
             return t;
         });
+        heartbeatExecutor.setRemoveOnCancelPolicy(true);
 
         try {
             heartbeatExecutor.scheduleAtFixedRate(
