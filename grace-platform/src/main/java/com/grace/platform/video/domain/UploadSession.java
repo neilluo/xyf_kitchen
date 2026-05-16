@@ -29,188 +29,76 @@ public class UploadSession {
     private UploadSession() {
     }
 
+    /**
+     * 创建 Builder 实例，用于构造 UploadSession。
+     * <p>
+     * 使用示例：
+     * <pre>
+     * UploadSession session = UploadSession.builder()
+     *     .fileName("video.mp4")
+     *     .fileSize(10_000_000L)
+     *     .format(VideoFormat.MP4)
+     *     .storageKey("oss/key")
+     *     .ossBucket("my-bucket")
+     *     .build();
+     * </pre>
+     *
+     * @see Builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
     public static UploadSession create(String fileName, long fileSize, VideoFormat format,
                                        String storageKey, String ossBucket, Long chunkSize) {
-        if (fileName == null || fileName.isBlank()) {
-            throw new BusinessRuleViolationException(
-                ErrorCode.INTERNAL_SERVER_ERROR,
-                "File name must not be blank"
-            );
-        }
-
-        if (fileSize <= 0) {
-            throw new BusinessRuleViolationException(
-                ErrorCode.VIDEO_FILE_SIZE_EXCEEDED,
-                "File size must be greater than 0"
-            );
-        }
-
-        if (format == null) {
-            throw new BusinessRuleViolationException(
-                ErrorCode.UNSUPPORTED_VIDEO_FORMAT,
-                "Video format must not be null"
-            );
-        }
-
-        if (storageKey == null || storageKey.isBlank()) {
-            throw new BusinessRuleViolationException(
-                ErrorCode.INTERNAL_SERVER_ERROR,
-                "Storage key must not be blank"
-            );
-        }
-
-        if (ossBucket == null || ossBucket.isBlank()) {
-            throw new BusinessRuleViolationException(
-                ErrorCode.INTERNAL_SERVER_ERROR,
-                "OSS bucket must not be blank"
-            );
-        }
-
-        long actualChunkSize = chunkSize != null && chunkSize > 0 ? chunkSize : DEFAULT_CHUNK_SIZE;
-        int totalChunks = calculateTotalChunks(fileSize, actualChunkSize);
-
-        UploadSession session = new UploadSession();
-        session.uploadId = generateUploadId();
-        session.fileName = fileName;
-        session.fileSize = fileSize;
-        session.format = format;
-        session.totalChunks = totalChunks;
-        session.uploadedChunks = 0;
-        session.storageKey = storageKey;
-        session.ossBucket = ossBucket;
-        session.tempDirectory = null;
-        session.uploadMode = UploadMode.DIRECT_OSS;
-        session.status = UploadSessionStatus.ACTIVE;
-        session.createdAt = LocalDateTime.now();
-        session.expiresAt = session.createdAt.plus(DEFAULT_SESSION_TTL_HOURS, ChronoUnit.HOURS);
-
-        return session;
+        return builder()
+            .fileName(fileName)
+            .fileSize(fileSize)
+            .format(format)
+            .storageKey(storageKey)
+            .ossBucket(ossBucket)
+            .chunkSize(chunkSize)
+            .build();
     }
 
     @Deprecated
     public static UploadSession create(String fileName, long fileSize, VideoFormat format,
                                        String tempDirectory, Long chunkSize) {
-        if (fileName == null || fileName.isBlank()) {
-            throw new BusinessRuleViolationException(
-                ErrorCode.INTERNAL_SERVER_ERROR,
-                "File name must not be blank"
-            );
-        }
-
-        if (fileSize <= 0) {
-            throw new BusinessRuleViolationException(
-                ErrorCode.VIDEO_FILE_SIZE_EXCEEDED,
-                "File size must be greater than 0"
-            );
-        }
-
-        if (format == null) {
-            throw new BusinessRuleViolationException(
-                ErrorCode.UNSUPPORTED_VIDEO_FORMAT,
-                "Video format must not be null"
-            );
-        }
-
-        if (tempDirectory == null || tempDirectory.isBlank()) {
-            throw new BusinessRuleViolationException(
-                ErrorCode.INTERNAL_SERVER_ERROR,
-                "Temp directory must not be blank"
-            );
-        }
-
-        long actualChunkSize = chunkSize != null && chunkSize > 0 ? chunkSize : DEFAULT_CHUNK_SIZE;
-        int totalChunks = calculateTotalChunks(fileSize, actualChunkSize);
-
-        UploadSession session = new UploadSession();
-        session.uploadId = generateUploadId();
-        session.fileName = fileName;
-        session.fileSize = fileSize;
-        session.format = format;
-        session.totalChunks = totalChunks;
-        session.uploadedChunks = 0;
-        session.storageKey = "local/" + session.uploadId;
-        session.ossBucket = "local";
-        session.tempDirectory = tempDirectory;
-        session.uploadMode = UploadMode.SERVER_UPLOAD;
-        session.status = UploadSessionStatus.ACTIVE;
-        session.createdAt = LocalDateTime.now();
-        session.expiresAt = session.createdAt.plus(DEFAULT_SESSION_TTL_HOURS, ChronoUnit.HOURS);
-
-        return session;
+        return builder()
+            .fileName(fileName)
+            .fileSize(fileSize)
+            .format(format)
+            .tempDirectory(tempDirectory)
+            .chunkSize(chunkSize)
+            .serverUploadMode()
+            .build();
     }
 
     public static UploadSession createWithId(String uploadId, String fileName, long fileSize,
                                               VideoFormat format, String storageKey, String ossBucket, Long chunkSize) {
-        if (uploadId == null || uploadId.isBlank()) {
-            throw new BusinessRuleViolationException(
-                ErrorCode.INTERNAL_SERVER_ERROR,
-                "Upload ID must not be blank"
-            );
-        }
-
-        UploadSession session = create(fileName, fileSize, format, storageKey, ossBucket, chunkSize);
-        session.uploadId = uploadId;
-        session.uploadMode = UploadMode.DIRECT_OSS;
-        return session;
+        return builder()
+            .uploadId(uploadId)
+            .fileName(fileName)
+            .fileSize(fileSize)
+            .format(format)
+            .storageKey(storageKey)
+            .ossBucket(ossBucket)
+            .chunkSize(chunkSize)
+            .build();
     }
 
     @Deprecated
     public static UploadSession createWithId(String uploadId, String fileName, long fileSize,
                                               VideoFormat format, String tempDirectory, Long chunkSize) {
-        if (uploadId == null || uploadId.isBlank()) {
-            throw new BusinessRuleViolationException(
-                ErrorCode.INTERNAL_SERVER_ERROR,
-                "Upload ID must not be blank"
-            );
-        }
-
-        if (fileName == null || fileName.isBlank()) {
-            throw new BusinessRuleViolationException(
-                ErrorCode.INTERNAL_SERVER_ERROR,
-                "File name must not be blank"
-            );
-        }
-
-        if (fileSize <= 0) {
-            throw new BusinessRuleViolationException(
-                ErrorCode.VIDEO_FILE_SIZE_EXCEEDED,
-                "File size must be greater than 0"
-            );
-        }
-
-        if (format == null) {
-            throw new BusinessRuleViolationException(
-                ErrorCode.UNSUPPORTED_VIDEO_FORMAT,
-                "Video format must not be null"
-            );
-        }
-
-        if (tempDirectory == null || tempDirectory.isBlank()) {
-            throw new BusinessRuleViolationException(
-                ErrorCode.INTERNAL_SERVER_ERROR,
-                "Temp directory must not be blank"
-            );
-        }
-
-        long actualChunkSize = chunkSize != null && chunkSize > 0 ? chunkSize : DEFAULT_CHUNK_SIZE;
-        int totalChunks = calculateTotalChunks(fileSize, actualChunkSize);
-
-        UploadSession session = new UploadSession();
-        session.uploadId = uploadId;
-        session.fileName = fileName;
-        session.fileSize = fileSize;
-        session.format = format;
-        session.totalChunks = totalChunks;
-        session.uploadedChunks = 0;
-        session.storageKey = "local/" + uploadId;
-        session.ossBucket = "local";
-        session.tempDirectory = tempDirectory;
-        session.uploadMode = UploadMode.SERVER_UPLOAD;
-        session.status = UploadSessionStatus.ACTIVE;
-        session.createdAt = LocalDateTime.now();
-        session.expiresAt = session.createdAt.plus(DEFAULT_SESSION_TTL_HOURS, ChronoUnit.HOURS);
-
-        return session;
+        return builder()
+            .uploadId(uploadId)
+            .fileName(fileName)
+            .fileSize(fileSize)
+            .format(format)
+            .tempDirectory(tempDirectory)
+            .chunkSize(chunkSize)
+            .serverUploadMode()
+            .build();
     }
 
     public static int calculateTotalChunks(long fileSize, long chunkSize) {
@@ -434,5 +322,145 @@ public class UploadSession {
     public String toString() {
         return String.format("UploadSession[id=%s, file=%s, chunks=%d/%d, status=%s, progress=%d%%, bucket=%s]",
             uploadId, fileName, uploadedChunks, totalChunks, status, getProgressPercentage(), ossBucket);
+    }
+
+    /**
+     * UploadSession 的 Builder，用于替代多参数的静态工厂方法。
+     * <p>
+     * 必填参数：fileName、fileSize、format。
+     * OSS 直传模式（默认）需要额外设置 storageKey 和 ossBucket；
+     * 服务端上传模式需要调用 {@link #serverUploadMode()} 并设置 tempDirectory。
+     */
+    public static class Builder {
+
+        private String uploadId;
+        private String fileName;
+        private long fileSize;
+        private VideoFormat format;
+        private String storageKey;
+        private String ossBucket;
+        private String tempDirectory;
+        private Long chunkSize;
+        private boolean serverUpload;
+
+        Builder() {
+        }
+
+        public Builder uploadId(String uploadId) {
+            this.uploadId = uploadId;
+            return this;
+        }
+
+        public Builder fileName(String fileName) {
+            this.fileName = fileName;
+            return this;
+        }
+
+        public Builder fileSize(long fileSize) {
+            this.fileSize = fileSize;
+            return this;
+        }
+
+        public Builder format(VideoFormat format) {
+            this.format = format;
+            return this;
+        }
+
+        public Builder storageKey(String storageKey) {
+            this.storageKey = storageKey;
+            return this;
+        }
+
+        public Builder ossBucket(String ossBucket) {
+            this.ossBucket = ossBucket;
+            return this;
+        }
+
+        public Builder tempDirectory(String tempDirectory) {
+            this.tempDirectory = tempDirectory;
+            return this;
+        }
+
+        public Builder chunkSize(Long chunkSize) {
+            this.chunkSize = chunkSize;
+            return this;
+        }
+
+        /**
+         * 标记为服务端上传模式（SERVER_UPLOAD），需配合 {@link #tempDirectory(String)} 使用。
+         */
+        public Builder serverUploadMode() {
+            this.serverUpload = true;
+            return this;
+        }
+
+        public UploadSession build() {
+            validateCommonFields();
+
+            String actualUploadId = (uploadId != null && !uploadId.isBlank())
+                ? uploadId : generateUploadId();
+            long actualChunkSize = (chunkSize != null && chunkSize > 0) ? chunkSize : DEFAULT_CHUNK_SIZE;
+            int totalChunks = calculateTotalChunks(fileSize, actualChunkSize);
+
+            UploadSession session = new UploadSession();
+            session.uploadId = actualUploadId;
+            session.fileName = fileName;
+            session.fileSize = fileSize;
+            session.format = format;
+            session.totalChunks = totalChunks;
+            session.uploadedChunks = 0;
+            session.status = UploadSessionStatus.ACTIVE;
+            session.createdAt = LocalDateTime.now();
+            session.expiresAt = session.createdAt.plus(DEFAULT_SESSION_TTL_HOURS, ChronoUnit.HOURS);
+
+            if (serverUpload) {
+                validateServerUploadFields();
+                session.storageKey = "local/" + actualUploadId;
+                session.ossBucket = "local";
+                session.tempDirectory = tempDirectory;
+                session.uploadMode = UploadMode.SERVER_UPLOAD;
+            } else {
+                validateOssFields();
+                session.storageKey = storageKey;
+                session.ossBucket = ossBucket;
+                session.tempDirectory = null;
+                session.uploadMode = UploadMode.DIRECT_OSS;
+            }
+
+            return session;
+        }
+
+        private void validateCommonFields() {
+            if (fileName == null || fileName.isBlank()) {
+                throw new BusinessRuleViolationException(
+                    ErrorCode.INTERNAL_SERVER_ERROR, "File name must not be blank");
+            }
+            if (fileSize <= 0) {
+                throw new BusinessRuleViolationException(
+                    ErrorCode.VIDEO_FILE_SIZE_EXCEEDED, "File size must be greater than 0");
+            }
+            if (format == null) {
+                throw new BusinessRuleViolationException(
+                    ErrorCode.UNSUPPORTED_VIDEO_FORMAT, "Video format must not be null");
+            }
+        }
+
+        private void validateOssFields() {
+            if (storageKey == null || storageKey.isBlank()) {
+                throw new BusinessRuleViolationException(
+                    ErrorCode.INTERNAL_SERVER_ERROR, "Storage key must not be blank");
+            }
+            if (ossBucket == null || ossBucket.isBlank()) {
+                throw new BusinessRuleViolationException(
+                    ErrorCode.INTERNAL_SERVER_ERROR, "OSS bucket must not be blank");
+            }
+        }
+
+        private void validateServerUploadFields() {
+            if (tempDirectory == null || tempDirectory.isBlank()) {
+                throw new BusinessRuleViolationException(
+                    ErrorCode.INTERNAL_SERVER_ERROR, "Temp directory must not be blank");
+            }
+        }
     }
 }
