@@ -4,6 +4,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -20,6 +22,8 @@ import java.io.IOException;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class EagleEyeFilter extends OncePerRequestFilter {
 
+    private static final Logger fallback = LoggerFactory.getLogger("EAGLE_EYE_FALLBACK");
+
     @Value("${spring.application.name:grace-platform}")
     private String appName;
 
@@ -34,8 +38,7 @@ public class EagleEyeFilter extends OncePerRequestFilter {
                 resp.setHeader(TraceContext.HEADER_TRACE_ID, tid);
             }
         } catch (Exception e) {
-            // 日志初始化失败不阻断业务
-            System.err.println("[EagleEyeFilter] trace init failed: " + e.getMessage());
+            fallback.error("[EagleEyeFilter] trace init failed: {}", e.getMessage(), e);
         }
         try {
             chain.doFilter(req, resp);
