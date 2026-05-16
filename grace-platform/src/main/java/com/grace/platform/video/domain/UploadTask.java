@@ -1,6 +1,7 @@
 package com.grace.platform.video.domain;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -152,12 +153,18 @@ public class UploadTask {
         return heartbeatAt;
     }
 
+    /**
+     * 返回 payload 的不可变视图（Effective Java Item 17 & 50）
+     */
     public Map<String, Object> getPayload() {
-        return payload;
+        return payload == null ? Collections.emptyMap() : Collections.unmodifiableMap(payload);
     }
 
+    /**
+     * 返回 extInfo 的不可变视图（Effective Java Item 17 & 50）
+     */
     public Map<String, Object> getExtInfo() {
-        return extInfo;
+        return extInfo == null ? Collections.emptyMap() : Collections.unmodifiableMap(extInfo);
     }
 
     public LocalDateTime getCreatedAt() {

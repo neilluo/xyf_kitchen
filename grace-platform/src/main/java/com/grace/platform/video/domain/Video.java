@@ -9,7 +9,6 @@ import com.grace.platform.storage.domain.StorageProvider;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -28,30 +27,7 @@ public class Video {
         VideoFormat.MP4, VideoFormat.MOV, VideoFormat.AVI, VideoFormat.MKV
     );
 
-    // 状态机定义：当前状态 -> 允许的目标状态
-    private static final Map<VideoStatus, Set<VideoStatus>> STATUS_TRANSITIONS;
-
-    static {
-        Map<VideoStatus, Set<VideoStatus>> transitions = new HashMap<>();
-        // UPLOADED 可以转移到 METADATA_GENERATED 或 METADATA_FAILED
-        transitions.put(VideoStatus.UPLOADED, Set.of(VideoStatus.METADATA_GENERATED, VideoStatus.METADATA_FAILED));
-        // METADATA_FAILED 可以转移到 METADATA_GENERATED（重试）
-        transitions.put(VideoStatus.METADATA_FAILED, Set.of(VideoStatus.METADATA_GENERATED));
-        // METADATA_GENERATED 可以转移到 READY_TO_PUBLISH
-        transitions.put(VideoStatus.METADATA_GENERATED, Set.of(VideoStatus.READY_TO_PUBLISH));
-        // READY_TO_PUBLISH 可以转移到 PUBLISHING
-        transitions.put(VideoStatus.READY_TO_PUBLISH, Set.of(VideoStatus.PUBLISHING));
-        // PUBLISHING 可以转移到 PUBLISHED 或 PUBLISH_FAILED
-        transitions.put(VideoStatus.PUBLISHING, Set.of(VideoStatus.PUBLISHED, VideoStatus.PUBLISH_FAILED));
-        // PUBLISHED 可以转移到 PROMOTION_DONE
-        transitions.put(VideoStatus.PUBLISHED, Set.of(VideoStatus.PROMOTION_DONE));
-        // PUBLISH_FAILED 可以转移到 PUBLISHING（重试）
-        transitions.put(VideoStatus.PUBLISH_FAILED, Set.of(VideoStatus.PUBLISHING));
-        // PROMOTION_DONE 是终态，无转移
-        transitions.put(VideoStatus.PROMOTION_DONE, Collections.emptySet());
-
-        STATUS_TRANSITIONS = Collections.unmodifiableMap(transitions);
-    }
+    // 状态机转换规则已内聚到 VideoStatus 枚举（Effective Java Item 34）
 
     // 聚合根字段
     private VideoId id;
@@ -286,8 +262,7 @@ public class Video {
             return;
         }
 
-        Set<VideoStatus> allowedTransitions = STATUS_TRANSITIONS.get(this.status);
-        if (allowedTransitions == null || !allowedTransitions.contains(targetStatus)) {
+        if (!this.status.canTransitionTo(targetStatus)) {
             throw new BusinessRuleViolationException(
                 ErrorCode.INTERNAL_SERVER_ERROR,
                 String.format("Invalid status transition from %s to %s", this.status, targetStatus)
@@ -406,8 +381,14 @@ public class Video {
         return updatedAt;
     }
 
+    /**
+     * 返回 extInfo 的不可变视图，防止外部绕过聚合根修改内部状态。
+     * （Effective Java Item 17 & 50：最小化可变性 + 防御性拷贝）
+     *
+     * @return extInfo 的不可变副本，如果为 null 则返回空 Map
+     */
     public Map<String, Object> getExtInfo() {
-        return extInfo;
+        return extInfo == null ? Collections.emptyMap() : Collections.unmodifiableMap(extInfo);
     }
 
     /**
