@@ -4,6 +4,14 @@
 
 ---
 
+## 2026-05-16 — Spring 事务 readOnly 与方法语义
+
+- `@Transactional(readOnly=true)` 方法严禁内含 `save/update/delete`：不同数据源/驱动可能静默失败或抛错。
+- 修复方式：把读路径与写路径拆成独立方法，方法名诚实反映副作用（`syncXxx` / `refreshXxx`）。
+- 调用方按"先同步再读"组合，事务边界清晰。
+
+---
+
 ## L1 — 改 DB 表结构后忘记同步 `docs/backend/db-design.md`
 
 **日期**：2026-05-05
