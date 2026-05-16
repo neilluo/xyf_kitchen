@@ -26,6 +26,7 @@ public final class DigestLogger {
     private static final Logger OSS = LoggerFactory.getLogger("OSS_DIGEST");
     private static final Logger OPENCRAWL = LoggerFactory.getLogger("OPENCRAWL_DIGEST");
     private static final Logger TASK = LoggerFactory.getLogger("TASK_DIGEST");
+    private static final Logger FALLBACK = LoggerFactory.getLogger("DIGEST_FALLBACK");
 
     private DigestLogger() {
     }
@@ -40,7 +41,7 @@ public final class DigestLogger {
                     esc(api), esc(model), tokens, costMs,
                     esc(status), esc(errCode), esc(bizId));
         } catch (Exception e) {
-            System.err.println("[DigestLogger.llm] " + e.getMessage());
+            FALLBACK.error("[DigestLogger.llm] {}", e.getMessage(), e);
         }
     }
 
@@ -54,7 +55,7 @@ public final class DigestLogger {
                     esc(api), esc(videoId), costMs,
                     esc(status), esc(errCode), esc(channelId));
         } catch (Exception e) {
-            System.err.println("[DigestLogger.youtube] " + e.getMessage());
+            FALLBACK.error("[DigestLogger.youtube] {}", e.getMessage(), e);
         }
     }
 
@@ -68,7 +69,7 @@ public final class DigestLogger {
                     esc(api), esc(bucket), esc(objectKey), sizeBytes,
                     costMs, esc(status), esc(errCode));
         } catch (Exception e) {
-            System.err.println("[DigestLogger.oss] " + e.getMessage());
+            FALLBACK.error("[DigestLogger.oss] {}", e.getMessage(), e);
         }
     }
 
@@ -82,7 +83,7 @@ public final class DigestLogger {
                     esc(api), esc(channelUrl), esc(method), costMs,
                     esc(status), esc(errCode), esc(resultUrl));
         } catch (Exception e) {
-            System.err.println("[DigestLogger.opencrawl] " + e.getMessage());
+            FALLBACK.error("[DigestLogger.opencrawl] {}", e.getMessage(), e);
         }
     }
 
@@ -96,7 +97,7 @@ public final class DigestLogger {
                     esc(taskId), esc(bizType),
                     esc(oldStatus), esc(newStatus), progress);
         } catch (Exception e) {
-            System.err.println("[DigestLogger.task] " + e.getMessage());
+            FALLBACK.error("[DigestLogger.task] {}", e.getMessage(), e);
         }
     }
 
